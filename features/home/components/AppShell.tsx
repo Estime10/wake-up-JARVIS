@@ -11,8 +11,8 @@ type AppShellProps = {
 };
 
 /**
- * Coquille `(main)` — 75/25.
- * Motion entrée : `useHomeEnterMotion` (mark + panneau + chrome synchronisés).
+ * Coquille `(main)` — 75/25 dès le premier paint (slot mark stable).
+ * Motion entrée : `useHomeEnterMotion`.
  */
 export function AppShell({ children, side }: AppShellProps) {
   const { shellRef, sideRef } = useHomeEnterMotion();
@@ -20,7 +20,7 @@ export function AppShell({ children, side }: AppShellProps) {
   return (
     <div
       ref={shellRef}
-      className="grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,100%)_minmax(0,0fr)]"
+      className="grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,75%)_minmax(0,25%)]"
     >
       <section className="relative min-h-0 min-w-0">{children}</section>
       <aside

@@ -4,27 +4,13 @@ import { useSyncExternalStore } from "react";
 
 import { snapshotInboxMailCount } from "@/features/intro/model/snapshotInboxMailCount";
 
-let sessionSnapshot: number | null = null;
-
-function subscribeNoop(): () => void {
-  return () => {};
-}
-
-function readCountClient(): number {
-  if (sessionSnapshot === null) {
-    sessionSnapshot = snapshotInboxMailCount();
-  }
-  return sessionSnapshot;
-}
-
-function readCountServer(): null {
-  return null;
-}
-
 /**
- * Total mails reçus à l'ouverture — figé pour la session.
- * `null` avant hydratation (pas d'écart SSR).
+ * Total mails — fixture stable SSR = client (pas de flash au refresh).
  */
-export function useInboxMailCount(): number | null {
-  return useSyncExternalStore(subscribeNoop, readCountClient, readCountServer);
+export function useInboxMailCount(): number {
+  return useSyncExternalStore(
+    () => () => {},
+    snapshotInboxMailCount,
+    snapshotInboxMailCount,
+  );
 }

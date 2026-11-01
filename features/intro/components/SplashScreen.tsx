@@ -31,7 +31,7 @@ function SplashScreenPlaying({
   const { scopeRef, skip } = useIntroTimeline({
     mode,
     reducedMotion,
-    greetingReady: greetingText !== null,
+    greetingReady: true,
     onComplete,
   });
 
@@ -47,7 +47,7 @@ function SplashScreenPlaying({
         <SplashMarkStage />
         <div className="flex min-h-16 flex-col items-center justify-center gap-2">
           <SplashWordmark />
-          {greetingText ? <SplashGreeting text={greetingText} /> : null}
+          <SplashGreeting text={greetingText} />
         </div>
       </div>
     </SplashBackdrop>

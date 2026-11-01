@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 import { formatIntroClock } from "@/features/intro/model/formatIntroClock";
+import { t } from "@/lib/i18n";
 
 function subscribeClock(onStoreChange: () => void): () => void {
   const id = window.setInterval(onStoreChange, 30_000);
@@ -15,14 +16,15 @@ function readClockClient(): string {
   return formatIntroClock(new Date());
 }
 
-function readClockServer(): null {
-  return null;
+/** Placeholder stable — même string SSR / 1er client avant tick. */
+function readClockServer(): string {
+  return t("intro.clockPlaceholder");
 }
 
 /**
- * Horloge HUD après hydratation.
- * `null` côté serveur / snapshot → pas d'écart d'hydratation.
+ * Horloge HUD.
+ * SSR et hydratation : placeholder ; le vrai horaire après mount (pas de null).
  */
-export function useIntroClock(): string | null {
+export function useIntroClock(): string {
   return useSyncExternalStore(subscribeClock, readClockClient, readClockServer);
 }

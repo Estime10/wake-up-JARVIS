@@ -11,8 +11,13 @@ import {
   hasPendingHomeEnter,
   onHomeEnterComplete,
 } from "@/features/jarvis/model/homeEnterHandoff";
-import { MARK_DOM, queryMarkSlot } from "@/features/jarvis/model/markDom";
+import {
+  MARK_DOM,
+  queryMarkSlot,
+  type MarkSlotName,
+} from "@/features/jarvis/model/markDom";
 import { startDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
+import { cn } from "@/lib/cn";
 import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 
 gsap.registerPlugin(useGSAP);
@@ -21,9 +26,25 @@ function isHomePath(pathname: string): boolean {
   return pathname === "/home" || pathname.startsWith("/home/");
 }
 
+function placeMarkOnSlot(
+  mark: HTMLElement,
+  slotName: MarkSlotName,
+  opts?: { opacity?: number },
+): boolean {
+  const slot = queryMarkSlot(slotName);
+  if (!slot) {
+    return false;
+  }
+  placeOnRect(mark, slot.getBoundingClientRect());
+  if (opts?.opacity !== undefined) {
+    gsap.set(mark, { opacity: opts.opacity });
+  }
+  return true;
+}
+
 /**
- * Unique mark de session — ne snappe jamais home tant que phase splash
- * (la timeline enter gère le scale-down).
+ * Unique mark de session — toujours le même nœud DOM (fixed).
+ * Pas de portal (remount = timeline intro cassée).
  */
 export function PersistentMark() {
   const pathname = usePathname();
@@ -48,34 +69,32 @@ export function PersistentMark() {
       pointerEvents: "none",
     });
 
-    // Depuis splash : ne pas toucher top/size — la timeline enter gère le scale-down.
-    if (home && phaseRef.current === "splash") {
+    if (home && hasPendingHomeEnter()) {
       gsap.set(mark, { opacity: 1 });
+      return onHomeEnterComplete(() => {
+        phaseRef.current = "home";
+        placeMarkOnSlot(mark, "home", { opacity: 1 });
+      });
+    }
 
-      if (hasPendingHomeEnter()) {
-        return onHomeEnterComplete(() => {
-          phaseRef.current = "home";
-        });
-      }
-
+    if (home && phaseRef.current === "splash") {
       phaseRef.current = "home";
+      placeMarkOnSlot(mark, "home", { opacity: 1 });
       return undefined;
     }
 
-    const slotName = home ? "home" : "splash";
-    const slot = queryMarkSlot(slotName);
-    if (!slot) {
-      return;
+    const slotName: MarkSlotName = home ? "home" : "splash";
+    // Splash : ne pas forcer opacity — la timeline GSAP gère l’apparition.
+    const placed = placeMarkOnSlot(
+      mark,
+      slotName,
+      home ? { opacity: 1 } : undefined,
+    );
+    if (placed) {
+      phaseRef.current = slotName;
     }
-
-    placeOnRect(mark, slot.getBoundingClientRect());
-    if (home) {
-      gsap.set(mark, { opacity: 1 });
-    }
-    phaseRef.current = slotName;
-
     return undefined;
-  }, [home, pathname, reducedMotion]);
+  }, [home, pathname]);
 
   useGSAP(
     () => {
@@ -102,7 +121,10 @@ export function PersistentMark() {
       ref={markRef}
       data-intro="mark"
       data-jarvis-mark="ring"
-      className="pointer-events-none fixed z-[60] text-accent"
+      className={cn(
+        "pointer-events-none fixed z-[60] text-accent",
+        !home && "opacity-0",
+      )}
       aria-hidden
     >
       <JarvisMark className="size-full" />

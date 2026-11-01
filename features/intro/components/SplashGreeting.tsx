@@ -19,7 +19,7 @@ export function SplashGreeting({ text, settled = false }: SplashGreetingProps) {
         settled ? "opacity-100" : "opacity-0",
       )}
     >
-      <span aria-hidden>
+      <span aria-hidden suppressHydrationWarning>
         {text}
         <span className="greeting-cursor ml-0.5 text-accent">|</span>
       </span>

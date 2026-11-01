@@ -7,7 +7,7 @@ type MarkSlotProps = {
   className?: string;
 };
 
-/** Emplacement réservé — le vrai `JarvisMark` vit dans `PersistentMark`. */
+/** Emplacement réservé — le mark réel reste un nœud fixed unique. */
 export function MarkSlot({ name, className }: MarkSlotProps) {
   return (
     <div

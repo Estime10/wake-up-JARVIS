@@ -13,7 +13,6 @@ export const MARK_DOM = {
   wordmark: '[data-intro="wordmark"]',
   greeting: '[data-intro="greeting"]',
   composer: '[data-home="composer"]',
-  chrome: '[data-home="chrome"]',
   ringDial: "[data-jarvis='ring-dial']",
 } as const;
 
@@ -52,8 +51,4 @@ export function queryGreeting(): HTMLElement | null {
 
 export function queryComposer(): HTMLElement | null {
   return document.querySelector<HTMLElement>(MARK_DOM.composer);
-}
-
-export function queryChrome(): HTMLElement | null {
-  return document.querySelector<HTMLElement>(MARK_DOM.chrome);
 }

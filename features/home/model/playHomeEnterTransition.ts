@@ -16,7 +16,6 @@ import {
   type SplashEnterSnapshot,
 } from "@/features/jarvis/model/homeEnterHandoff";
 import {
-  queryChrome,
   queryComposer,
   queryGreeting,
   queryMark,
@@ -35,7 +34,7 @@ type PlayHomeEnterTransitionArgs = {
 };
 
 /**
- * Timeline unique : mark scale-down + panneau + textes + composer + HUD.
+ * Timeline unique : mark scale-down + panneau + textes + composer.
  * Le mark part TOUJOURS des bounds splash capturés (scale explicite).
  */
 export function playHomeEnterTransition({
@@ -49,7 +48,6 @@ export function playHomeEnterTransition({
   const wordmark = queryWordmark();
   const greeting = queryGreeting();
   const composer = queryComposer();
-  const chrome = queryChrome();
 
   if (reducedMotion || !slot) {
     setSidePanelOpen(shell, aside);
@@ -87,9 +85,6 @@ export function playHomeEnterTransition({
   if (composer) {
     gsap.set(composer, { opacity: 0, y: 40 });
   }
-  if (chrome) {
-    gsap.set(chrome, { opacity: 0 });
-  }
 
   const pinned = [wordmark, greeting].filter(Boolean) as HTMLElement[];
 
@@ -118,9 +113,6 @@ export function playHomeEnterTransition({
     tweenToBounds(tl, greeting, greetingTo, DURATION);
   }
 
-  if (chrome) {
-    tl.to(chrome, { opacity: 1, duration: 0.85, ease: "power2.out" }, 0.12);
-  }
   if (composer) {
     tl.to(
       composer,

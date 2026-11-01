@@ -50,11 +50,9 @@ export function SplashHudChrome({
         </div>
 
         <div className="absolute top-6 right-6 flex flex-col items-end gap-1 sm:top-8 sm:right-8">
-          {mailCount !== null ? (
-            <p className="t-mono text-xs sm:text-sm">
-              {t("intro.mailTotal", { count: mailCount })}
-            </p>
-          ) : null}
+          <p className="t-mono text-xs sm:text-sm">
+            {t("intro.mailTotal", { count: mailCount })}
+          </p>
           <p
             className={cn(
               "t-mono text-xs sm:text-sm",
@@ -66,7 +64,9 @@ export function SplashHudChrome({
         </div>
 
         <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8">
-          <p className="t-mono text-xs sm:text-sm">{clock ?? "—:— · —.—.—"}</p>
+          <p className="t-mono text-xs sm:text-sm" suppressHydrationWarning>
+            {clock}
+          </p>
         </div>
 
         <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8">

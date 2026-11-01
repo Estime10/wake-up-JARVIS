@@ -24,6 +24,7 @@ export const fr = {
     /** Décor HUD — monospaces, jamais uppercase CSS (lisibilité l/1). */
     latLon: "LAT 50.85 N — LON 4.35 E",
     initProgress: "INIT · {percent} %",
+    clockPlaceholder: "—:— · —.—.—",
   },
   greeting: {
     morning: "Bonjour, {name}",
@@ -39,6 +40,9 @@ export const fr = {
     journalEmpty: "Aucune entrée journal pour le moment.",
     composerLabel: "Message à JARVIS",
     composerPlaceholder: "Écris à JARVIS…",
+    composerListening: "Écoute…",
+    composerMic: "Micro",
+    composerSend: "Envoyer",
     composerHints: "Entrée · Maj+Entrée · Ctrl+Maj+Espace",
   },
 } as const;
