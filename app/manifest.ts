@@ -1,20 +1,22 @@
 import type { MetadataRoute } from "next";
 
 import { icons } from "@/lib/assets";
+import { t } from "@/lib/i18n";
+import { theme } from "@/lib/theme/tokens";
 
-/** Seul manifest de l'app (pas de public/manifest.json). Couleurs = fond DA v3-blanc. */
+/** Seul manifest de l'app (pas de public/manifest.json). Couleurs = tokens DA. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
     lang: "fr",
-    name: "JARVIS",
-    short_name: "JARVIS",
-    description: "Assistant JARVIS",
+    name: t("app.name"),
+    short_name: t("app.shortName"),
+    description: t("app.description"),
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#0B0B0C",
-    theme_color: "#0B0B0C",
+    background_color: theme.color.bg,
+    theme_color: theme.color.bg,
     icons: [
       {
         src: icons.icon192,

@@ -1,22 +1,6 @@
-import { useId } from "react";
+/** Segments de masque de la traînée JARVIS (données pures). */
 
-/**
- * Logo JARVIS (DA v3-blanc), repris de public/assets/jarvis-mark.svg
- * (chemin exporté via `@/lib/assets`).
- * Server Component : aucun état, aucun effet, aucun handler.
- * Couleur héritée via currentColor. Décoratif par défaut (aria-hidden) ;
- * passer `title` pour un usage informatif (role="img" + <title>).
- * Les ids SVG passent par useId : plusieurs logos sur la même page ne se marchent pas dessus.
- */
-
-type JarvisMarkProps = {
-  /** Nom accessible. Absent = logo décoratif, masqué aux lecteurs d'écran. */
-  title?: string;
-  className?: string;
-};
-
-/** Dégradé de la traînée : segments d'arc [tracé, gris du masque], du plus sombre au plus clair. */
-const TRAIL_FADE_SEGMENTS: ReadonlyArray<readonly [string, string]> = [
+export const TRAIL_FADE_SEGMENTS: ReadonlyArray<readonly [string, string]> = [
   ["M411.9 166.0A180 180 0 0 1 416.6 174.7", "#0F0F0F"],
   ["M415.9 173.4A180 180 0 0 1 420.2 182.3", "#101010"],
   ["M419.6 180.9A180 180 0 0 1 423.5 190.0", "#101010"],
@@ -138,82 +122,3 @@ const TRAIL_FADE_SEGMENTS: ReadonlyArray<readonly [string, string]> = [
   ["M301.6 81.9A180 180 0 0 1 311.1 84.6", "#EFEFEF"],
   ["M309.6 84.2A180 180 0 0 1 317.6 86.9", "#F2F2F2"],
 ];
-
-export function JarvisMark({ title, className }: JarvisMarkProps) {
-  const uid = useId();
-  const maskId = `${uid}-trail-fade`;
-  const haloId = `${uid}-halo-fill`;
-  const coreId = `${uid}-core-fill`;
-  const titleId = `${uid}-title`;
-  const informative = typeof title === "string" && title.length > 0;
-
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 512 512"
-      className={className}
-      focusable="false"
-      {...(informative
-        ? { role: "img", "aria-labelledby": titleId }
-        : { "aria-hidden": true })}
-    >
-      {informative ? <title id={titleId}>{title}</title> : null}
-      <defs>
-        <mask
-          id={maskId}
-          maskUnits="userSpaceOnUse"
-          x="0"
-          y="0"
-          width="512"
-          height="512"
-        >
-          <g fill="none" strokeWidth="16">
-            {TRAIL_FADE_SEGMENTS.map(([d, stroke]) => (
-              <path key={d} d={d} stroke={stroke} />
-            ))}
-          </g>
-        </mask>
-        <radialGradient id={haloId}>
-          <stop offset="0" stopColor="currentColor" stopOpacity="0.22" />
-          <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={coreId}>
-          <stop offset="0" stopColor="currentColor" stopOpacity="0.95" />
-          <stop offset="1" stopColor="currentColor" stopOpacity="0.55" />
-        </radialGradient>
-      </defs>
-      <circle
-        cx="256"
-        cy="256"
-        r="222"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity="0.12"
-        strokeWidth="2"
-      />
-      <circle
-        cx="256"
-        cy="256"
-        r="140"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity="0.12"
-        strokeWidth="2"
-        strokeDasharray="2 10"
-      />
-      <g>
-        <path
-          d="M411.9 166.0A180 180 0 1 1 317.6 86.9"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="14"
-          mask={`url(#${maskId})`}
-        />
-        <circle cx="317.6" cy="86.9" r="30" fill={`url(#${haloId})`} />
-        <circle cx="317.6" cy="86.9" r="11" fill="currentColor" />
-      </g>
-      <circle cx="256" cy="256" r="64" fill={`url(#${haloId})`} />
-      <circle cx="256" cy="256" r="26" fill={`url(#${coreId})`} />
-    </svg>
-  );
-}

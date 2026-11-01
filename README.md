@@ -190,8 +190,8 @@ wake-up-JARVIS/
 ├─ app/            # routes + composition (layout, page, manifest, providers, ports-context, dev/states)
 │                  #   + icônes : icon.svg, favicon.ico, apple-icon.png
 ├─ public/         # fichiers statiques : assets/jarvis-mark.svg, icons/ (PWA)
-├─ features/       # écrans (intro, conversation, settings…) — créés à la demande
-├─ components/ui/  # composants réutilisables (JarvisMark, boutons, badges, Copier…)
+├─ features/       # écrans : orchestrateur PascalCase à la racine, puis components/ hooks/ model/
+├─ components/ui/  # composants réutilisables (JarvisMark, VisuallyHidden…)
 ├─ lib/            # domaine pur + assets/index.ts (chemins public/ centralisés)
 
 ├─ ports/          # interfaces : LlmPort, VoicePort, ActionPort, MemoryPort, MailPort
@@ -207,7 +207,12 @@ Version complète : [PLAN-UI.md §1.8](./PLAN-UI.md).
 ## 9) Conventions
 
 - **Écrans vs composants** : `features/` = écrans ; `components/ui/` = composants réutilisables.
-- **Assets** : fichiers dans `public/` ; chemins importés uniquement via `@/lib/assets` (pas de chemins en dur).
+- **Nommage** : composants en PascalCase (`SplashEntry.tsx`) ; hooks/model en camelCase (`useIntroTimeline.ts`). Pas de kebab-case.
+- **Feature** : orchestrateur à la racine du dossier ; sous-fichiers dans `components/`, `hooks/`, `model/`.
+- **Tokens** : couleurs / tracking / spacing uniquement via `@theme` (`bg-bg`, `text-accent`, `tracking-label`…). Pas de hex en dur dans l'UI.
+- **i18n** : aucun libellé en dur dans l'UI — clés typées via `t("intro.skip")` (`lib/i18n/messages/fr.ts`).
+- **Primitives** : un dossier par composant UI (`components/ui/Button/`, variants isolés) ; hooks partagés dans `lib/hooks/` ; hooks feature découpés (SRP).
+- **Assets** : fichiers dans `public/` ; chemins importés uniquement via `@/lib/assets`.
 - **L'UI ne connaît que les ports** : interdit d'importer un adapter (`@/adapters`, `@/adapters/**`, `**/adapters/**`) hors de `app/providers.tsx` (bloqué par ESLint à partir de l'étape 7).
 - **Métier dans `lib/`** : fonctions pures, sans React ni navigateur, testées avec Vitest.
 - **Server Components par défaut** ; `"use client"` seulement aux **points d'entrée** client (Providers, ports-context, MainScreen, IntroOverlay, SidePanel, SettingsDialog, bouton Copier, îlots de `/dev/states`). Voir [PLAN-UI.md §2.0](./PLAN-UI.md).

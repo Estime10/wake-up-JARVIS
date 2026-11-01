@@ -1,0 +1,4 @@
+/** Durées en ms — miroir des tokens CSS (`--duration-intro-*`). */
+export const INTRO_DURATION_FULL_MS = 3500;
+export const INTRO_DURATION_SHORT_MS = 800;
+export const INTRO_DURATION_REDUCED_MS = 300;

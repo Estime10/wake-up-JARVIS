@@ -327,13 +327,13 @@ wake-up-JARVIS/                # dossier du dépôt (nom du paquet : wake-up-jar
 │     ├─ page.tsx              # Server
 │     └─ islands.tsx           # Client : îlots interactifs de la galerie
 ├─ features/                   # écrans uniquement — créés à la demande
-│  ├─ intro/                   # IntroOverlay, SkipIntroButton…
+│  ├─ intro/                   # SplashEntry.tsx (orchestrateur) + components/ hooks/ model/
 │  ├─ conversation/            # MainScreen (Client, point d'entrée), Conversation, Composer…
 │  ├─ actions/                 # ActionCard et cycle de vie affiché
 │  ├─ journal/
 │  ├─ mail/
 │  └─ settings/
-├─ components/ui/              # composants réutilisables : JarvisMark, Button, IconButton, StatusBadge, VisuallyHidden, Panel, copy-button.tsx (Client), VoiceRing…
+├─ components/ui/              # réutilisables PascalCase : JarvisMark.tsx, VisuallyHidden.tsx, Button…
 ├─ lib/                        # domaine PUR (aucun React, aucun navigateur, aucun fetch)
 │  ├─ assets/index.ts          # SEUL point d'import des chemins public/ (jarvisMark, icons.*)
 │  ├─ assistant/
@@ -365,10 +365,11 @@ wake-up-JARVIS/                # dossier du dépôt (nom du paquet : wake-up-jar
 
 Règles de rangement :
 
-- **`features/` = écrans** : composition d'un écran (ou d'un panneau d'écran), hooks et model propres à cet écran. Créés à la demande, pas de dossiers vides.
-- **`components/ui/` = composants réutilisables** : visuel pur ou primitive partagée (logo, boutons, anneau, badges…). Pas de logique métier ni d'appel aux ports.
+- **`features/` = écrans** : orchestrateur PascalCase à la racine (`SplashEntry.tsx`) ; sous-fichiers dans `components/`, `hooks/`, `model/`. Créés à la demande, pas de dossiers vides.
+- **`components/ui/` = composants réutilisables** : PascalCase (`JarvisMark.tsx`). Visuel pur, pas de logique métier ni d'appel aux ports.
+- **Nommage** : composants PascalCase ; hooks/fonctions camelCase (`useIntroTimeline.ts`, `createIntroTimeline.ts`). **Pas de kebab-case.**
 - **`public/` = fichiers binaires/SVG** ; **`lib/assets`** = barrel des chemins (`import { jarvisMark, icons } from "@/lib/assets"`). Pas de TypeScript dans `public/`.
-- **Sous-dossiers d'écran créés à la demande** : `hooks/` (logique client qui parle aux ports : `useAssistant`, `useVoiceSim`…) et `model/` (types / mappers propres à l'écran) seulement au premier besoin.
+- **Sous-dossiers d'écran créés à la demande** : `components/` (UI de l'écran), `hooks/` (logique client), `model/` (timeline, mappers…) seulement au premier besoin.
 - **Un seul dossier `fixtures/`**, à la racine : pas de `features/*/mocks` en doublon. Il est à la racine (et pas dans `adapters/mock/`) parce que le motif ESLint `**/adapters/**` bloquerait son import depuis `/dev/states`.
 - **`ports-context.tsx` est déplacé dans `app/`** (choix fait plutôt que d'acter une exception) : c'est du React client, alors que `ports/` ne contient que des interfaces.
 - Fichiers de test : `*.test.ts(x)` à côté du code (Vitest) ; `*.spec.ts` uniquement dans `e2e/` (Playwright).
@@ -513,13 +514,13 @@ export default function DevStatesPage() {
 
 #### intro
 
-| Composant                                      | Type                 | Rôle                                                                                                                                                                       | Props / états                                                                                                             | Données                                                              |
-| ---------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `IntroOverlay`                                 | E                    | Joue l'intro complète (~3,5 s) ou courte (~0,8 s), ou rien                                                                                                                 | `mode: "full" \| "short" \| "none" \| null` (`null` = pas encore connu, rendu neutre) ; états internes `playing` / `done` | Préférences via `useSyncExternalStore` ; salut calculé après montage |
-| `IntroRing`                                    | C                    | SVG : point de lumière, anneau, 2–3 arcs, ligne de scan ; porte `data-flip-id="ring"`                                                                                      | piloté par la timeline GSAP                                                                                               | —                                                                    |
-| `IntroGreeting`                                | C                    | « JARVIS » puis « Bonsoir, DevinChat » lettre par lettre                                                                                                                   | `text` ; lettres en `aria-hidden`, texte complet en `VisuallyHidden`                                                      | `greeting(hour)`                                                     |
-| `SkipIntroButton`                              | C                    | Bouton « Passer » 44 px, visible et focusable dès le début                                                                                                                 | `onSkip`                                                                                                                  | —                                                                    |
-| `JarvisMark` (`components/ui/jarvis-mark.tsx`) | à préciser par PIXEL | Logo JARVIS en SVG ; source `public/assets/jarvis-mark.svg` (chemin via `@/lib/assets`) ; ids du masque et des dégradés générés par **`useId`** ; règles SVG de l'annexe 6 | —                                                                                                                         | —                                                                    |
+| Composant                                     | Type                 | Rôle                                                                                                                                                                       | Props / états                                                                                                             | Données                                                              |
+| --------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `IntroOverlay`                                | E                    | Joue l'intro complète (~3,5 s) ou courte (~0,8 s), ou rien                                                                                                                 | `mode: "full" \| "short" \| "none" \| null` (`null` = pas encore connu, rendu neutre) ; états internes `playing` / `done` | Préférences via `useSyncExternalStore` ; salut calculé après montage |
+| `IntroRing`                                   | C                    | SVG : point de lumière, anneau, 2–3 arcs, ligne de scan ; porte `data-flip-id="ring"`                                                                                      | piloté par la timeline GSAP                                                                                               | —                                                                    |
+| `IntroGreeting`                               | C                    | « JARVIS » puis « Bonsoir, DevinChat » lettre par lettre                                                                                                                   | `text` ; lettres en `aria-hidden`, texte complet en `VisuallyHidden`                                                      | `greeting(hour)`                                                     |
+| `SkipIntroButton`                             | C                    | Bouton « Passer » 44 px, visible et focusable dès le début                                                                                                                 | `onSkip`                                                                                                                  | —                                                                    |
+| `JarvisMark` (`components/ui/JarvisMark.tsx`) | à préciser par PIXEL | Logo JARVIS en SVG ; source `public/assets/jarvis-mark.svg` (chemin via `@/lib/assets`) ; ids du masque et des dégradés générés par **`useId`** ; règles SVG de l'annexe 6 | —                                                                                                                         | —                                                                    |
 
 Règles intro :
 
@@ -1092,7 +1093,7 @@ Règles :
 ### 3.7 Marque : logo et icônes (DA v3, validée)
 
 - **Un seul manifest** : `app/manifest.ts` (pas de `public/manifest.webmanifest`).
-- **Logo** : composant `components/ui/jarvis-mark.tsx`, avec **`useId`** pour les ids du masque et des dégradés. Source : `public/assets/jarvis-mark.svg` (chemin via `@/lib/assets`).
+- **Logo** : composant `components/ui/JarvisMark.tsx`, avec **`useId`** pour les ids du masque et des dégradés. Source : `public/assets/jarvis-mark.svg` (chemin via `@/lib/assets`).
 - **Exports PNG** faits **une seule fois**, sans script ni dépendance.
 - **Fichiers** : `app/apple-icon.png`, `app/favicon.ico` (remplace celui de Next), `app/icon.svg`, `public/assets/jarvis-mark.svg`, `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/icon-maskable-512.png`. Chemins app via `@/lib/assets`.
 - **Règles SVG** : voir annexe 6, point 11.
@@ -1314,7 +1315,7 @@ Rappel : **DevinChat commit et push lui-même**. L'équipe relit : **PIXEL** (fr
 
 - **Node** : `brew upgrade node` sur le Mac (25.5.0) avant que Vitest tourne (étape 5).
 - **Payload signé v1 en JCS** (annexe 6, point 10) ; les lectures ne passent jamais par la signature.
-- **Un seul manifest** (`app/manifest.ts`) ; logo en composant `jarvis-mark.tsx` avec `useId` ; exports PNG faits une fois, sans script ni dépendance.
+- **Un seul manifest** (`app/manifest.ts`) ; logo en composant `JarvisMark.tsx` avec `useId` ; exports PNG faits une fois, sans script ni dépendance.
 - **Cible macOS uniquement** (ADR 0005) : raccourci par défaut Ctrl+Maj+Espace, signature Touch ID ou mot de passe du Mac.
 - **ESLint + Prettier** plutôt que Biome (garde-fous d'import et `no-danger`) ; Husky + lint-staged au commit.
 - **PWA = `app/manifest.ts` natif**, pas de Serwist ni de service worker dans la phase UI.
