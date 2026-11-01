@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
+import { JarvisShell } from "@/features/jarvis/JarvisShell";
 import { t } from "@/lib/i18n";
 
 import "./globals.css";
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fr"
       className={`${plexSans.variable} ${plexMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <JarvisShell>{children}</JarvisShell>
+      </body>
     </html>
   );
 }

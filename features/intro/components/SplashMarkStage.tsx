@@ -1,15 +1,11 @@
-import { JarvisMark } from "@/components/ui/JarvisMark";
+import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
 
-/** Logo intro — taille calée sur la maquette 01-intro. */
+/** Emplacement splash — le mark réel est `PersistentMark`. */
 export function SplashMarkStage() {
   return (
-    <div
-      data-flip-id="ring"
-      data-intro="mark"
-      className="relative flex size-[min(72vw,22rem)] items-center justify-center text-accent opacity-0 sm:size-[min(52vw,28rem)]"
-      aria-hidden
-    >
-      <JarvisMark className="size-full" />
-    </div>
+    <MarkSlot
+      name="splash"
+      className="size-[min(72vw,22rem)] sm:size-[min(52vw,28rem)]"
+    />
   );
 }

@@ -6,7 +6,7 @@ import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineT
 import { padTimelineToDuration } from "@/features/intro/model/padTimelineToDuration";
 import { prepareHiddenTargets } from "@/features/intro/model/prepareHiddenTargets";
 import { prepareMarkParts } from "@/features/intro/model/prepareMarkParts";
-import { scheduleDialIdleSpin } from "@/features/intro/model/startDialIdleSpin";
+import { scheduleDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
 import { scheduleWakeBarsIdlePulse } from "@/features/intro/model/startWakeBarsIdlePulse";
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_SHORT_MS } from "@/lib/intro/timings";

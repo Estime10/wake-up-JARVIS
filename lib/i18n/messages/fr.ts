@@ -7,7 +7,6 @@ export const fr = {
     name: "JARVIS",
     shortName: "JARVIS",
     description: "Assistant JARVIS",
-    systemReady: "Système prêt",
   },
   user: {
     displayName: "DevinChat",
@@ -15,8 +14,8 @@ export const fr = {
   intro: {
     /** Total mails reçus au moment de l'ouverture (snapshot). */
     mailTotal: "{count} mails",
-    /** Température locale à l'ouverture (snapshot mock). */
-    temperature: "{celsius} °C",
+    online: "EN LIGNE",
+    offline: "HORS LIGNE",
     /** Sigle : capitales dans la source (exception DA). */
     wordmark: "JARVIS",
     wakeDetected: "Réveil détecté : « {phrase} »",
@@ -32,8 +31,15 @@ export const fr = {
   },
   home: {
     sidePanelLabel: "Panneau latéral",
+    sideTabsLabel: "Journal et mails",
     tabJournal: "Journal",
-    sideEmpty: "Le journal et les mails arriveront ici.",
+    tabMails: "Mails",
+    entriesCount: "{count} entrées",
+    filterAll: "Filtre : Tous",
+    journalEmpty: "Aucune entrée journal pour le moment.",
+    composerLabel: "Message à JARVIS",
+    composerPlaceholder: "Écris à JARVIS…",
+    composerHints: "Entrée · Maj+Entrée · Ctrl+Maj+Espace",
   },
 } as const;
 

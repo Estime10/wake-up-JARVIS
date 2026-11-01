@@ -2,20 +2,25 @@
 
 import { useInboxMailCount } from "@/features/intro/hooks/useInboxMailCount";
 import { useIntroClock } from "@/features/intro/hooks/useIntroClock";
-import { useLocalTemperature } from "@/features/intro/hooks/useLocalTemperature";
 import { cn } from "@/lib/cn";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import { t } from "@/lib/i18n";
 
 type SplashHudChromeProps = {
   /** État final visible (home) — pas d'opacité 0 pour GSAP intro. */
   settled?: boolean;
+  /** Ligne « Réveil détecté » — intro seulement. */
+  showWake?: boolean;
 };
 
 /** Méta HUD — intro (targets GSAP) ou home figé (`settled`). */
-export function SplashHudChrome({ settled = false }: SplashHudChromeProps) {
+export function SplashHudChrome({
+  settled = false,
+  showWake = true,
+}: SplashHudChromeProps) {
   const clock = useIntroClock();
   const mailCount = useInboxMailCount();
-  const temperature = useLocalTemperature();
+  const online = useOnlineStatus();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
 
   return (
@@ -50,11 +55,14 @@ export function SplashHudChrome({ settled = false }: SplashHudChromeProps) {
               {t("intro.mailTotal", { count: mailCount })}
             </p>
           ) : null}
-          {temperature !== null ? (
-            <p className="t-mono text-xs sm:text-sm">
-              {t("intro.temperature", { celsius: temperature })}
-            </p>
-          ) : null}
+          <p
+            className={cn(
+              "t-mono text-xs sm:text-sm",
+              online ? "text-success" : "text-danger",
+            )}
+          >
+            {online ? t("intro.online") : t("intro.offline")}
+          </p>
         </div>
 
         <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8">
@@ -62,26 +70,30 @@ export function SplashHudChrome({ settled = false }: SplashHudChromeProps) {
         </div>
 
         <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8">
-          <p className="t-mono text-xs sm:text-sm">{t("intro.sysNominal")}</p>
+          <p className="t-mono text-xs text-success sm:text-sm">
+            {t("intro.sysNominal")}
+          </p>
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8">
-        <WakeIcon settled={settled} />
-        <p className="t-mono truncate text-xs sm:text-sm">
-          {settled
-            ? wakeText
-            : wakeText.split("").map((char, index) => (
-                <span
-                  key={`${char}-${index}`}
-                  data-intro="wake-char"
-                  className="inline-block opacity-0"
-                >
-                  {char === " " ? "\u00A0" : char}
-                </span>
-              ))}
-        </p>
-      </div>
+      {showWake ? (
+        <div className="absolute bottom-6 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8">
+          <WakeIcon settled={settled} />
+          <p className="t-mono truncate text-xs sm:text-sm">
+            {settled
+              ? wakeText
+              : wakeText.split("").map((char, index) => (
+                  <span
+                    key={`${char}-${index}`}
+                    data-intro="wake-char"
+                    className="inline-block opacity-0"
+                  >
+                    {char === " " ? "\u00A0" : char}
+                  </span>
+                ))}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -90,7 +102,7 @@ function CornerBracket({ className }: { className: string }) {
   return (
     <span
       data-intro="hud-bracket"
-      className={cn("absolute size-5 border-hud-strong sm:size-6", className)}
+      className={cn("absolute size-5 border-accent/40 sm:size-6", className)}
     />
   );
 }
@@ -109,7 +121,7 @@ function WakeIcon({ settled }: { settled: boolean }) {
       data-intro="wake-icon"
       viewBox="0 0 18 16"
       className={cn(
-        "size-3.5 shrink-0 origin-center text-text-muted sm:size-4",
+        "size-3.5 shrink-0 origin-center text-accent sm:size-4",
         !settled && "opacity-0",
       )}
       fill="currentColor"

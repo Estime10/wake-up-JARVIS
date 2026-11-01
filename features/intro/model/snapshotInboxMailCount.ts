@@ -1,4 +1,4 @@
-import { MAIL_INBOX_TOTAL_AT_OPEN } from "@/fixtures/mailInboxTotal";
+import { MAIL_INBOX_TOTAL_AT_OPEN } from "@/fixtures/mails";
 
 /**
  * Snapshot du total mails à l'ouverture (domaine pur).
