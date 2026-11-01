@@ -40,12 +40,11 @@ export function HomeComposer({
     listenSeed,
   });
 
-  // Légende unique (l'ancien prop `hint` dupliquait ce ternaire).
   const caption = listening
     ? t("home.composerMicActive")
     : ghost
       ? t("home.composerVoiceOver")
-      : t("home.composerHints");
+      : null;
 
   return (
     <form
@@ -108,12 +107,14 @@ export function HomeComposer({
           <span aria-hidden>→</span>
         </Button>
       </div>
-      <p
-        className="t-mono mt-2 text-center text-sm text-text-muted"
-        aria-hidden={listening || undefined}
-      >
-        {caption}
-      </p>
+      {caption ? (
+        <p
+          className="t-mono mt-2 text-center text-sm text-text-muted"
+          aria-hidden={listening || undefined}
+        >
+          {caption}
+        </p>
+      ) : null}
     </form>
   );
 }

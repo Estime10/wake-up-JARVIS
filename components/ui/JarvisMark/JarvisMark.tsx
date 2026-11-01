@@ -1,5 +1,6 @@
 import { useId } from "react";
 
+import { ThinkHourglass } from "@/components/ui/JarvisMark/ThinkHourglass";
 import { TRAIL_FADE_SEGMENTS } from "@/components/ui/JarvisMark/trailFadeSegments";
 import {
   ERROR_EXCLAMATION_D,
@@ -192,17 +193,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
             />
           ))}
         </g>
-        <g
-          data-jarvis="think-hourglass"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          transform="translate(256 256) scale(2.6) translate(-12 -12)"
-        >
-          <path d="M7 3h10M7 21h10M8 3v3.5L12 12l4-5.5V3M8 21v-3.5L12 12l4 5.5V21" />
-        </g>
+        <ThinkHourglass />
       </g>
 
       {/* Parole — barres verticales SVG */}

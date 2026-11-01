@@ -134,7 +134,7 @@ function SideTabButton({
       tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       className={cn(
-        "t-label border-b-2 pb-3 text-sm transition-colors",
+        "t-label cursor-pointer border-b-2 pb-3 text-sm transition-colors",
         selected
           ? "border-accent text-accent"
           : "border-transparent text-text-muted hover:text-text",

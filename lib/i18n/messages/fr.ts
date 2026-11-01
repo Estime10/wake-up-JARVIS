@@ -14,17 +14,19 @@ export const fr = {
   intro: {
     /** Total mails reçus au moment de l'ouverture (snapshot). */
     mailTotal: "{count} mails",
-    /** Casse via CSS (`uppercase`) — source en minuscules. */
-    online: "en ligne",
-    offline: "hors ligne",
     /** Sigle : capitales dans la source (exception DA). */
     wordmark: "JARVIS",
     wakeDetected: "Réveil détecté : « {phrase} »",
     wakePhrase: "Wake up, JARVIS",
     sysNominal: "sys nominal",
-    /** Décor HUD — monospaces, jamais uppercase CSS (lisibilité l/1). */
-    latLon: "LAT 50.85 N — LON 4.35 E",
-    initProgress: "INIT · {percent} %",
+    /** HUD mono — coords GPS (jamais uppercase CSS : l/1). */
+    latLon: "LAT {lat} {ns} — LON {lon} {ew}",
+    latLonPending: "LAT — · — LON —",
+    latLonUnavailable: "LAT — · — LON —",
+    /** Lieu issu du reverse geocode. */
+    location: "LOC · {place}",
+    locationPending: "LOC · …",
+    locationUnavailable: "LOC · —",
     clockPlaceholder: "—:— · —.—.—",
     /** Bouton visible ; le nom accessible contient le texte visible (label-in-name). */
     skip: "Passer",
@@ -37,6 +39,9 @@ export const fr = {
   home: {
     /** Titre de page sr-only (h1 unique) — nom accessible de `main`. */
     title: "JARVIS, accueil",
+    /** CTA HUD — agent terminal (branchement réel plus tard). */
+    terminal: "Terminal",
+    terminalLabel: "Ouvrir le terminal",
     sidePanelLabel: "Panneau latéral",
     sideTabsLabel: "Journal et mails",
     tabJournal: "Journal",
@@ -54,7 +59,6 @@ export const fr = {
     composerVoiceOver:
       "La réponse est toujours écrite ; la voix s'ajoute par-dessus",
     composerSend: "Envoyer",
-    composerHints: "Entrée · Maj+Entrée · Ctrl+Maj+Espace",
     conversationLabel: "Conversation",
     you: "Toi",
     replying: "en train de répondre",

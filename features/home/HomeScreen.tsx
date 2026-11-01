@@ -70,7 +70,7 @@ export function HomeScreen() {
 
           <div
             data-home="composer"
-            className="mb-8 flex w-full justify-center sm:mb-10"
+            className="mb-5 flex w-full justify-center sm:mb-6"
           >
             <HomeComposer
               onSubmit={submit}
