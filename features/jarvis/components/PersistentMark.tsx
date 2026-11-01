@@ -1,6 +1,5 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
@@ -12,15 +11,10 @@ import {
   onHomeEnterComplete,
 } from "@/features/jarvis/model/homeEnterHandoff";
 import {
-  MARK_DOM,
   queryMarkSlot,
   type MarkSlotName,
 } from "@/features/jarvis/model/markDom";
-import { startDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
 import { cn } from "@/lib/cn";
-import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
-
-gsap.registerPlugin(useGSAP);
 
 function isHomePath(pathname: string): boolean {
   return pathname === "/home" || pathname.startsWith("/home/");
@@ -50,7 +44,6 @@ export function PersistentMark() {
   const pathname = usePathname();
   const markRef = useRef<HTMLDivElement | null>(null);
   const phaseRef = useRef<"home" | "splash" | null>(null);
-  const reducedMotion = usePrefersReducedMotion();
   const home = isHomePath(pathname);
 
   useLayoutEffect(() => {
@@ -95,26 +88,6 @@ export function PersistentMark() {
     }
     return undefined;
   }, [home, pathname]);
-
-  useGSAP(
-    () => {
-      if (!home || reducedMotion) {
-        return;
-      }
-      const dial = markRef.current?.querySelector<SVGGeometryElement>(
-        MARK_DOM.ringDial,
-      );
-      if (!dial) {
-        return;
-      }
-      startDialIdleSpin(dial);
-    },
-    {
-      scope: markRef,
-      dependencies: [home, reducedMotion],
-      revertOnUpdate: true,
-    },
-  );
 
   return (
     <div

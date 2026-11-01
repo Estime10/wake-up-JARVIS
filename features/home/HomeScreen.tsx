@@ -3,21 +3,36 @@
 import { useRef } from "react";
 
 import { HudAmbient } from "@/components/ui/HudAmbient";
+import { AssistantStage } from "@/features/home/components/AssistantStage";
+import { ConversationThread } from "@/features/home/components/ConversationThread";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
+import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
-import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
+import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
 import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
 import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
+import { t } from "@/lib/i18n";
+
+const MOCK_LISTEN_DRAFT = "Résume mes mails non lus de ce matin";
 
 /**
- * Home — chrome HUD en fade-in après la fin de l’enter motion.
+ * Home — idle / écoute / réfléchit / parole + fil conversation.
  */
 export function HomeScreen() {
   const greetingText = useIntroGreeting();
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
+
+  const { state, muted, messages, toggleListen, submit } =
+    useAssistantSession();
+
+  useVoiceRingMotion(state, muted);
+
+  const listening = state === "listening";
+  const busy = state === "thinking" || state === "speaking";
+  const showIdleBrand = state === "idle" && messages.length <= 1;
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg">
@@ -31,22 +46,41 @@ export function HomeScreen() {
       </div>
 
       <div className="relative z-10 flex h-full flex-col">
-        <div className="flex flex-1 flex-col items-center px-6 pt-12 sm:pt-14">
-          <MarkSlot
-            name="home"
-            className="size-[min(54vw,17rem)] sm:size-[min(38vw,18.5rem)]"
-          />
+        <div className="flex min-h-0 flex-1 flex-col items-center px-6 pt-10 sm:pt-12">
+          <AssistantStage state={state} />
 
-          <div className="mt-5 flex min-h-16 flex-col items-center justify-center gap-2">
-            <SplashWordmark settled />
-            <SplashGreeting text={greetingText} settled />
-          </div>
+          {showIdleBrand ? (
+            <div className="mt-5 flex min-h-16 flex-col items-center justify-center gap-2">
+              <SplashWordmark settled />
+              <SplashGreeting text={greetingText} settled />
+            </div>
+          ) : null}
+
+          {!showIdleBrand ? (
+            <ConversationThread messages={messages} />
+          ) : (
+            <div className="min-h-0 flex-1" />
+          )}
 
           <div
             data-home="composer"
-            className="mt-auto mb-16 flex w-full justify-center sm:mb-20"
+            className="mb-16 flex w-full justify-center sm:mb-20"
           >
-            <HomeComposer />
+            <HomeComposer
+              onSubmit={submit}
+              listening={listening}
+              onToggleListening={toggleListen}
+              disabled={busy}
+              ghost={state === "speaking"}
+              listenSeed={MOCK_LISTEN_DRAFT}
+              hint={
+                listening
+                  ? t("home.composerMicActive")
+                  : state === "speaking"
+                    ? t("home.composerVoiceOver")
+                    : undefined
+              }
+            />
           </div>
         </div>
       </div>

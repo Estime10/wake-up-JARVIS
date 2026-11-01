@@ -8,24 +8,51 @@ import { t } from "@/lib/i18n";
 
 type HomeComposerProps = {
   onSubmit?: (text: string) => void;
+  listening: boolean;
+  onToggleListening: () => void;
+  disabled?: boolean;
+  ghost?: boolean;
+  hint?: string | undefined;
+  listenSeed?: string | undefined;
 };
 
 /** Barre de saisie home — textarea, micro, envoi. */
-export function HomeComposer({ onSubmit }: HomeComposerProps) {
+export function HomeComposer({
+  onSubmit,
+  listening,
+  onToggleListening,
+  disabled = false,
+  ghost = false,
+  hint,
+  listenSeed,
+}: HomeComposerProps) {
   const {
     draft,
     setDraft,
     canSubmit,
-    listening,
-    toggleListening,
     textareaRef,
     handleSubmit,
     handleKeyDown,
-  } = useHomeComposer({ onSubmit });
+    handleMicClick,
+  } = useHomeComposer({
+    onSubmit,
+    listening,
+    onToggleListening,
+    disabled,
+    listenSeed,
+  });
+
+  const caption =
+    hint ??
+    (listening
+      ? t("home.composerMicActive")
+      : ghost
+        ? t("home.composerVoiceOver")
+        : t("home.composerHints"));
 
   return (
     <form
-      className="w-full max-w-xl px-6"
+      className={cn("w-full max-w-xl px-6", ghost && "opacity-45")}
       onSubmit={handleSubmit}
       aria-label={t("home.composerLabel")}
     >
@@ -37,9 +64,12 @@ export function HomeComposer({ onSubmit }: HomeComposerProps) {
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={t("home.composerMic")}
+          aria-label={
+            listening ? t("home.composerMicStop") : t("home.composerMic")
+          }
           aria-pressed={listening}
-          onClick={toggleListening}
+          disabled={disabled}
+          onClick={handleMicClick}
           className={cn(
             "mb-0.5 shrink-0 text-text-muted hover:text-text",
             listening && "text-accent hover:text-accent",
@@ -60,9 +90,10 @@ export function HomeComposer({ onSubmit }: HomeComposerProps) {
               ? t("home.composerListening")
               : t("home.composerPlaceholder")
           }
+          disabled={disabled}
           autoComplete="off"
           enterKeyHint="send"
-          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text-muted outline-none"
+          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text-muted outline-none disabled:cursor-not-allowed"
         />
         <Button
           type="submit"
@@ -76,7 +107,7 @@ export function HomeComposer({ onSubmit }: HomeComposerProps) {
         </Button>
       </div>
       <p className="t-mono mt-2 text-center text-xs text-text-muted">
-        {t("home.composerHints")}
+        {caption}
       </p>
     </form>
   );

@@ -1,11 +1,15 @@
 import { useId } from "react";
 
 import { TRAIL_FADE_SEGMENTS } from "@/components/ui/JarvisMark/trailFadeSegments";
+import {
+  LISTEN_SPOKES,
+  SPEAK_BARS,
+  THINK_SEGMENTS,
+} from "@/components/ui/JarvisMark/voiceRingGeometry";
 
 /**
- * Logo JARVIS (DA v3-blanc), repris de public/assets/jarvis-mark.svg
- * (chemin exporté via `@/lib/assets`).
- * Nœuds `data-jarvis` exposés pour GSAP (intro) : ring-outer, ring-dial, trail, head, core.
+ * Logo / anneau JARVIS (DA v3-blanc).
+ * Modes `data-jarvis="mode-*"` pilotés par GSAP (idle / écoute / réfléchit / parole).
  */
 
 type JarvisMarkProps = {
@@ -57,7 +61,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           <stop offset="1" stopColor="currentColor" stopOpacity="0.55" />
         </radialGradient>
       </defs>
-      {/* Arcs externes segmentés (maquette) — décor, hors flip. */}
+
       <circle
         data-jarvis="ring-accent"
         cx="256"
@@ -103,24 +107,115 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         strokeWidth="2"
         strokeDasharray="2 10"
       />
-      <g data-jarvis="trail-group">
-        <path
-          data-jarvis="trail"
-          d="M411.9 166.0A180 180 0 1 1 317.6 86.9"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="14"
-          strokeLinecap="round"
-          mask={`url(#${maskId})`}
-        />
-        <g data-jarvis="head">
-          <circle cx="317.6" cy="86.9" r="30" fill={`url(#${haloId})`} />
-          <circle cx="317.6" cy="86.9" r="11" fill="currentColor" />
+
+      {/* Idle — traînée + noyau */}
+      <g data-jarvis="mode-idle">
+        <g data-jarvis="trail-group">
+          <path
+            data-jarvis="trail"
+            d="M411.9 166.0A180 180 0 1 1 317.6 86.9"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="14"
+            strokeLinecap="round"
+            mask={`url(#${maskId})`}
+          />
+          <g data-jarvis="head">
+            <circle cx="317.6" cy="86.9" r="30" fill={`url(#${haloId})`} />
+            <circle cx="317.6" cy="86.9" r="11" fill="currentColor" />
+          </g>
+        </g>
+        <g data-jarvis="core">
+          <circle cx="256" cy="256" r="64" fill={`url(#${haloId})`} />
+          <circle cx="256" cy="256" r="26" fill={`url(#${coreId})`} />
         </g>
       </g>
-      <g data-jarvis="core">
-        <circle cx="256" cy="256" r="64" fill={`url(#${haloId})`} />
-        <circle cx="256" cy="256" r="26" fill={`url(#${coreId})`} />
+
+      {/* Écoute — 72 segments + micro SVG */}
+      <g data-jarvis="mode-listening" opacity="0">
+        <g data-jarvis="listen-spokes">
+          {LISTEN_SPOKES.map((spoke) => (
+            <g key={spoke.key} transform={spoke.transform}>
+              <rect
+                data-jarvis="listen-spoke"
+                x={spoke.x}
+                y={spoke.y}
+                width={spoke.width}
+                height={spoke.height}
+                rx="1.5"
+                fill="currentColor"
+                fillOpacity="0.85"
+              />
+            </g>
+          ))}
+        </g>
+        <g
+          data-jarvis="listen-mic"
+          fill="currentColor"
+          transform="translate(256 256) scale(0.55) translate(-256 -256)"
+        >
+          {/* Capsule micro — silhouette classique, coords natives 512 */}
+          <rect x="236" y="198" width="40" height="78" rx="20" />
+          <g
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M218 254v10c0 21 17 38 38 38s38-17 38-38v-10" />
+            <path d="M256 302v26" />
+            <path d="M234 328h44" />
+          </g>
+        </g>
+      </g>
+
+      {/* Réfléchit — 16 arcs + sablier SVG */}
+      <g data-jarvis="mode-thinking" opacity="0">
+        <g
+          data-jarvis="think-segments"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeLinecap="round"
+        >
+          {THINK_SEGMENTS.map((segment) => (
+            <path
+              key={segment.key}
+              d={segment.d}
+              strokeOpacity={segment.opacity}
+            />
+          ))}
+        </g>
+        <g
+          data-jarvis="think-hourglass"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          transform="translate(256 256) scale(2.6) translate(-12 -12)"
+        >
+          <path d="M7 3h10M7 21h10M8 3v3.5L12 12l4-5.5V3M8 21v-3.5L12 12l4 5.5V21" />
+        </g>
+      </g>
+
+      {/* Parole — barres verticales SVG */}
+      <g data-jarvis="mode-speaking" opacity="0">
+        <g data-jarvis="speak-bars">
+          {SPEAK_BARS.map((bar) => (
+            <rect
+              key={bar.key}
+              data-jarvis="speak-bar"
+              x={bar.x}
+              y={bar.y}
+              width={bar.width}
+              height={bar.height}
+              rx="2"
+              fill="currentColor"
+            />
+          ))}
+        </g>
       </g>
     </svg>
   );

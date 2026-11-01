@@ -17,17 +17,21 @@ import {
 
 type UseHomeComposerArgs = {
   onSubmit?: ((text: string) => void) | undefined;
+  listening: boolean;
+  onToggleListening: () => void;
+  disabled?: boolean;
+  /** Texte injecté au démarrage de l'écoute (transcription mock). */
+  listenSeed?: string | undefined;
 };
 
 type UseHomeComposerResult = {
   draft: string;
   setDraft: (value: string) => void;
   canSubmit: boolean;
-  listening: boolean;
-  toggleListening: () => void;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   handleSubmit: (event?: FormEvent) => void;
   handleKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  handleMicClick: () => void;
 };
 
 const TEXTAREA_MAX_PX = 160;
@@ -45,16 +49,18 @@ function isMicShortcut(
 }
 
 /**
- * État + clavier du composer home.
- * Entrée = envoyer · Maj+Entrée = ligne · Ctrl+Maj+Espace = micro.
+ * Composer contrôlé — micro / disabled viennent de la session assistant.
  */
 export function useHomeComposer({
   onSubmit,
-}: UseHomeComposerArgs = {}): UseHomeComposerResult {
+  listening,
+  onToggleListening,
+  disabled = false,
+  listenSeed,
+}: UseHomeComposerArgs): UseHomeComposerResult {
   const [draft, setDraft] = useState("");
-  const [listening, setListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const canSubmit = canSubmitComposerDraft(draft);
+  const canSubmit = !disabled && canSubmitComposerDraft(draft);
 
   useLayoutEffect(() => {
     const el = textareaRef.current;
@@ -65,24 +71,40 @@ export function useHomeComposer({
     el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_PX)}px`;
   }, [draft]);
 
-  function toggleListening(): void {
-    setListening((prev) => !prev);
+  function beginOrEndListen(): void {
+    if (disabled) {
+      return;
+    }
+    if (!listening && listenSeed) {
+      setDraft(listenSeed);
+    }
+    onToggleListening();
   }
 
   useEffect(() => {
     function onKeyDown(event: globalThis.KeyboardEvent): void {
-      if (!isMicShortcut(event) || event.repeat) {
+      if (disabled || !isMicShortcut(event) || event.repeat) {
         return;
       }
       event.preventDefault();
-      setListening((prev) => !prev);
+      if (!listening && listenSeed) {
+        setDraft(listenSeed);
+      }
+      onToggleListening();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [disabled, listening, listenSeed, onToggleListening]);
+
+  function handleMicClick(): void {
+    beginOrEndListen();
+  }
 
   function handleSubmit(event?: FormEvent): void {
     event?.preventDefault();
+    if (disabled) {
+      return;
+    }
     const text = normalizeComposerDraft(draft);
     if (text.length === 0) {
       return;
@@ -93,9 +115,12 @@ export function useHomeComposer({
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
+    if (disabled) {
+      return;
+    }
     if (isMicShortcut(event)) {
       event.preventDefault();
-      toggleListening();
+      beginOrEndListen();
       return;
     }
     if (
@@ -113,10 +138,9 @@ export function useHomeComposer({
     draft,
     setDraft,
     canSubmit,
-    listening,
-    toggleListening,
     textareaRef,
     handleSubmit,
     handleKeyDown,
+    handleMicClick,
   };
 }

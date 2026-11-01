@@ -42,8 +42,23 @@ export const fr = {
     composerPlaceholder: "Écris à JARVIS…",
     composerListening: "Écoute…",
     composerMic: "Micro",
+    composerMicStop: "Arrêter l'écoute",
+    composerMicActive: "Micro actif · clique à nouveau pour arrêter l'écoute",
+    composerVoiceOver:
+      "La réponse est toujours écrite ; la voix s'ajoute par-dessus",
     composerSend: "Envoyer",
     composerHints: "Entrée · Maj+Entrée · Ctrl+Maj+Espace",
+    conversationLabel: "Conversation",
+    you: "Toi",
+    replying: "en train de répondre",
+    stateListening: "Écoute…",
+    stateThinking: "Réfléchit…",
+    stateSpeaking: "Parle…",
+    stateSpeakingMuted: "Parole coupée",
+    listeningHint: "Niveau de voix : moyen · transcription en direct",
+    muteVoice: "Couper la voix",
+    unmuteVoice: "Réactiver la voix",
+    escapeInterrupt: "Échap pour interrompre",
   },
 } as const;
 
