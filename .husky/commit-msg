@@ -1,0 +1,23 @@
+# Strip le trailer injecté par Cursor Agent — même si un réglage IDE le rajoute.
+msg_file="$1"
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+  exit 0
+fi
+
+tmp="$(mktemp)"
+grep -viE '^[[:space:]]*Co-authored-by:[[:space:]]*Cursor[[:space:]]*<cursoragent@cursor\.com>[[:space:]]*$' \
+  "$msg_file" >"$tmp" || true
+
+# Supprime les lignes vides finales laissées par le strip.
+# shellcheck disable=SC2016
+awk '
+  { lines[NR] = $0 }
+  END {
+    end = NR
+    while (end > 0 && lines[end] ~ /^[[:space:]]*$/) end--
+    for (i = 1; i <= end; i++) print lines[i]
+    if (end > 0) print ""
+  }
+' "$tmp" >"$msg_file"
+
+rm -f "$tmp"
