@@ -23,7 +23,7 @@ export function MailListItem({ mail }: MailListItemProps) {
         >
           {mail.from}
         </p>
-        <time className="t-mono shrink-0 text-xs text-text-muted">
+        <time className="t-mono shrink-0 text-sm text-text-muted">
           {mail.time}
         </time>
       </div>
@@ -35,7 +35,7 @@ export function MailListItem({ mail }: MailListItemProps) {
       >
         {mail.subject}
       </p>
-      <p className="t-mono mt-1 line-clamp-2 text-xs text-text-muted">
+      <p className="t-mono mt-1 line-clamp-2 text-sm text-text-muted">
         {mail.excerpt}
       </p>
     </article>

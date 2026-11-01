@@ -1,4 +1,5 @@
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { FLIP_ID } from "@/features/jarvis/model/markDom";
 import { cn } from "@/lib/cn";
 
 type SplashGreetingProps = {
@@ -14,6 +15,7 @@ export function SplashGreeting({ text, settled = false }: SplashGreetingProps) {
   return (
     <p
       data-intro="greeting"
+      data-flip-id={FLIP_ID.greeting}
       className={cn(
         "t-body text-center text-lg text-text will-change-transform sm:text-xl",
         settled ? "opacity-100" : "opacity-0",

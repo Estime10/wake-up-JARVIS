@@ -22,7 +22,11 @@ export function startDialIdleSpin(ringDial: SVGGeometryElement): void {
   });
 }
 
-/** Déclenche le spin idle à la fin de la timeline intro. */
+/**
+ * Déclenche le spin idle à la fin de la timeline intro.
+ * Le callback s'exécute dans le contexte GSAP de la timeline (voir
+ * `scheduleWakeBarsIdlePulse`) → revert garanti au démontage.
+ */
 export function scheduleDialIdleSpin(
   tl: GsapTimeline,
   ringDial: SVGGeometryElement,

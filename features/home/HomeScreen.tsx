@@ -6,16 +6,18 @@ import { HudAmbient } from "@/components/ui/HudAmbient";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
+import { HomeStatusHeader } from "@/features/home/components/HomeStatusHeader";
+import { StatusAnnouncer } from "@/features/home/components/StatusAnnouncer";
 import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
+import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
 import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
 import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
+import { MOCK_LISTEN_DRAFT } from "@/fixtures/listenDraft";
 import { t } from "@/lib/i18n";
-
-const MOCK_LISTEN_DRAFT = "Résume mes mails non lus de ce matin";
 
 /**
  * Home — idle / écoute / réfléchit / parole + fil conversation.
@@ -25,10 +27,9 @@ export function HomeScreen() {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
 
-  const { state, muted, messages, toggleListen, submit } =
-    useAssistantSession();
+  const { state, messages, toggleListen, submit } = useAssistantSession();
 
-  useVoiceRingMotion(state, muted);
+  useVoiceRingMotion(state);
 
   const listening = state === "listening";
   const busy = state === "thinking" || state === "speaking";
@@ -46,6 +47,11 @@ export function HomeScreen() {
       </div>
 
       <div className="relative z-10 flex h-full flex-col">
+        <h1 id={MAIN_TITLE_ID} className="sr-only">
+          {t("home.title")}
+        </h1>
+        <HomeStatusHeader listening={listening} />
+        <StatusAnnouncer state={state} />
         <div className="flex min-h-0 flex-1 flex-col items-center px-6 pt-10 sm:pt-12">
           <AssistantStage state={state} />
 
@@ -64,7 +70,7 @@ export function HomeScreen() {
 
           <div
             data-home="composer"
-            className="mb-16 flex w-full justify-center sm:mb-20"
+            className="mb-8 flex w-full justify-center sm:mb-10"
           >
             <HomeComposer
               onSubmit={submit}
@@ -73,13 +79,6 @@ export function HomeScreen() {
               disabled={busy}
               ghost={state === "speaking"}
               listenSeed={MOCK_LISTEN_DRAFT}
-              hint={
-                listening
-                  ? t("home.composerMicActive")
-                  : state === "speaking"
-                    ? t("home.composerVoiceOver")
-                    : undefined
-              }
             />
           </div>
         </div>

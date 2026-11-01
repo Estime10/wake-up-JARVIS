@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
 
 import {
   type AssistantEvent,
@@ -12,31 +12,17 @@ import {
   formatMessageTime,
   type ConversationMessage,
 } from "@/features/home/model/conversationMessage";
+import { isMicShortcut } from "@/features/home/model/micShortcut";
 import {
   MOCK_ASSISTANT_GREETING,
   MOCK_ASSISTANT_REPLY,
 } from "@/fixtures/assistantReply";
 
-type SessionAction =
-  | { type: "event"; event: AssistantEvent }
-  | { type: "setMuted"; muted: boolean };
-
-type SessionState = {
-  assistant: AssistantState;
-  muted: boolean;
-};
-
 function sessionReducer(
-  state: SessionState,
-  action: SessionAction,
-): SessionState {
-  if (action.type === "setMuted") {
-    return { ...state, muted: action.muted };
-  }
-  return {
-    ...state,
-    assistant: transition(state.assistant, action.event),
-  };
+  state: AssistantState,
+  event: AssistantEvent,
+): AssistantState {
+  return transition(state, event);
 }
 
 const THINKING_MS = 1400;
@@ -44,24 +30,16 @@ const SPEAK_CHAR_MS = 28;
 
 type UseAssistantSessionResult = {
   state: AssistantState;
-  muted: boolean;
   messages: ConversationMessage[];
-  startListen: () => void;
-  stopListen: () => void;
   toggleListen: () => void;
   submit: (text: string) => void;
-  interrupt: () => void;
-  toggleMute: () => void;
 };
 
 /**
  * Session assistant home — machine + fil mock (thinking → speak stream).
  */
 export function useAssistantSession(): UseAssistantSessionResult {
-  const [session, dispatch] = useReducer(sessionReducer, {
-    assistant: "idle",
-    muted: false,
-  });
+  const [assistant, dispatch] = useReducer(sessionReducer, "idle");
   const [messages, setMessages] = useState<ConversationMessage[]>(() => [
     {
       id: "seed-greeting",
@@ -85,52 +63,54 @@ export function useAssistantSession(): UseAssistantSessionResult {
     return () => clearTimers();
   }, []);
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent): void {
-      if (event.key !== "Escape") {
-        return;
-      }
-      if (
-        session.assistant !== "speaking" &&
-        session.assistant !== "thinking"
-      ) {
-        return;
-      }
+  // Seul écouteur clavier global de la home : Échap + Ctrl+Maj+Espace.
+  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    const busy = assistant === "speaking" || assistant === "thinking";
+    if (event.key === "Escape" && busy) {
       event.preventDefault();
-      clearTimers();
-      speakIdRef.current = null;
-      dispatch({ type: "event", event: { type: "INTERRUPT" } });
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [session.assistant]);
-
-  function startListen(): void {
-    dispatch({ type: "event", event: { type: "START_LISTEN" } });
-  }
-
-  function stopListen(): void {
-    dispatch({ type: "event", event: { type: "STOP_LISTEN" } });
-  }
-
-  function toggleListen(): void {
-    if (session.assistant === "listening") {
-      stopListen();
+      interrupt();
       return;
     }
-    if (session.assistant === "idle") {
-      startListen();
+    if (isMicShortcut(event) && !event.repeat && !busy) {
+      event.preventDefault();
+      toggleListen();
+    }
+  });
+
+  useEffect(() => {
+    function listener(event: KeyboardEvent): void {
+      onKeyDown(event);
+    }
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
+
+  function toggleListen(): void {
+    if (assistant === "listening") {
+      dispatch({ type: "STOP_LISTEN" });
+      return;
+    }
+    if (assistant === "idle") {
+      dispatch({ type: "START_LISTEN" });
     }
   }
 
-  function toggleMute(): void {
-    dispatch({ type: "setMuted", muted: !session.muted });
-  }
-
+  /**
+   * Coupe la réponse : le message en cours garde son texte partiel
+   * et n'est plus marqué « en train de répondre ».
+   */
   function interrupt(): void {
     clearTimers();
+    const streamingId = speakIdRef.current;
     speakIdRef.current = null;
-    dispatch({ type: "event", event: { type: "INTERRUPT" } });
+    if (streamingId) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === streamingId ? { ...msg, streaming: false } : msg,
+        ),
+      );
+    }
+    dispatch({ type: "INTERRUPT" });
   }
 
   function beginSpeakStream(fullText: string): void {
@@ -141,7 +121,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
       ...prev,
       { id, role: "assistant", text: "", time, streaming: true },
     ]);
-    dispatch({ type: "event", event: { type: "REPLY_START" } });
+    dispatch({ type: "REPLY_START" });
 
     let index = 0;
     const tick = window.setInterval(() => {
@@ -163,7 +143,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
         timersRef.current = timersRef.current.filter((t) => t !== tick);
         speakIdRef.current = null;
         const endId = window.setTimeout(() => {
-          dispatch({ type: "event", event: { type: "SPEAK_END" } });
+          dispatch({ type: "SPEAK_END" });
         }, 600);
         timersRef.current.push(endId);
       }
@@ -186,7 +166,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
         time: formatMessageTime(new Date()),
       },
     ]);
-    dispatch({ type: "event", event: { type: "SUBMIT" } });
+    dispatch({ type: "SUBMIT" });
 
     const thinkId = window.setTimeout(() => {
       beginSpeakStream(MOCK_ASSISTANT_REPLY);
@@ -195,14 +175,9 @@ export function useAssistantSession(): UseAssistantSessionResult {
   }
 
   return {
-    state: session.assistant,
-    muted: session.muted,
+    state: assistant,
     messages,
-    startListen,
-    stopListen,
     toggleListen,
     submit,
-    interrupt,
-    toggleMute,
   };
 }

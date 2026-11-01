@@ -14,35 +14,42 @@ export const fr = {
   intro: {
     /** Total mails reçus au moment de l'ouverture (snapshot). */
     mailTotal: "{count} mails",
-    online: "EN LIGNE",
-    offline: "HORS LIGNE",
+    /** Casse via CSS (`uppercase`) — source en minuscules. */
+    online: "en ligne",
+    offline: "hors ligne",
     /** Sigle : capitales dans la source (exception DA). */
     wordmark: "JARVIS",
     wakeDetected: "Réveil détecté : « {phrase} »",
     wakePhrase: "Wake up, JARVIS",
-    sysNominal: "SYS NOMINAL",
+    sysNominal: "sys nominal",
     /** Décor HUD — monospaces, jamais uppercase CSS (lisibilité l/1). */
     latLon: "LAT 50.85 N — LON 4.35 E",
     initProgress: "INIT · {percent} %",
     clockPlaceholder: "—:— · —.—.—",
+    /** Bouton visible ; le nom accessible contient le texte visible (label-in-name). */
+    skip: "Passer",
+    skipLabel: "Passer l'intro",
   },
   greeting: {
     morning: "Bonjour, {name}",
     evening: "Bonsoir, {name}",
   },
   home: {
+    /** Titre de page sr-only (h1 unique) — nom accessible de `main`. */
+    title: "JARVIS, accueil",
     sidePanelLabel: "Panneau latéral",
     sideTabsLabel: "Journal et mails",
     tabJournal: "Journal",
     tabMails: "Mails",
     entriesCount: "{count} entrées",
-    filterAll: "Filtre : Tous",
     journalEmpty: "Aucune entrée journal pour le moment.",
     composerLabel: "Message à JARVIS",
     composerPlaceholder: "Écris à JARVIS…",
     composerListening: "Écoute…",
     composerMic: "Micro",
     composerMicStop: "Arrêter l'écoute",
+    /** Annonce unique de l'écoute (header, role="status"). */
+    micActive: "Micro actif",
     composerMicActive: "Micro actif · clique à nouveau pour arrêter l'écoute",
     composerVoiceOver:
       "La réponse est toujours écrite ; la voix s'ajoute par-dessus",
@@ -54,11 +61,12 @@ export const fr = {
     stateListening: "Écoute…",
     stateThinking: "Réfléchit…",
     stateSpeaking: "Parle…",
-    stateSpeakingMuted: "Parole coupée",
     listeningHint: "Niveau de voix : moyen · transcription en direct",
-    muteVoice: "Couper la voix",
-    unmuteVoice: "Réactiver la voix",
-    escapeInterrupt: "Échap pour interrompre",
+    /** Annonceur polite unique (StatusAnnouncer) — hors « Micro actif ». */
+    announceThinking: "Réfléchit…",
+    announceSpeaking: "Répond…",
+    announceError: "Erreur",
+    announceOffline: "Hors ligne",
   },
 } as const;
 

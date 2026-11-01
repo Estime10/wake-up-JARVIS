@@ -12,9 +12,9 @@ export function animateCornersFadeIn(
   tl: GsapTimeline,
   targets: HudFinaleTargets,
   at: number,
+  fade = 0.55,
 ): number {
   const { hudCorners, hudBrackets } = targets;
-  const fade = 0.55;
 
   tl.to(
     [hudCorners, hudBrackets],

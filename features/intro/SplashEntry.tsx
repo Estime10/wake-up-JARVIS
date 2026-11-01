@@ -1,28 +1,34 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
-import { beginHomeEnterSession } from "@/features/jarvis/model/homeEnterHandoff";
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
-import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { captureSplashSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
+import { prefersReducedMotion } from "@/lib/motion/reducedMotion";
+import { ROUTES } from "@/lib/routes";
 
 /**
  * Point d'entrée `/` — intro puis handoff fluide vers `/home`.
  */
 export function SplashEntry() {
   const router = useRouter();
-  const reducedMotion = usePrefersReducedMotion();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const { markRef, handoff, mainFocus } = useJarvisShell();
 
   const onComplete = useCallback(() => {
-    if (!reducedMotion) {
-      beginHomeEnterSession();
+    // Lu au moment du handoff (valeur réelle, jamais la valeur serveur).
+    const root = rootRef.current;
+    if (root && !prefersReducedMotion()) {
+      handoff.begin(captureSplashSnapshot(markRef.current, root));
     }
-    router.replace("/home");
-  }, [reducedMotion, router]);
+    mainFocus.request();
+    router.replace(ROUTES.home);
+  }, [handoff, mainFocus, markRef, router]);
 
   return (
-    <div className="relative min-h-dvh bg-bg text-text">
+    <div ref={rootRef} className="relative min-h-dvh bg-bg text-text">
       <SplashScreen mode="full" onComplete={onComplete} />
     </div>
   );

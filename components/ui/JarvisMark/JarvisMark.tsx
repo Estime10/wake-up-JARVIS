@@ -2,14 +2,19 @@ import { useId } from "react";
 
 import { TRAIL_FADE_SEGMENTS } from "@/components/ui/JarvisMark/trailFadeSegments";
 import {
+  ERROR_EXCLAMATION_D,
+  ERROR_TRIANGLE_D,
   LISTEN_SPOKES,
+  OFFLINE_RING_DASH,
   SPEAK_BARS,
+  STATUS_RING_RADIUS,
   THINK_SEGMENTS,
 } from "@/components/ui/JarvisMark/voiceRingGeometry";
 
 /**
  * Logo / anneau JARVIS (DA v3-blanc).
- * Modes `data-jarvis="mode-*"` pilotés par GSAP (idle / écoute / réfléchit / parole).
+ * Modes `data-jarvis="mode-*"` pilotés par GSAP (idle / écoute / réfléchit /
+ * parole / erreur / hors ligne).
  */
 
 type JarvisMarkProps = {
@@ -216,6 +221,41 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
             />
           ))}
         </g>
+      </g>
+
+      {/* Erreur — anneau rouge figé + triangle */}
+      <g data-jarvis="mode-error" opacity="0" className="text-danger">
+        <circle
+          cx="256"
+          cy="256"
+          r={STATUS_RING_RADIUS}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="10"
+        />
+        <g
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d={ERROR_TRIANGLE_D} />
+          <path d={ERROR_EXCLAMATION_D} />
+        </g>
+      </g>
+
+      {/* Hors ligne — tirets gris figés */}
+      <g data-jarvis="mode-offline" opacity="0" className="text-text-muted">
+        <circle
+          cx="256"
+          cy="256"
+          r={STATUS_RING_RADIUS}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="10"
+          strokeDasharray={OFFLINE_RING_DASH}
+        />
       </g>
     </svg>
   );

@@ -1,18 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 
 import { MailListItem } from "@/features/home/components/MailListItem";
+import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { MOCK_MAILS } from "@/fixtures/mails";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
-type SideTab = "journal" | "mails";
+const SIDE_TABS = ["journal", "mails"] as const;
+type SideTab = (typeof SIDE_TABS)[number];
 
-/** Panneau droit — fond global + blur, onglets centrés. */
+const TAB_LABEL_KEY = {
+  journal: "home.tabJournal",
+  mails: "home.tabMails",
+} as const;
+
+/** Panneau droit — fond global + blur, onglets centrés (pattern ARIA Tabs). */
 export function HomeSidePanel() {
   const [tab, setTab] = useState<SideTab>("mails");
+  const idPrefix = useId();
+  const tabRefs = useRef<Partial<Record<SideTab, HTMLButtonElement>>>({});
   const entryCount = tab === "mails" ? MOCK_MAILS.length : 0;
+  const tabId = (value: SideTab) => `${idPrefix}-tab-${value}`;
+  const panelId = `${idPrefix}-panel`;
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const next = nextTabIndex(
+      event.key,
+      SIDE_TABS.indexOf(tab),
+      SIDE_TABS.length,
+    );
+    const nextTab = next === null ? undefined : SIDE_TABS[next];
+    if (!nextTab) {
+      return;
+    }
+    event.preventDefault();
+    setTab(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  };
 
   return (
     <div className="relative flex h-full min-h-0 flex-col bg-bg">
@@ -21,42 +47,47 @@ export function HomeSidePanel() {
         aria-hidden
       />
 
-      <div className="relative z-10 flex h-full min-h-0 flex-col border-l border-white/10">
+      <div className="relative z-10 flex h-full min-h-0 flex-col border-l border-line-subtle">
         <div
           role="tablist"
           aria-label={t("home.sideTabsLabel")}
-          className="flex shrink-0 justify-center gap-6 border-b border-white/10 px-4 pt-4"
+          className="flex shrink-0 justify-center gap-6 border-b border-line-subtle px-4 pt-4"
+          onKeyDown={handleTabKeyDown}
         >
-          <SideTabButton
-            selected={tab === "journal"}
-            onSelect={() => setTab("journal")}
-          >
-            {t("home.tabJournal")}
-          </SideTabButton>
-          <SideTabButton
-            selected={tab === "mails"}
-            onSelect={() => setTab("mails")}
-          >
-            {t("home.tabMails")}
-          </SideTabButton>
+          {SIDE_TABS.map((value) => (
+            <SideTabButton
+              key={value}
+              id={tabId(value)}
+              controls={panelId}
+              selected={tab === value}
+              onSelect={() => setTab(value)}
+              buttonRef={(node) => {
+                if (node) {
+                  tabRefs.current[value] = node;
+                } else {
+                  delete tabRefs.current[value];
+                }
+              }}
+            >
+              {t(TAB_LABEL_KEY[value])}
+            </SideTabButton>
+          ))}
         </div>
 
-        <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-3">
-          <p className="t-label text-xs text-text-muted">
+        {/* Filtre retiré tant qu'aucun lot ne le branche (arrêt de tab inerte).
+            `min-h-touch` garde la hauteur de la rangée. */}
+        <div className="flex shrink-0 items-center px-4 py-3">
+          <p className="t-label flex min-h-touch items-center text-sm text-text-muted">
             {t("home.entriesCount", { count: entryCount })}
           </p>
-          <button
-            type="button"
-            className="t-label inline-flex min-h-touch items-center gap-1.5 rounded-md px-2 text-xs text-text-muted hover:text-text"
-          >
-            <FilterIcon />
-            {t("home.filterAll")}
-          </button>
         </div>
 
         <div
+          id={panelId}
           className="min-h-0 flex-1 overflow-y-auto px-3 pb-4"
           role="tabpanel"
+          aria-labelledby={tabId(tab)}
+          tabIndex={0}
         >
           {tab === "mails" ? (
             <ul className="flex flex-col gap-2">
@@ -67,7 +98,7 @@ export function HomeSidePanel() {
               ))}
             </ul>
           ) : (
-            <p className="t-mono px-1 text-xs text-text-muted">
+            <p className="t-mono px-1 text-sm text-text-muted">
               {t("home.journalEmpty")}
             </p>
           )}
@@ -78,19 +109,29 @@ export function HomeSidePanel() {
 }
 
 function SideTabButton({
+  id,
+  controls,
   selected,
   onSelect,
+  buttonRef,
   children,
 }: {
+  id: string;
+  controls: string;
   selected: boolean;
   onSelect: () => void;
+  buttonRef: (node: HTMLButtonElement | null) => void;
   children: string;
 }) {
   return (
     <button
+      ref={buttonRef}
+      id={id}
       type="button"
       role="tab"
       aria-selected={selected}
+      aria-controls={controls}
+      tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       className={cn(
         "t-label border-b-2 pb-3 text-sm transition-colors",
@@ -101,20 +142,5 @@ function SideTabButton({
     >
       {children}
     </button>
-  );
-}
-
-function FilterIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className="size-3.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.25"
-      aria-hidden
-    >
-      <path d="M2.5 3.5h11L9.5 8.2v3.3L6.5 13V8.2L2.5 3.5Z" />
-    </svg>
   );
 }

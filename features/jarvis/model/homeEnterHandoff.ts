@@ -1,63 +1,76 @@
 import {
-  MARK_DOM,
-  readBounds,
-  type EnterBounds,
+  isElement,
+  queryGreeting,
+  queryWordmark,
 } from "@/features/jarvis/model/markDom";
+import { Flip, type FlipState } from "@/lib/gsap/flip";
 
-export type { EnterBounds };
+/** État Flip du splash (mark + textes), rejoué par `Flip.from` sur /home. */
+export type SplashEnterSnapshot = FlipState;
 
-export type SplashEnterSnapshot = {
-  mark: EnterBounds | null;
-  wordmark: EnterBounds | null;
-  greeting: EnterBounds | null;
+export type HomeEnterHandoff = {
+  /** Avant `router.replace` — enregistre le snapshot splash. */
+  begin: (snapshot: SplashEnterSnapshot) => void;
+  /** Snapshot encore à jouer (survit à un cleanup Strict Mode). */
+  hasPending: () => boolean;
+  /** Lit le snapshot sans le consommer (replay possible si kill avant fin). */
+  peek: () => SplashEnterSnapshot | null;
+  /** Fin réelle de la timeline — libère le pending et notifie. */
+  end: () => void;
+  /** Callback fin d’enter (immédiat s'il n'y a rien en attente). */
+  onComplete: (fn: () => void) => () => void;
 };
 
-let pendingSnapshot: SplashEnterSnapshot | null = null;
-let completeListeners: Array<() => void> = [];
-
-/** Avant `router.replace` — capture mark/wordmark/greeting splash. */
-export function beginHomeEnterSession(): void {
-  pendingSnapshot = {
-    mark: readBounds(MARK_DOM.mark),
-    wordmark: readBounds(MARK_DOM.wordmark),
-    greeting: readBounds(MARK_DOM.greeting),
-  };
+/**
+ * `Flip.getState` du mark persistant + textes du splash (scope `splashRoot`),
+ * pris avant `router.replace` : lecture seule, aucune animation créée.
+ */
+export function captureSplashSnapshot(
+  mark: HTMLElement | null,
+  splashRoot: ParentNode,
+): SplashEnterSnapshot {
+  return Flip.getState(
+    [mark, queryWordmark(splashRoot), queryGreeting(splashRoot)].filter(
+      isElement,
+    ),
+  );
 }
 
-/** Snapshot encore à jouer (survit à un cleanup Strict Mode). */
-export function hasPendingHomeEnter(): boolean {
-  return pendingSnapshot !== null;
-}
+/**
+ * Une instance par coquille app (créée par JarvisShell, partagée par
+ * contexte React) — aucun état au niveau module.
+ */
+export function createHomeEnterHandoff(): HomeEnterHandoff {
+  let pending: SplashEnterSnapshot | null = null;
+  let listeners: Array<() => void> = [];
 
-/** Lit le snapshot sans le consommer (replay possible si kill avant fin). */
-export function peekHomeEnterSnapshot(): SplashEnterSnapshot | null {
-  return pendingSnapshot;
-}
-
-/** Fin réelle de la timeline — libère le pending. */
-export function endHomeEnterSession(): void {
-  pendingSnapshot = null;
-  const listeners = completeListeners;
-  completeListeners = [];
-  for (const listener of listeners) {
-    listener();
-  }
-}
-
-/** Reset forcé (tests / récupération) — annule pending sans notifier. */
-export function resetHomeEnterSession(): void {
-  pendingSnapshot = null;
-  completeListeners = [];
-}
-
-/** Callback fin d’enter (phase mark). */
-export function onHomeEnterComplete(fn: () => void): () => void {
-  if (!pendingSnapshot) {
-    fn();
-    return () => {};
-  }
-  completeListeners.push(fn);
-  return () => {
-    completeListeners = completeListeners.filter((listener) => listener !== fn);
+  return {
+    begin(snapshot) {
+      pending = snapshot;
+    },
+    hasPending() {
+      return pending !== null;
+    },
+    peek() {
+      return pending;
+    },
+    end() {
+      pending = null;
+      const notify = listeners;
+      listeners = [];
+      for (const listener of notify) {
+        listener();
+      }
+    },
+    onComplete(fn) {
+      if (!pending) {
+        fn();
+        return () => {};
+      }
+      listeners.push(fn);
+      return () => {
+        listeners = listeners.filter((listener) => listener !== fn);
+      };
+    },
   };
 }

@@ -1,4 +1,5 @@
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { FLIP_ID } from "@/features/jarvis/model/markDom";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
@@ -13,6 +14,7 @@ export function SplashWordmark({ settled = false }: SplashWordmarkProps) {
   return (
     <p
       data-intro="wordmark"
+      data-flip-id={FLIP_ID.wordmark}
       className={cn(
         "t-wordmark text-center text-wordmark-display text-text will-change-transform",
         settled ? "opacity-100" : "opacity-0",

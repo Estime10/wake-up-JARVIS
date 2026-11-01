@@ -14,12 +14,13 @@ export function ConversationMessageBubble({
 
   return (
     <article
+      aria-hidden={message.streaming || undefined}
       className={cn(
         "flex w-full flex-col gap-1",
         isUser ? "items-end" : "items-start",
       )}
     >
-      <header className="t-mono flex items-baseline gap-2 text-xs text-text-muted">
+      <header className="t-mono flex items-baseline gap-2 text-sm text-text-muted">
         <span>{isUser ? t("home.you") : t("app.name")}</span>
         <time>{message.time}</time>
         {message.streaming ? (

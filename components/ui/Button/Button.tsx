@@ -36,8 +36,12 @@ export function Button({
       disabled={disabled}
       className={cn(
         "t-label inline-flex items-center justify-center gap-2 rounded-md transition-[color,background-color,border-color,filter] duration-[var(--duration-fast)]",
-        "outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        // v4 : `outline-hidden`/`outline-none` posent `--tw-outline-style: none` ;
+        // `focus-visible:outline` le relirait → style explicite `outline-solid`.
+        "outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid",
         "disabled:pointer-events-none disabled:opacity-40",
+        // Même rendu pour `aria-disabled` (reste focusable ; l'appelant garde le handler).
+        "aria-disabled:pointer-events-none aria-disabled:opacity-40",
         BUTTON_VARIANT_CLASS[variant],
         BUTTON_SIZE_CLASS[size],
         className,

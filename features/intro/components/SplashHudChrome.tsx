@@ -43,19 +43,19 @@ export function SplashHudChrome({
         className={cn("absolute inset-0", !settled && "opacity-0")}
       >
         <div className="absolute top-6 left-6 flex flex-col gap-1 sm:top-8 sm:left-8">
-          <p className="t-mono text-xs sm:text-sm">{t("intro.latLon")}</p>
-          <p className="t-mono text-xs sm:text-sm">
+          <p className="t-mono text-dial sm:text-sm">{t("intro.latLon")}</p>
+          <p className="t-mono text-dial sm:text-sm">
             {t("intro.initProgress", { percent: 68 })}
           </p>
         </div>
 
         <div className="absolute top-6 right-6 flex flex-col items-end gap-1 sm:top-8 sm:right-8">
-          <p className="t-mono text-xs sm:text-sm">
+          <p className="t-mono text-dial sm:text-sm">
             {t("intro.mailTotal", { count: mailCount })}
           </p>
           <p
             className={cn(
-              "t-mono text-xs sm:text-sm",
+              "t-mono text-dial uppercase sm:text-sm",
               online ? "text-success" : "text-danger",
             )}
           >
@@ -64,13 +64,13 @@ export function SplashHudChrome({
         </div>
 
         <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8">
-          <p className="t-mono text-xs sm:text-sm" suppressHydrationWarning>
+          <p className="t-mono text-dial sm:text-sm" suppressHydrationWarning>
             {clock}
           </p>
         </div>
 
         <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8">
-          <p className="t-mono text-xs text-success sm:text-sm">
+          <p className="t-mono text-dial text-success uppercase sm:text-sm">
             {t("intro.sysNominal")}
           </p>
         </div>
@@ -79,7 +79,7 @@ export function SplashHudChrome({
       {showWake ? (
         <div className="absolute bottom-6 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8">
           <WakeIcon settled={settled} />
-          <p className="t-mono truncate text-xs sm:text-sm">
+          <p className="t-mono truncate text-dial sm:text-sm">
             {settled
               ? wakeText
               : wakeText.split("").map((char, index) => (

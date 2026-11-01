@@ -2,41 +2,39 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useEffect, useRef } from "react";
 
 import type { AssistantState } from "@/features/home/model/assistantMachine";
-import { applyVoiceRingState } from "@/features/jarvis/model/applyVoiceRingState";
-import { queryMark } from "@/features/jarvis/model/markDom";
-import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { applyVoiceRingState } from "@/features/jarvis/model/voiceRing/applyVoiceRingState";
+import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
 
 /**
  * Pilote les modes SVG du mark fixed selon l’état assistant.
+ * Un seul cleanup : la fonction rendue au contexte GSAP (appelée à chaque
+ * changement d'état, de préférence de mouvement et au démontage). Les tweens
+ * d'état sont créés hors enregistrement (`context.ignore`) : un revert
+ * remettrait opacités, échelles et rotations à zéro et casserait le fondu
+ * enchaîné entre deux états ; le cleanup les tue donc sans revert.
  */
-export function useVoiceRingMotion(state: AssistantState, muted = false): void {
-  const reducedMotion = usePrefersReducedMotion();
-  const cleanupRef = useRef<(() => void) | null>(null);
+export function useVoiceRingMotion(state: AssistantState): void {
+  const { markRef } = useJarvisShell();
 
   useGSAP(
-    () => {
-      const mark = queryMark();
+    (owner) => {
+      const mark = markRef.current;
       if (!mark) {
-        return;
+        return undefined;
       }
-      cleanupRef.current?.();
-      cleanupRef.current = applyVoiceRingState(mark, state, {
-        reducedMotion,
-        muted,
+      return matchReducedMotion(owner, (reducedMotion, context) => {
+        let stop = (): void => {};
+        context.ignore(() => {
+          stop = applyVoiceRingState(mark, state, { reducedMotion });
+        });
+        return stop;
       });
     },
-    { dependencies: [state, muted, reducedMotion], revertOnUpdate: false },
+    { dependencies: [state], revertOnUpdate: true },
   );
-
-  useEffect(() => {
-    return () => {
-      cleanupRef.current?.();
-      cleanupRef.current = null;
-    };
-  }, []);
 }

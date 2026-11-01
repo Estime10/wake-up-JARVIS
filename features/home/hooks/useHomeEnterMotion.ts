@@ -4,10 +4,10 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, type RefObject } from "react";
 
-import { peekHomeEnterSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
-import { openSidePanel } from "@/features/home/model/openSidePanel";
 import { playHomeEnterTransition } from "@/features/home/model/playHomeEnterTransition";
-import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
+import { setSidePanelOpen } from "@/features/home/model/sidePanelLayout";
+import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
 
@@ -22,30 +22,38 @@ type UseHomeEnterMotionResult = {
 export function useHomeEnterMotion(): UseHomeEnterMotionResult {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const sideRef = useRef<HTMLElement | null>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const { markRef, handoff } = useJarvisShell();
 
   useGSAP(
-    () => {
+    (owner) => {
       const shell = shellRef.current;
       const aside = sideRef.current;
       if (!shell || !aside) {
         return undefined;
       }
 
-      const snapshot = peekHomeEnterSnapshot();
-      if (snapshot) {
-        return playHomeEnterTransition({
-          shell,
-          aside,
-          snapshot,
-          reducedMotion,
-        });
-      }
-
-      openSidePanel({ shell, aside, reducedMotion });
-      return undefined;
+      return matchReducedMotion(owner, (reducedMotion) => {
+        const snapshot = handoff.peek();
+        if (snapshot) {
+          return playHomeEnterTransition({
+            root: shell,
+            mark: markRef.current,
+            aside,
+            snapshot,
+            reducedMotion,
+            // Fin d'enter appelée depuis le onComplete de la timeline : sans
+            // `ignore`, les listeners (placement du mark, fondu du chrome)
+            // s'enregistreraient dans CE contexte et seraient revert à la
+            // prochaine bascule reduced-motion.
+            onEnd: () => owner.ignore(() => handoff.end()),
+          });
+        }
+        // Refresh / entrée directe : panneau posé ouvert, sans anim.
+        setSidePanelOpen(aside);
+        return undefined;
+      });
     },
-    { scope: shellRef, dependencies: [reducedMotion], revertOnUpdate: true },
+    { scope: shellRef },
   );
 
   return { shellRef, sideRef };

@@ -1,5 +1,6 @@
 /**
- * Niveau voix simulé (~30 Hz) — sinus + bruit.
+ * Niveau voix simulé (~30 Hz) — somme de sinus (déterministe, pas de
+ * Math.random : même rendu à chaque passage, testable).
  * Arrêté hors écoute / parole (PLAN-UI §3.4).
  */
 export function subscribeMockVoiceLevel(
@@ -20,8 +21,9 @@ export function subscribeMockVoiceLevel(
         0.28 * Math.sin(time / 190) +
         0.16 * Math.sin(time / 97) +
         0.12 * Math.sin(time / 53);
-      const noise = Math.random() * 0.18;
-      onLevel(Math.min(1, Math.max(0.18, wave + noise)));
+      // Ex-bruit aléatoire (moyenne 0.09) → harmonique rapide de même moyenne.
+      const flutter = 0.09 + 0.09 * Math.sin(time / 23);
+      onLevel(Math.min(1, Math.max(0.18, wave + flutter)));
     }
     raf = window.requestAnimationFrame(tick);
   };

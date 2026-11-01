@@ -9,10 +9,18 @@ import { prepareHiddenTargets } from "@/features/intro/model/prepareHiddenTarget
 import { prepareMarkParts } from "@/features/intro/model/prepareMarkParts";
 import { scheduleDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
-import { INTRO_DURATION_FULL_MS } from "@/lib/intro/timings";
+import {
+  CORE_BLINK,
+  FULL_INTRO_PHASES,
+  INTRO_DURATION_FULL_MS,
+} from "@/lib/intro/timings";
+
+const MARK_FADE_SECONDS = 0.35;
+const ACCENT_STAGGER_SECONDS = 0.2;
 
 /**
- * Wake → centre → coins/équerres → spin idle (rythme splash volontairement posé).
+ * Wake → noyau → anneau/cadran → traîne → finale → coins, en 3,5 s
+ * (fenêtres `FULL_INTRO_PHASES`), puis spin idle.
  */
 export function buildFullIntroTimeline(
   targets: IntroTimelineTargets,
@@ -26,52 +34,75 @@ export function buildFullIntroTimeline(
   prepareHiddenTargets(targets);
   prepareMarkParts(targets);
 
-  const afterWake = animateWakeSequence(tl, targets, 0.2);
+  const { wake, blink, ring, dial, trail, finale, corners } = FULL_INTRO_PHASES;
+  const span = (phase: { start: number; end: number }) =>
+    phase.end - phase.start;
 
-  tl.to(targets.mark, { opacity: 1, scale: 1, duration: 0.55 }, afterWake);
+  animateWakeSequence(tl, targets, wake);
 
-  const afterBlink = blinkCoreTwice(tl, targets.core, afterWake + 0.4);
+  // Mark (pièces encore masquées) posé juste avant le clignotement du noyau.
+  tl.to(
+    targets.mark,
+    { opacity: 1, scale: 1, duration: MARK_FADE_SECONDS },
+    blink.start - MARK_FADE_SECONDS,
+  );
+
+  const flashesEnd =
+    blink.start +
+    CORE_BLINK.count * (CORE_BLINK.flashSeconds + CORE_BLINK.pauseSeconds);
+  blinkCoreTwice(tl, targets.core, blink.start, blink.end - flashesEnd);
 
   tl.to(
     targets.ringOuter,
-    { strokeDashoffset: 0, duration: 1.7, ease: "power2.inOut" },
-    afterBlink,
+    { strokeDashoffset: 0, duration: span(ring), ease: "power2.inOut" },
+    ring.start,
   );
 
-  tl.to(targets.ringDial, { opacity: 1, duration: 0.7 }, afterBlink + 0.65);
+  tl.to(targets.ringDial, { opacity: 1, duration: span(dial) }, dial.start);
   if (targets.ringAccents.length > 0) {
     tl.to(
       targets.ringAccents,
-      { opacity: 1, duration: 0.85, stagger: 0.1 },
-      afterBlink + 0.5,
+      {
+        opacity: 1,
+        duration: span(dial) - ACCENT_STAGGER_SECONDS,
+        stagger: { amount: ACCENT_STAGGER_SECONDS },
+      },
+      dial.start,
     );
   }
 
-  const trailStart = afterBlink + 0.9;
   tl.to(
     targets.trail,
-    { strokeDashoffset: 0, duration: 1.9, ease: "power2.inOut" },
-    trailStart,
+    { strokeDashoffset: 0, duration: span(trail), ease: "power2.inOut" },
+    trail.start,
   );
 
-  const finale = trailStart + 1.7;
   tl.to(
     targets.head,
-    { opacity: 1, scale: 1, duration: 0.65, ease: "power2.out" },
-    finale,
+    { opacity: 1, scale: 1, duration: span(finale), ease: "power2.out" },
+    finale.start,
   );
-  tl.to(targets.wordmark, { opacity: 1, y: 0, duration: 0.75 }, finale);
+  tl.to(
+    targets.wordmark,
+    { opacity: 1, y: 0, duration: span(finale) },
+    finale.start,
+  );
   if (targets.greeting) {
-    tl.to(targets.greeting, { opacity: 1, y: 0, duration: 0.75 }, finale);
+    tl.to(
+      targets.greeting,
+      { opacity: 1, y: 0, duration: span(finale) },
+      finale.start,
+    );
   }
 
   animateCornersFadeIn(
     tl,
     { hudCorners: targets.hudCorners, hudBrackets: targets.hudBrackets },
-    finale + 0.7,
+    corners.start,
+    span(corners),
   );
 
-  padTimelineToDuration(tl, Math.max(INTRO_DURATION_FULL_MS / 1000, 8.5));
+  padTimelineToDuration(tl, INTRO_DURATION_FULL_MS / 1000);
   scheduleDialIdleSpin(tl, targets.ringDial);
 
   return tl;

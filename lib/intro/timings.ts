@@ -3,6 +3,32 @@ export const INTRO_DURATION_FULL_MS = 3500;
 export const INTRO_DURATION_SHORT_MS = 800;
 export const INTRO_DURATION_REDUCED_MS = 300;
 
+type IntroPhaseWindow = { start: number; end: number };
+
+/**
+ * Fenêtres de l'intro « full » en secondes (validées SKETCH).
+ * `corners.end` = `INTRO_DURATION_FULL_MS / 1000`.
+ */
+export const FULL_INTRO_PHASES = {
+  wake: { start: 0, end: 0.9 },
+  blink: { start: 0.9, end: 1.75 },
+  ring: { start: 1.75, end: 2.55 },
+  dial: { start: 1.95, end: 2.55 },
+  trail: { start: 2, end: 2.9 },
+  finale: { start: 2.75, end: 3.2 },
+  corners: { start: 3.1, end: 3.5 },
+} as const satisfies Record<string, IntroPhaseWindow>;
+
+/**
+ * Clignotement du noyau — WCAG 2.3.1 : 2 flashs max,
+ * départs espacés de flash + pause = 0,34 s (≈ 2,9 Hz < 3 Hz).
+ */
+export const CORE_BLINK = {
+  flashSeconds: 0.14,
+  pauseSeconds: 0.2,
+  count: 2,
+} as const;
+
 /** Un tour complet du cadran pointillé en idle (secondes). */
 export const DIAL_IDLE_SPIN_SECONDS = 36;
 

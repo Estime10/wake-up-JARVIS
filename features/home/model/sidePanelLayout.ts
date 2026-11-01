@@ -1,19 +1,16 @@
 import gsap from "gsap";
 
-export const SIDE_PANEL_OPEN_COLUMNS = "minmax(0,75%) minmax(0,25%)";
-export const SIDE_PANEL_CLOSED_COLUMNS = "minmax(0,100%) minmax(0,0%)";
+/**
+ * Le 75/25 vient du CSS d'AppShell (jamais animé) : le panneau n'entre
+ * qu'en transform/opacity (ADR 0004).
+ */
 
-/** Panneau fermé (plein écran main). */
-export function setSidePanelClosed(
-  shell: HTMLElement,
-  aside: HTMLElement,
-): void {
-  gsap.set(shell, { gridTemplateColumns: SIDE_PANEL_CLOSED_COLUMNS });
-  gsap.set(aside, { xPercent: 100 });
+/** Panneau hors champ à droite — départ du handoff splash→home. */
+export function setSidePanelOffscreen(aside: HTMLElement): void {
+  gsap.set(aside, { xPercent: 100, opacity: 0.35 });
 }
 
-/** Panneau ouvert (75/25), aside en place. */
-export function setSidePanelOpen(shell: HTMLElement, aside: HTMLElement): void {
-  gsap.set(shell, { gridTemplateColumns: SIDE_PANEL_OPEN_COLUMNS });
-  gsap.set(aside, { xPercent: 0, clearProps: "transform" });
+/** Panneau en place (styles inline retirés). */
+export function setSidePanelOpen(aside: HTMLElement): void {
+  gsap.set(aside, { clearProps: "transform,opacity" });
 }

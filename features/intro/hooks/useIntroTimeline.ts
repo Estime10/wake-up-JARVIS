@@ -7,17 +7,18 @@ import { useCallback, useRef, type RefObject } from "react";
 import { useFinishOnce } from "@/features/intro/hooks/useFinishOnce";
 import { useSkipHotkeys } from "@/features/intro/hooks/useSkipHotkeys";
 import { createIntroTimeline } from "@/features/intro/model/createIntroTimeline";
+import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
 import { queryIntroTimelineTargets } from "@/features/intro/model/queryIntroTimelineTargets";
 import { shouldWaitForGreeting } from "@/features/intro/model/shouldWaitForGreeting";
 import { skipIntroTimeline } from "@/features/intro/model/skipIntroTimeline";
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import type { IntroMode } from "@/lib/intro/modes";
+import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
 
 type UseIntroTimelineArgs = {
   mode: Exclude<IntroMode, "none">;
-  reducedMotion: boolean;
   greetingReady: boolean;
   onComplete: () => void;
 };
@@ -33,54 +34,56 @@ type UseIntroTimelineResult = {
  */
 export function useIntroTimeline({
   mode,
-  reducedMotion,
   greetingReady,
   onComplete,
 }: UseIntroTimelineArgs): UseIntroTimelineResult {
   const scopeRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<GsapTimeline | null>(null);
   const { finish, reset } = useFinishOnce(onComplete);
+  const { markRef } = useJarvisShell();
 
   useGSAP(
-    () => {
+    (owner) => {
       const root = scopeRef.current;
       if (!root) {
-        return;
+        return undefined;
       }
 
-      const targets = queryIntroTimelineTargets(root);
+      const targets = queryIntroTimelineTargets(root, markRef.current);
       if (!targets) {
-        return;
+        return undefined;
       }
 
-      if (
-        shouldWaitForGreeting({
+      // Préférence lue par GSAP au montage (pas d'état React) ; un changement
+      // en cours d'intro revert la timeline et la reconstruit.
+      return matchReducedMotion(owner, (reducedMotion) => {
+        if (
+          shouldWaitForGreeting({
+            mode,
+            reducedMotion,
+            greetingReady,
+            hasGreetingNode: targets.greeting !== null,
+          })
+        ) {
+          return undefined;
+        }
+
+        reset();
+
+        timelineRef.current = createIntroTimeline(targets, {
           mode,
           reducedMotion,
-          greetingReady,
-          hasGreetingNode: targets.greeting !== null,
-        })
-      ) {
-        return;
-      }
+          onComplete: finish,
+        });
 
-      reset();
-
-      const tl = createIntroTimeline(targets, {
-        mode,
-        reducedMotion,
-        onComplete: finish,
+        return () => {
+          timelineRef.current = null;
+        };
       });
-
-      timelineRef.current = tl;
-
-      return () => {
-        timelineRef.current = null;
-      };
     },
     {
       scope: scopeRef,
-      dependencies: [mode, reducedMotion, greetingReady, finish, reset],
+      dependencies: [mode, greetingReady, finish, reset],
       revertOnUpdate: true,
     },
   );

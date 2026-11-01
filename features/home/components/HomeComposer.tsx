@@ -12,7 +12,6 @@ type HomeComposerProps = {
   onToggleListening: () => void;
   disabled?: boolean;
   ghost?: boolean;
-  hint?: string | undefined;
   listenSeed?: string | undefined;
 };
 
@@ -23,7 +22,6 @@ export function HomeComposer({
   onToggleListening,
   disabled = false,
   ghost = false,
-  hint,
   listenSeed,
 }: HomeComposerProps) {
   const {
@@ -42,13 +40,12 @@ export function HomeComposer({
     listenSeed,
   });
 
-  const caption =
-    hint ??
-    (listening
-      ? t("home.composerMicActive")
-      : ghost
-        ? t("home.composerVoiceOver")
-        : t("home.composerHints"));
+  // Légende unique (l'ancien prop `hint` dupliquait ce ternaire).
+  const caption = listening
+    ? t("home.composerMicActive")
+    : ghost
+      ? t("home.composerVoiceOver")
+      : t("home.composerHints");
 
   return (
     <form
@@ -59,7 +56,11 @@ export function HomeComposer({
       <label htmlFor="composer" className="sr-only">
         {t("home.composerLabel")}
       </label>
-      <div className="flex items-end gap-2 rounded-md border border-line bg-surface/80 px-3 py-2 shadow-glass backdrop-blur-md">
+      {/* aria-disabled (pas disabled) : le focus reste dans le composer
+          pendant réflexion/parole ; les handlers ignorent l'action. */}
+      {/* Textarea sans outline propre : l'anneau de focus est porté par le
+          conteneur (même token que les Button). */}
+      <div className="flex items-end gap-2 rounded-md border border-line bg-surface/80 px-3 py-2 shadow-glass backdrop-blur-md has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-accent has-[textarea:focus-visible]:outline-solid">
         <Button
           type="button"
           variant="ghost"
@@ -68,7 +69,7 @@ export function HomeComposer({
             listening ? t("home.composerMicStop") : t("home.composerMic")
           }
           aria-pressed={listening}
-          disabled={disabled}
+          aria-disabled={disabled || undefined}
           onClick={handleMicClick}
           className={cn(
             "mb-0.5 shrink-0 text-text-muted hover:text-text",
@@ -90,23 +91,27 @@ export function HomeComposer({
               ? t("home.composerListening")
               : t("home.composerPlaceholder")
           }
-          disabled={disabled}
+          readOnly={disabled}
+          aria-disabled={disabled || undefined}
           autoComplete="off"
           enterKeyHint="send"
-          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text-muted outline-none disabled:cursor-not-allowed"
+          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text-muted outline-hidden aria-disabled:cursor-not-allowed"
         />
         <Button
           type="submit"
           variant="light"
           size="icon"
-          disabled={!canSubmit}
+          aria-disabled={!canSubmit || undefined}
           aria-label={t("home.composerSend")}
           className="mb-0.5 shrink-0"
         >
           <span aria-hidden>→</span>
         </Button>
       </div>
-      <p className="t-mono mt-2 text-center text-xs text-text-muted">
+      <p
+        className="t-mono mt-2 text-center text-sm text-text-muted"
+        aria-hidden={listening || undefined}
+      >
         {caption}
       </p>
     </form>

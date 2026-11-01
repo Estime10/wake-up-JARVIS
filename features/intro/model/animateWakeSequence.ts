@@ -4,42 +4,48 @@ import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineT
 import { scheduleWakeBarsIdlePulse } from "@/features/intro/model/startWakeBarsIdlePulse";
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 
+const ICON_FADE_SECONDS = 0.3;
+const BARS_PULSE_DELAY_SECONDS = 0.15;
+const TYPE_DELAY_SECONDS = 0.25;
+const CHAR_FADE_SECONDS = 0.035;
+
 /**
  * 1) Icône son + pulsation
- * 2) Texte « Réveil détecté… » lettre par lettre
+ * 2) Texte « Réveil détecté… » lettre par lettre, tapé dans la fenêtre
+ *    `[start, end]` (cadence calculée selon la longueur du texte).
  */
 export function animateWakeSequence(
   tl: GsapTimeline,
   targets: IntroTimelineTargets,
-  at: number,
+  phase: { start: number; end: number },
 ): number {
   const { wakeIcon, wakeBars, wakeChars } = targets;
+  const { start, end } = phase;
 
   tl.to(
     wakeIcon,
-    { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" },
-    at,
+    { opacity: 1, scale: 1, duration: ICON_FADE_SECONDS, ease: "power2.out" },
+    start,
   );
 
-  scheduleWakeBarsIdlePulse(tl, wakeBars, at + 0.25);
+  scheduleWakeBarsIdlePulse(tl, wakeBars, start + BARS_PULSE_DELAY_SECONDS);
 
-  const typeAt = at + 0.7;
-  const charStagger = 0.032;
+  const typeAt = start + TYPE_DELAY_SECONDS;
+  const typeSpan = Math.max(0, end - typeAt - CHAR_FADE_SECONDS);
+  const charStagger =
+    wakeChars.length > 1 ? typeSpan / (wakeChars.length - 1) : 0;
   tl.to(
     wakeChars,
     {
       opacity: 1,
-      duration: 0.035,
+      duration: CHAR_FADE_SECONDS,
       stagger: charStagger,
       ease: "none",
     },
     typeAt,
   );
 
-  const typedDuration =
-    wakeChars.length === 0 ? 0 : (wakeChars.length - 1) * charStagger + 0.035;
-
-  return typeAt + typedDuration + 0.25;
+  return end;
 }
 
 export function prepareWakeTargets(targets: IntroTimelineTargets): void {

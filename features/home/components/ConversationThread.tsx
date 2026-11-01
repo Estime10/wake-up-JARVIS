@@ -10,7 +10,12 @@ type ConversationThreadProps = {
   messages: ConversationMessage[];
 };
 
-/** Fil de conversation — scroll bas auto. */
+/**
+ * Fil de conversation — scroll bas auto.
+ * `role="log"` n'annonce que des messages terminés : la bulle en streaming est
+ * masquée aux lecteurs d'écran, puis remontée (clé changée) une fois finie →
+ * une seule insertion annoncée, avec le texte complet (ou partiel si Échap).
+ */
 export function ConversationThread({ messages }: ConversationThreadProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -26,7 +31,10 @@ export function ConversationThread({ messages }: ConversationThreadProps) {
       aria-live="polite"
     >
       {messages.map((message) => (
-        <ConversationMessageBubble key={message.id} message={message} />
+        <ConversationMessageBubble
+          key={message.streaming ? `${message.id}:streaming` : message.id}
+          message={message}
+        />
       ))}
       <div ref={endRef} />
     </div>

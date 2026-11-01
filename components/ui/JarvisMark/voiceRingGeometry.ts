@@ -3,6 +3,14 @@
 export const RING_CX = 256;
 export const RING_CY = 256;
 
+/** Anneaux d'état figés (erreur / hors ligne) — rayon de la traînée idle. */
+export const STATUS_RING_RADIUS = 180;
+/** Hors ligne : tirets gris (longueur trait / vide, unités viewBox). */
+export const OFFLINE_RING_DASH = "6 18";
+/** Erreur : triangle d'alerte centré + point d'exclamation. */
+export const ERROR_TRIANGLE_D = "M256 186L322 300H190Z";
+export const ERROR_EXCLAMATION_D = "M256 226v36M256 282v1";
+
 export const LISTEN_SPOKE_COUNT = 72;
 export const THINK_SEGMENT_COUNT = 16;
 export const SPEAK_BAR_COUNT = 11;

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -36,20 +35,10 @@ type UseHomeComposerResult = {
 
 const TEXTAREA_MAX_PX = 160;
 
-function isMicShortcut(
-  event: KeyboardEvent | globalThis.KeyboardEvent,
-): boolean {
-  return (
-    event.code === "Space" &&
-    event.ctrlKey &&
-    event.shiftKey &&
-    !event.altKey &&
-    !event.metaKey
-  );
-}
-
 /**
  * Composer contrôlé — micro / disabled viennent de la session assistant.
+ * Le raccourci Ctrl+Maj+Espace est écouté par la session (un seul écouteur) ;
+ * le composer réagit à l'entrée en écoute, quelle qu'en soit l'origine.
  */
 export function useHomeComposer({
   onSubmit,
@@ -62,6 +51,16 @@ export function useHomeComposer({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const canSubmit = !disabled && canSubmitComposerDraft(draft);
 
+  // Entrée en écoute (clic ou raccourci) → transcription mock injectée.
+  // Ajustement pendant le rendu (pas d'effet) : pattern React « prev prop ».
+  const [wasListening, setWasListening] = useState(listening);
+  if (listening !== wasListening) {
+    setWasListening(listening);
+    if (listening && listenSeed) {
+      setDraft(listenSeed);
+    }
+  }
+
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) {
@@ -71,33 +70,10 @@ export function useHomeComposer({
     el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_PX)}px`;
   }, [draft]);
 
-  function beginOrEndListen(): void {
-    if (disabled) {
-      return;
-    }
-    if (!listening && listenSeed) {
-      setDraft(listenSeed);
-    }
-    onToggleListening();
-  }
-
-  useEffect(() => {
-    function onKeyDown(event: globalThis.KeyboardEvent): void {
-      if (disabled || !isMicShortcut(event) || event.repeat) {
-        return;
-      }
-      event.preventDefault();
-      if (!listening && listenSeed) {
-        setDraft(listenSeed);
-      }
+  function handleMicClick(): void {
+    if (!disabled) {
       onToggleListening();
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [disabled, listening, listenSeed, onToggleListening]);
-
-  function handleMicClick(): void {
-    beginOrEndListen();
   }
 
   function handleSubmit(event?: FormEvent): void {
@@ -116,11 +92,6 @@ export function useHomeComposer({
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
     if (disabled) {
-      return;
-    }
-    if (isMicShortcut(event)) {
-      event.preventDefault();
-      beginOrEndListen();
       return;
     }
     if (

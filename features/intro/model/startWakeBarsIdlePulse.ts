@@ -20,7 +20,13 @@ export function startWakeBarsIdlePulse(wakeBars: SVGRectElement[]): void {
   });
 }
 
-/** Démarre la pulsation idle dès que l'icône est visible. */
+/**
+ * Démarre la pulsation idle dès que l'icône est visible.
+ * Sûr côté cleanup : GSAP exécute un callback de timeline dans le contexte
+ * où la timeline a été créée (`animation._ctx`) → le tween infini est
+ * capturé par le `useGSAP` de l'intro et tué au revert (unmount / skip).
+ * Ne jamais appeler `startWakeBarsIdlePulse` hors d'un contexte GSAP.
+ */
 export function scheduleWakeBarsIdlePulse(
   tl: GsapTimeline,
   wakeBars: SVGRectElement[],

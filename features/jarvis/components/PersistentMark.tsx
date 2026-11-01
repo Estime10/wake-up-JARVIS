@@ -5,33 +5,33 @@ import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 
 import { JarvisMark } from "@/components/ui/JarvisMark";
-import { placeOnRect } from "@/features/jarvis/model/enterBoundsMotion";
+import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
 import {
-  hasPendingHomeEnter,
-  onHomeEnterComplete,
-} from "@/features/jarvis/model/homeEnterHandoff";
-import {
+  FLIP_ID,
   queryMarkSlot,
   type MarkSlotName,
 } from "@/features/jarvis/model/markDom";
+import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
 import { cn } from "@/lib/cn";
+import { ROUTES } from "@/lib/routes";
 
 function isHomePath(pathname: string): boolean {
-  return pathname === "/home" || pathname.startsWith("/home/");
+  return pathname === ROUTES.home || pathname.startsWith(`${ROUTES.home}/`);
 }
 
 function placeMarkOnSlot(
   mark: HTMLElement,
   slotName: MarkSlotName,
-  opts?: { opacity?: number },
+  opts?: { visible?: boolean },
 ): boolean {
-  const slot = queryMarkSlot(slotName);
+  // Slots rendus par les routes (hors sous-arbre du mark) : scope = document.
+  const slot = queryMarkSlot(mark.ownerDocument, slotName);
   if (!slot) {
     return false;
   }
   placeOnRect(mark, slot.getBoundingClientRect());
-  if (opts?.opacity !== undefined) {
-    gsap.set(mark, { opacity: opts.opacity });
+  if (opts?.visible) {
+    showMark(mark);
   }
   return true;
 }
@@ -42,7 +42,7 @@ function placeMarkOnSlot(
  */
 export function PersistentMark() {
   const pathname = usePathname();
-  const markRef = useRef<HTMLDivElement | null>(null);
+  const { markRef, handoff } = useJarvisShell();
   const phaseRef = useRef<"home" | "splash" | null>(null);
   const home = isHomePath(pathname);
 
@@ -62,17 +62,17 @@ export function PersistentMark() {
       pointerEvents: "none",
     });
 
-    if (home && hasPendingHomeEnter()) {
-      gsap.set(mark, { opacity: 1 });
-      return onHomeEnterComplete(() => {
+    if (home && handoff.hasPending()) {
+      showMark(mark);
+      return handoff.onComplete(() => {
         phaseRef.current = "home";
-        placeMarkOnSlot(mark, "home", { opacity: 1 });
+        placeMarkOnSlot(mark, "home", { visible: true });
       });
     }
 
     if (home && phaseRef.current === "splash") {
       phaseRef.current = "home";
-      placeMarkOnSlot(mark, "home", { opacity: 1 });
+      placeMarkOnSlot(mark, "home", { visible: true });
       return undefined;
     }
 
@@ -81,19 +81,20 @@ export function PersistentMark() {
     const placed = placeMarkOnSlot(
       mark,
       slotName,
-      home ? { opacity: 1 } : undefined,
+      home ? { visible: true } : undefined,
     );
     if (placed) {
       phaseRef.current = slotName;
     }
     return undefined;
-  }, [home, pathname]);
+  }, [handoff, home, markRef, pathname]);
 
   return (
     <div
       ref={markRef}
       data-intro="mark"
       data-jarvis-mark="ring"
+      data-flip-id={FLIP_ID.mark}
       className={cn(
         "pointer-events-none fixed z-[60] text-accent",
         !home && "opacity-0",

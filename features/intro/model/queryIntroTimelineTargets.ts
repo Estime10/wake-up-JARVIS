@@ -1,13 +1,11 @@
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
-import { queryMark } from "@/features/jarvis/model/markDom";
 
 /** Résout les cibles DOM de la timeline (mark `data-jarvis` + textes `data-intro`). */
 export function queryIntroTimelineTargets(
   root: HTMLElement,
+  /** Mark persistant (hors scope splash) — fourni par ref. */
+  mark: HTMLElement | null,
 ): IntroTimelineTargets | null {
-  // Mark persistant (hors scope splash) — fallback document.
-  const mark =
-    root.querySelector<HTMLElement>("[data-intro='mark']") ?? queryMark();
   const wordmark = root.querySelector<HTMLElement>("[data-intro='wordmark']");
   const greeting = root.querySelector<HTMLElement>("[data-intro='greeting']");
   const wakeIcon = root.querySelector<SVGSVGElement>(
