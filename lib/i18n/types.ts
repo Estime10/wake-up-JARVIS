@@ -15,7 +15,7 @@ type Leaves<T> =
       }[keyof T & string]
     : never;
 
-/** Clés de traduction typées (`app.name`, `intro.skip`…). */
+/** Clés de traduction typées (`app.name`, `intro.wordmark`…). */
 export type MessageKey = Leaves<FrMessages>;
 
 export type MessageParams = Record<string, string | number>;

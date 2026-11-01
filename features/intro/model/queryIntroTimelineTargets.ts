@@ -18,11 +18,17 @@ export function queryIntroTimelineTargets(
   const ringDial = mark.querySelector<SVGGeometryElement>(
     "[data-jarvis='ring-dial']",
   );
+  const ringAccents = [
+    ...mark.querySelectorAll<SVGGeometryElement>(
+      "[data-jarvis='ring-accent'], [data-jarvis='ring-accent-inner']",
+    ),
+  ];
   const trail = mark.querySelector<SVGGeometryElement>("[data-jarvis='trail']");
   const head = mark.querySelector<SVGGElement>("[data-jarvis='head']");
   const core = mark.querySelector<SVGGElement>("[data-jarvis='core']");
+  const axis = mark.querySelector<HTMLElement>("[data-intro='axis']");
 
-  if (!ringOuter || !ringDial || !trail || !head || !core) {
+  if (!ringOuter || !ringDial || !trail || !head || !core || !axis) {
     return null;
   }
 
@@ -30,9 +36,11 @@ export function queryIntroTimelineTargets(
     mark,
     ringOuter,
     ringDial,
+    ringAccents,
     trail,
     head,
     core,
+    axis,
     wordmark,
     greeting,
   };

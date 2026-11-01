@@ -2,9 +2,9 @@
 
 import { useEffect, useEffectEvent, useRef } from "react";
 
-import { SkipIntroButton } from "@/features/intro/components/SkipIntroButton";
 import { SplashBackdrop } from "@/features/intro/components/SplashBackdrop";
 import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
+import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashMarkStage } from "@/features/intro/components/SplashMarkStage";
 import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
 import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
@@ -37,9 +37,9 @@ function SplashScreenPlaying({
 
   return (
     <SplashBackdrop scopeRef={scopeRef} onSkip={skip}>
-      <SkipIntroButton onSkip={skip} />
+      <SplashHudChrome />
       <div
-        className="flex flex-col items-center gap-8 px-6 sm:gap-10"
+        className="relative z-10 flex flex-col items-center gap-8 px-6 sm:gap-10"
         onClick={(event) => {
           event.stopPropagation();
         }}

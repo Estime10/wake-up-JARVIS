@@ -57,15 +57,40 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           <stop offset="1" stopColor="currentColor" stopOpacity="0.55" />
         </radialGradient>
       </defs>
+      {/* Arcs externes segmentés (maquette) — décor, hors flip. */}
+      <circle
+        data-jarvis="ring-accent"
+        cx="256"
+        cy="256"
+        r="246"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.16"
+        strokeWidth="1.5"
+        strokeDasharray="36 52 18 96 48 140"
+        transform="rotate(-28 256 256)"
+      />
+      <circle
+        data-jarvis="ring-accent-inner"
+        cx="256"
+        cy="256"
+        r="232"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.1"
+        strokeWidth="1"
+        strokeDasharray="22 70 40 110"
+        transform="rotate(48 256 256)"
+      />
       <circle
         data-jarvis="ring-outer"
         cx="256"
         cy="256"
-        r="222"
+        r="210"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.12"
-        strokeWidth="2"
+        strokeOpacity="0.14"
+        strokeWidth="1.5"
       />
       <circle
         data-jarvis="ring-dial"
@@ -74,7 +99,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="140"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.12"
+        strokeOpacity="0.14"
         strokeWidth="2"
         strokeDasharray="2 10"
       />

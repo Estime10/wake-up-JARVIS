@@ -4,12 +4,16 @@ export type IntroTimelineTargets = {
   ringOuter: SVGGeometryElement;
   /** Cadran pointillé (fondu). */
   ringDial: SVGGeometryElement;
+  /** Arcs segmentés externes (fondu avec le cadran). */
+  ringAccents: SVGGeometryElement[];
   /** Traînée — se dessine jusqu'au point de tête. */
   trail: SVGGeometryElement;
   /** Point de tête (+ halo) — apparaît à l'arrivée de la traînée. */
   head: SVGGElement;
   /** Noyau central. */
   core: SVGGElement;
+  /** Axe horizontal CAL / ligne / AZ — descend après la séquence. */
+  axis: HTMLElement;
   wordmark: HTMLElement;
   greeting: HTMLElement | null;
 };

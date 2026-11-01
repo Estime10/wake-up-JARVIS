@@ -13,10 +13,20 @@ export const fr = {
     displayName: "DevinChat",
   },
   intro: {
-    /** Casse normale : les capitales viennent de `.t-label` / CSS. */
-    skip: "Passer",
+    /** Total mails reçus au moment de l'ouverture (snapshot). */
+    mailTotal: "{count} mails",
+    /** Température locale à l'ouverture (snapshot mock). */
+    temperature: "{celsius} °C",
     /** Sigle : capitales dans la source (exception DA). */
     wordmark: "JARVIS",
+    wakeDetected: "Réveil détecté : « {phrase} »",
+    wakePhrase: "Wake up, JARVIS",
+    sysNominal: "SYS NOMINAL",
+    /** Décor HUD — monospaces, jamais uppercase CSS (lisibilité l/1). */
+    latLon: "LAT 50.85 N — LON 4.35 E",
+    initProgress: "INIT · {percent} %",
+    /** Humidité relative (axe droit, à côté de la ville). */
+    humidity: "HUM {percent} %",
   },
   greeting: {
     morning: "Bonjour, {name}",

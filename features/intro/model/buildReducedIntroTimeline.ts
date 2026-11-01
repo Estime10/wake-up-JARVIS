@@ -16,10 +16,12 @@ export function buildReducedIntroTimeline(
 
   gsap.set(targets.mark, { scale: 1, opacity: 0, transformOrigin: "50% 50%" });
   gsap.set(targets.wordmark, { opacity: 0, y: 0 });
+  gsap.set(targets.axis, { opacity: 0, y: 0 });
   gsap.set(
     [
       targets.ringOuter,
       targets.ringDial,
+      ...targets.ringAccents,
       targets.trail,
       targets.head,
       targets.core,
@@ -30,7 +32,11 @@ export function buildReducedIntroTimeline(
     gsap.set(targets.greeting, { opacity: 0, y: 0 });
   }
 
-  const fadeTargets: gsap.TweenTarget[] = [targets.mark, targets.wordmark];
+  const fadeTargets: gsap.TweenTarget[] = [
+    targets.mark,
+    targets.wordmark,
+    targets.axis,
+  ];
   if (targets.greeting) {
     fadeTargets.push(targets.greeting);
   }

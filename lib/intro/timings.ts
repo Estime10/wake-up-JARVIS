@@ -2,3 +2,6 @@
 export const INTRO_DURATION_FULL_MS = 3500;
 export const INTRO_DURATION_SHORT_MS = 800;
 export const INTRO_DURATION_REDUCED_MS = 300;
+
+/** Un tour complet du cadran pointillé en idle (secondes). */
+export const DIAL_IDLE_SPIN_SECONDS = 64;
