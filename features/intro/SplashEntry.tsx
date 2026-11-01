@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef } from "react";
 
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import { captureSplashSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
 import { prefersReducedMotion } from "@/lib/motion/reducedMotion";
 import { ROUTES } from "@/lib/routes";

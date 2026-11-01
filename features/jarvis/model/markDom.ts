@@ -10,6 +10,7 @@ export const MARK_DOM = {
   wordmark: '[data-intro="wordmark"]',
   greeting: '[data-intro="greeting"]',
   composer: '[data-home="composer"]',
+  chrome: '[data-home="chrome"]',
 } as const;
 
 /**
@@ -43,4 +44,8 @@ export function queryGreeting(root: ParentNode): HTMLElement | null {
 
 export function queryComposer(root: ParentNode): HTMLElement | null {
   return root.querySelector<HTMLElement>(MARK_DOM.composer);
+}
+
+export function queryChrome(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>(MARK_DOM.chrome);
 }

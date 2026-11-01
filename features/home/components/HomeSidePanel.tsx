@@ -2,10 +2,10 @@
 
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { MailListItem } from "@/features/home/components/MailListItem";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { MOCK_MAILS } from "@/fixtures/mails";
-import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 const SIDE_TABS = ["journal", "mails"] as const;
@@ -55,22 +55,26 @@ export function HomeSidePanel() {
           onKeyDown={handleTabKeyDown}
         >
           {SIDE_TABS.map((value) => (
-            <SideTabButton
+            <Button
               key={value}
-              id={tabId(value)}
-              controls={panelId}
-              selected={tab === value}
-              onSelect={() => setTab(value)}
-              buttonRef={(node) => {
+              ref={(node) => {
                 if (node) {
                   tabRefs.current[value] = node;
                 } else {
                   delete tabRefs.current[value];
                 }
               }}
+              id={tabId(value)}
+              variant="tab"
+              size="tab"
+              role="tab"
+              aria-selected={tab === value}
+              aria-controls={panelId}
+              tabIndex={tab === value ? 0 : -1}
+              onClick={() => setTab(value)}
             >
               {t(TAB_LABEL_KEY[value])}
-            </SideTabButton>
+            </Button>
           ))}
         </div>
 
@@ -105,42 +109,5 @@ export function HomeSidePanel() {
         </div>
       </div>
     </div>
-  );
-}
-
-function SideTabButton({
-  id,
-  controls,
-  selected,
-  onSelect,
-  buttonRef,
-  children,
-}: {
-  id: string;
-  controls: string;
-  selected: boolean;
-  onSelect: () => void;
-  buttonRef: (node: HTMLButtonElement | null) => void;
-  children: string;
-}) {
-  return (
-    <button
-      ref={buttonRef}
-      id={id}
-      type="button"
-      role="tab"
-      aria-selected={selected}
-      aria-controls={controls}
-      tabIndex={selected ? 0 : -1}
-      onClick={onSelect}
-      className={cn(
-        "t-label cursor-pointer border-b-2 pb-3 text-sm transition-colors",
-        selected
-          ? "border-accent text-accent"
-          : "border-transparent text-text-muted hover:text-text",
-      )}
-    >
-      {children}
-    </button>
   );
 }

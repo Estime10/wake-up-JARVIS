@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 
 import { TERMINAL_MODAL_PAD } from "@/features/home/model/terminal/modalPad";
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import { inflateRect } from "@/features/jarvis/model/inflateRect";
 import { queryMarkSlot } from "@/features/jarvis/model/markDom";
 import { placeOnRect } from "@/features/jarvis/model/markPlacement";
@@ -16,6 +16,8 @@ const EXPAND_EASE = "power2.inOut";
 type UseTerminalMarkExpandArgs = {
   open: boolean;
   modalRef: RefObject<HTMLDivElement | null>;
+  /** Overlay plein écran — même durée / ease que mark + modale. */
+  backdropRef: RefObject<HTMLElement | null>;
   /** Après shrink mark + fade modale — puis révéler l'UI home. */
   onCloseComplete?: () => void;
 };
@@ -44,13 +46,33 @@ function tweenMarkTo(to: RectTarget, onUpdate: () => void) {
   };
 }
 
+function fadeOverlay(
+  tl: gsap.core.Timeline,
+  el: HTMLElement | null,
+  opacity: number,
+): void {
+  if (!el) {
+    return;
+  }
+  tl.to(
+    el,
+    {
+      opacity,
+      duration: TERMINAL_EXPAND_SECONDS,
+      ease: EXPAND_EASE,
+    },
+    0,
+  );
+}
+
 /**
- * Mode terminal : mark + modale glass synchronisés.
- * Fermeture : mark → home + modale fade, puis `onCloseComplete` (UI ensuite).
+ * Mode terminal : mark + modale + overlay synchronisés.
+ * Fermeture : mark → home + fades, puis `onCloseComplete` (UI ensuite).
  */
 export function useTerminalMarkExpand({
   open,
   modalRef,
+  backdropRef,
   onCloseComplete,
 }: UseTerminalMarkExpandArgs): void {
   const { markRef } = useJarvisShell();
@@ -68,6 +90,7 @@ export function useTerminalMarkExpand({
     }
     const markEl: HTMLElement = markNode;
     const modal = modalRef.current;
+    const backdrop = backdropRef.current;
 
     if (!open) {
       if (!wasOpenRef.current) {
@@ -91,6 +114,9 @@ export function useTerminalMarkExpand({
         if (modal) {
           gsap.set(modal, { opacity: 0 });
         }
+        if (backdrop) {
+          gsap.set(backdrop, { opacity: 0 });
+        }
         finishClose();
         return;
       }
@@ -105,18 +131,8 @@ export function useTerminalMarkExpand({
         tweenMarkTo(to, () => syncModalToMark(modal, markEl)),
         0,
       );
-
-      if (modal) {
-        tl.to(
-          modal,
-          {
-            opacity: 0,
-            duration: TERMINAL_EXPAND_SECONDS,
-            ease: EXPAND_EASE,
-          },
-          0,
-        );
-      }
+      fadeOverlay(tl, modal, 0);
+      fadeOverlay(tl, backdrop, 0);
 
       return () => {
         tl.kill();
@@ -138,12 +154,18 @@ export function useTerminalMarkExpand({
       if (modal) {
         gsap.set(modal, { opacity: 1 });
       }
+      if (backdrop) {
+        gsap.set(backdrop, { opacity: 1 });
+      }
       return;
     }
 
     if (modal) {
       placeOnRect(modal, inflateRect(from, TERMINAL_MODAL_PAD));
       gsap.set(modal, { opacity: 0, scale: 1, x: 0, y: 0 });
+    }
+    if (backdrop) {
+      gsap.set(backdrop, { opacity: 0 });
     }
 
     const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
@@ -153,21 +175,11 @@ export function useTerminalMarkExpand({
       tweenMarkTo(to, () => syncModalToMark(modal, markEl)),
       0,
     );
-
-    if (modal) {
-      tl.to(
-        modal,
-        {
-          opacity: 1,
-          duration: TERMINAL_EXPAND_SECONDS,
-          ease: EXPAND_EASE,
-        },
-        0,
-      );
-    }
+    fadeOverlay(tl, modal, 1);
+    fadeOverlay(tl, backdrop, 1);
 
     return () => {
       tl.kill();
     };
-  }, [markRef, modalRef, open]);
+  }, [backdropRef, markRef, modalRef, open]);
 }

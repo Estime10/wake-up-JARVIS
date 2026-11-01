@@ -5,14 +5,13 @@ import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 
 import { JarvisMark } from "@/components/ui/JarvisMark";
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import {
   FLIP_ID,
   queryMarkSlot,
   type MarkSlotName,
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
-import { cn } from "@/lib/cn";
 import { ROUTES } from "@/lib/routes";
 
 function isHomePath(pathname: string): boolean {
@@ -38,7 +37,7 @@ function placeMarkOnSlot(
 
 /**
  * Unique mark de session — toujours le même nœud DOM (fixed).
- * Pas de portal (remount = timeline intro cassée).
+ * `opacity-0` CSS par défaut : jamais de flash top-left avant placeOnRect.
  */
 export function PersistentMark() {
   const pathname = usePathname();
@@ -76,15 +75,17 @@ export function PersistentMark() {
       return undefined;
     }
 
-    const slotName: MarkSlotName = home ? "home" : "splash";
+    // Refresh /home : ne pas poser ici — `playHomeDirectEnter` mesure le slot
+    // après layout panneau et révèle (évite flash gauche → centre).
+    if (home) {
+      phaseRef.current = "home";
+      return undefined;
+    }
+
     // Splash : ne pas forcer opacity — la timeline GSAP gère l’apparition.
-    const placed = placeMarkOnSlot(
-      mark,
-      slotName,
-      home ? { visible: true } : undefined,
-    );
+    const placed = placeMarkOnSlot(mark, "splash");
     if (placed) {
-      phaseRef.current = slotName;
+      phaseRef.current = "splash";
     }
     return undefined;
   }, [handoff, home, markRef, pathname]);
@@ -95,10 +96,7 @@ export function PersistentMark() {
       data-intro="mark"
       data-jarvis-mark="ring"
       data-flip-id={FLIP_ID.mark}
-      className={cn(
-        "pointer-events-none fixed z-[60] text-accent",
-        !home && "opacity-0",
-      )}
+      className="pointer-events-none fixed z-[60] text-accent opacity-0"
       aria-hidden
     >
       <JarvisMark className="size-full" />

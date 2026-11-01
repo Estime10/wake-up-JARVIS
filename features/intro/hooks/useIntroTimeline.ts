@@ -7,7 +7,7 @@ import { useCallback, useRef, type RefObject } from "react";
 import { useFinishOnce } from "@/features/intro/hooks/useFinishOnce";
 import { useSkipHotkeys } from "@/features/intro/hooks/useSkipHotkeys";
 import { createIntroTimeline } from "@/features/intro/model/createIntroTimeline";
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import { queryIntroTimelineTargets } from "@/features/intro/model/queryIntroTimelineTargets";
 import { shouldWaitForGreeting } from "@/features/intro/model/shouldWaitForGreeting";
 import { skipIntroTimeline } from "@/features/intro/model/skipIntroTimeline";

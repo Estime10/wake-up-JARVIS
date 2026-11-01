@@ -1,6 +1,10 @@
 import gsap from "gsap";
 
 import {
+  appendComposerEnter,
+  prepareComposerHidden,
+} from "@/features/home/model/homeEnterTweens";
+import {
   setSidePanelOffscreen,
   setSidePanelOpen,
 } from "@/features/home/model/sidePanelLayout";
@@ -58,12 +62,17 @@ export function playHomeEnterTransition({
   }
 
   if (reducedMotion || !slot) {
+    if (composer) {
+      gsap.set(composer, { clearProps: "opacity,transform" });
+    }
     onEnd();
     return () => {};
   }
 
   const targets = [mark, wordmark, greeting].filter(isElement);
   const texts = [wordmark, greeting].filter(isElement);
+
+  prepareComposerHidden(composer);
 
   const tl = gsap.timeline({
     defaults: { ease: EASE },
@@ -84,15 +93,7 @@ export function playHomeEnterTransition({
 
   setSidePanelOffscreen(aside);
   tl.to(aside, { xPercent: 0, opacity: 1, duration: DURATION }, 0);
-
-  if (composer) {
-    tl.fromTo(
-      composer,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.95, ease: "power2.out" },
-      0.22,
-    );
-  }
+  appendComposerEnter(tl, composer);
 
   return () => {
     // Abort (kill sans onEnd : pending survit → un remount

@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import type { RefObject } from "react";
 
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
@@ -12,8 +12,8 @@ gsap.registerPlugin(useGSAP);
 const FADE_DURATION = 0.75;
 
 /**
- * Équerres + méta HUD : invisibles pendant l’enter, fade-in à la fin
- * (ou au mount si refresh / entrée directe).
+ * Équerres + méta HUD : invisibles pendant l’enter.
+ * Handoff Flip → fade à `handoff.end` ; entrée directe → `playHomeDirectEnter`.
  */
 export function useHomeChromeReveal(
   chromeRef: RefObject<HTMLElement | null>,
@@ -34,9 +34,11 @@ export function useHomeChromeReveal(
 
       gsap.set(el, { opacity: 0 });
 
-      // Appelé plus tard (fin de l'enter, hors contexte : `owner.ignore` de
-      // useHomeEnterMotion) : `context.add` rattache le tween à CE contexte
-      // seul, sans l'imbriquer dans celui de l'entrée.
+      // Sans handoff : l’entrée directe anime le chrome (`data-home="chrome"`).
+      if (!handoff.hasPending()) {
+        return undefined;
+      }
+
       const fadeIn = () => {
         context.add(() => {
           gsap.to(el, {
@@ -47,12 +49,7 @@ export function useHomeChromeReveal(
         });
       };
 
-      if (handoff.hasPending()) {
-        return handoff.onComplete(fadeIn);
-      }
-
-      fadeIn();
-      return undefined;
+      return handoff.onComplete(fadeIn);
     });
   });
 }

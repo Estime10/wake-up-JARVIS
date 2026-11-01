@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { HudAmbient } from "@/components/ui/HudAmbient";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
@@ -14,6 +15,7 @@ import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
+import { useRepoPanel } from "@/features/home/context";
 import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
 import { MARK_SLOT_SIZE } from "@/features/jarvis/model/markSlotSizes";
@@ -34,7 +36,17 @@ export function HomeScreen() {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
 
-  const terminal = useTerminalSession();
+  const {
+    open: terminalOpen,
+    layer: terminalLayer,
+    homeUiHidden,
+    modalRef,
+    backdropRef,
+    triggerRef,
+    toggle: toggleTerminal,
+    close: closeTerminal,
+  } = useTerminalSession();
+  const { open: repoOpen, toggle: toggleRepo } = useRepoPanel();
   const { state, messages, toggleListen, submit } = useAssistantSession();
 
   useVoiceRingMotion(state);
@@ -49,33 +61,43 @@ export function HomeScreen() {
 
       <div
         ref={chromeRef}
+        data-home="chrome"
         className={cn(
           "pointer-events-none absolute inset-0 opacity-0",
-          terminal.homeUiHidden && TERMINAL_LAYER_CLASS.chrome,
+          homeUiHidden && TERMINAL_LAYER_CLASS.chrome,
         )}
       >
         <SplashHudChrome
           settled
           showWake={false}
-          terminalOpen={terminal.homeUiHidden}
-          terminalTriggerRef={terminal.triggerRef}
-          onTerminalClick={terminal.toggle}
+          terminalOpen={homeUiHidden}
+          terminalDisabled={repoOpen}
+          terminalTriggerRef={triggerRef}
+          onTerminalClick={toggleTerminal}
+          githubOpen={repoOpen}
+          githubDisabled={homeUiHidden}
+          onGithubClick={toggleRepo}
         />
       </div>
 
-      {terminal.layer ? (
+      {terminalLayer ? (
         <>
-          {terminal.open ? (
-            <button
-              type="button"
-              aria-label={t("home.terminalCloseLabel")}
-              className={cn(
-                "fixed inset-0 cursor-default bg-transparent",
-                TERMINAL_LAYER_CLASS.backdrop,
-              )}
-              onClick={terminal.close}
-            />
-          ) : null}
+          <Button
+            ref={backdropRef}
+            variant="ghost"
+            size="bare"
+            tabIndex={terminalOpen ? 0 : -1}
+            aria-hidden={!terminalOpen || undefined}
+            aria-label={t("home.terminalCloseLabel")}
+            className={cn(
+              "fixed inset-0 block h-full w-full cursor-default rounded-none bg-bg/85 opacity-0 backdrop-blur-[var(--blur-glass)]",
+              !terminalOpen && "pointer-events-none",
+              TERMINAL_LAYER_CLASS.backdrop,
+            )}
+            onClick={closeTerminal}
+          >
+            <span className="sr-only">{t("home.terminalClose")}</span>
+          </Button>
           <div
             className={cn(
               "pointer-events-none absolute inset-0 flex items-center justify-center",
@@ -84,10 +106,7 @@ export function HomeScreen() {
           >
             <MarkSlot name="terminal" className={MARK_SLOT_SIZE.splash} />
           </div>
-          <TerminalMarkModal
-            modalRef={terminal.modalRef}
-            active={terminal.open}
-          />
+          <TerminalMarkModal modalRef={modalRef} active={terminalOpen} />
         </>
       ) : null}
 
@@ -100,9 +119,9 @@ export function HomeScreen() {
         <div
           className={cn(
             "flex min-h-0 flex-1 flex-col items-center px-6 pt-10 transition-[opacity,visibility] duration-[var(--duration-base)] sm:pt-12",
-            terminal.homeUiHidden && "pointer-events-none invisible opacity-0",
+            homeUiHidden && "pointer-events-none invisible opacity-0",
           )}
-          aria-hidden={terminal.homeUiHidden || undefined}
+          aria-hidden={homeUiHidden || undefined}
         >
           <AssistantStage state={state} />
 

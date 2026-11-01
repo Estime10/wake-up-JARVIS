@@ -4,9 +4,9 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, type RefObject } from "react";
 
+import { playHomeDirectEnter } from "@/features/home/model/playHomeDirectEnter";
 import { playHomeEnterTransition } from "@/features/home/model/playHomeEnterTransition";
-import { setSidePanelOpen } from "@/features/home/model/sidePanelLayout";
-import { useJarvisShell } from "@/features/jarvis/jarvisShellContext";
+import { useJarvisShell } from "@/features/jarvis/context";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
@@ -17,7 +17,7 @@ type UseHomeEnterMotionResult = {
 };
 
 /**
- * Entrée home : timeline splash→home (scale mark inclus) ou ouverture panneau seule.
+ * Entrée home : Flip splash→home si handoff, sinon entrée directe (refresh / URL).
  */
 export function useHomeEnterMotion(): UseHomeEnterMotionResult {
   const shellRef = useRef<HTMLDivElement | null>(null);
@@ -41,16 +41,19 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
             aside,
             snapshot,
             reducedMotion,
-            // Fin d'enter appelée depuis le onComplete de la timeline : sans
-            // `ignore`, les listeners (placement du mark, fondu du chrome)
-            // s'enregistreraient dans CE contexte et seraient revert à la
-            // prochaine bascule reduced-motion.
+            // Fin d'enter hors contexte : listeners chrome / mark ne sont pas
+            // revert à la prochaine bascule reduced-motion.
             onEnd: () => owner.ignore(() => handoff.end()),
           });
         }
-        // Refresh / entrée directe : panneau posé ouvert, sans anim.
-        setSidePanelOpen(aside);
-        return undefined;
+
+        return playHomeDirectEnter({
+          root: shell,
+          mark: markRef.current,
+          aside,
+          reducedMotion,
+          onEnd: () => {},
+        });
       });
     },
     { scope: shellRef },

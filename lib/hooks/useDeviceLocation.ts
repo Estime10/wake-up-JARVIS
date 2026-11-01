@@ -2,31 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-import { formatLatLon } from "@/lib/geo/formatLatLon";
 import { reverseGeocodePlace } from "@/lib/geo/reverseGeocode";
 import { t } from "@/lib/i18n";
 
-export type DeviceLocationLabels = {
-  coords: string;
-  place: string;
-};
-
-const PENDING: DeviceLocationLabels = {
-  coords: t("intro.latLonPending"),
-  place: t("intro.locationPending"),
-};
-
-const UNAVAILABLE: DeviceLocationLabels = {
-  coords: t("intro.latLonUnavailable"),
-  place: t("intro.locationUnavailable"),
-};
-
 /**
- * Position appareil (Geolocation API) + reverse geocode pour le libellé lieu.
- * Permission refusée / indispo → placeholders HUD.
+ * Lieu appareil (Geolocation + reverse geocode) — libellé HUD seul.
+ * Permission refusée / indispo → placeholder.
  */
-export function useDeviceLocation(): DeviceLocationLabels {
-  const [labels, setLabels] = useState<DeviceLocationLabels>(PENDING);
+export function useDeviceLocation(): string {
+  const [place, setPlace] = useState(t("intro.locationPending"));
 
   useEffect(() => {
     let cancelled = false;
@@ -34,7 +18,7 @@ export function useDeviceLocation(): DeviceLocationLabels {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       const id = window.setTimeout(() => {
         if (!cancelled) {
-          setLabels(UNAVAILABLE);
+          setPlace(t("intro.locationUnavailable"));
         }
       }, 0);
       return () => {
@@ -49,43 +33,27 @@ export function useDeviceLocation(): DeviceLocationLabels {
           return;
         }
         const { latitude, longitude } = position.coords;
-        const parts = formatLatLon(latitude, longitude);
-        const coords = t("intro.latLon", {
-          lat: parts.lat,
-          ns: parts.ns,
-          lon: parts.lon,
-          ew: parts.ew,
-        });
-
-        setLabels({
-          coords,
-          place: t("intro.locationPending"),
-        });
 
         void reverseGeocodePlace(latitude, longitude)
-          .then((place) => {
+          .then((resolved) => {
             if (cancelled) {
               return;
             }
-            setLabels({
-              coords,
-              place: place
-                ? t("intro.location", { place })
+            setPlace(
+              resolved
+                ? t("intro.location", { place: resolved })
                 : t("intro.locationUnavailable"),
-            });
+            );
           })
           .catch(() => {
             if (!cancelled) {
-              setLabels({
-                coords,
-                place: t("intro.locationUnavailable"),
-              });
+              setPlace(t("intro.locationUnavailable"));
             }
           });
       },
       () => {
         if (!cancelled) {
-          setLabels(UNAVAILABLE);
+          setPlace(t("intro.locationUnavailable"));
         }
       },
       {
@@ -100,5 +68,5 @@ export function useDeviceLocation(): DeviceLocationLabels {
     };
   }, []);
 
-  return labels;
+  return place;
 }

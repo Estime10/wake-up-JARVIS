@@ -10,21 +10,24 @@ import { t } from "@/lib/i18n";
 type AppShellProps = {
   children: ReactNode;
   side: ReactNode;
+  repo: ReactNode;
 };
 
 /**
  * Coquille `(main)` — 75/25 dès le premier paint (slot mark stable).
- * Motion entrée : `useHomeEnterMotion`.
+ * Panneau REPO : overlay gauche au-dessus du centre (pas de push layout).
  */
-export function AppShell({ children, side }: AppShellProps) {
+export function AppShell({ children, side, repo }: AppShellProps) {
   const { shellRef, sideRef } = useHomeEnterMotion();
   const mainRef = useMainFocusAfterIntro();
 
   return (
     <div
       ref={shellRef}
-      className="grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,75%)_minmax(0,25%)]"
+      className="relative grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,75%)_minmax(0,25%)]"
     >
+      {repo}
+
       <main
         ref={mainRef}
         id="main"

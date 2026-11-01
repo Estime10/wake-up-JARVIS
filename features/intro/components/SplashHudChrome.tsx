@@ -15,10 +15,17 @@ type SplashHudChromeProps = {
   settled?: boolean;
   /** Ligne « Réveil détecté » — intro seulement. */
   showWake?: boolean;
-  /** Terminal ouvert — CTA « Close Terminal ». */
+  /** Terminal ouvert — CTA « Fermer ». */
   terminalOpen?: boolean;
+  /** Désactivé tant que le panneau REPO est ouvert. */
+  terminalDisabled?: boolean;
   terminalTriggerRef?: Ref<HTMLButtonElement | null>;
   onTerminalClick?: () => void;
+  /** Panneau REPO mock ouvert. */
+  githubOpen?: boolean;
+  /** Désactivé tant que le terminal est ouvert. */
+  githubDisabled?: boolean;
+  onGithubClick?: () => void;
 };
 
 /** Méta HUD — intro (targets GSAP) ou home figé (`settled`). */
@@ -26,12 +33,16 @@ export function SplashHudChrome({
   settled = false,
   showWake = true,
   terminalOpen = false,
+  terminalDisabled = false,
   terminalTriggerRef,
   onTerminalClick,
+  githubOpen = false,
+  githubDisabled = false,
+  onGithubClick,
 }: SplashHudChromeProps) {
   const clock = useIntroClock();
   const mailCount = useInboxMailCount();
-  const location = useDeviceLocation();
+  const place = useDeviceLocation();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
 
   return (
@@ -68,18 +79,22 @@ export function SplashHudChrome({
         >
           <div className="absolute top-6 left-6 flex flex-col gap-1 sm:top-8 sm:left-8">
             <p className="t-mono text-dial sm:text-sm" suppressHydrationWarning>
-              {location.coords}
+              {place}
             </p>
-            <p className="t-mono text-dial sm:text-sm" suppressHydrationWarning>
-              {location.place}
-            </p>
+            {/* Emplacement réservé — CTA GitHub hors aria-hidden */}
+            <span
+              className="invisible t-mono text-dial uppercase sm:text-sm"
+              aria-hidden
+            >
+              {t("home.github")}
+            </span>
           </div>
 
           <div className="absolute top-6 right-6 flex flex-col items-end gap-1 sm:top-8 sm:right-8">
             <p className="t-mono text-dial sm:text-sm">
               {t("intro.mailTotal", { count: mailCount })}
             </p>
-            {/* Emplacement réservé — CTA réel hors aria-hidden */}
+            {/* Emplacement réservé — CTA Terminal hors aria-hidden */}
             <span
               className="invisible t-mono text-dial uppercase sm:text-sm"
               aria-hidden
@@ -123,6 +138,33 @@ export function SplashHudChrome({
 
       <div
         className={cn(
+          "absolute top-6 left-6 z-20 flex flex-col items-start gap-1 sm:top-8 sm:left-8",
+          !settled && "opacity-0",
+        )}
+      >
+        <span
+          className="invisible t-mono text-dial sm:text-sm"
+          aria-hidden
+          suppressHydrationWarning
+        >
+          {place}
+        </span>
+        <Button
+          variant="hud"
+          size="bare"
+          disabled={githubDisabled}
+          aria-expanded={githubOpen}
+          aria-label={
+            githubOpen ? t("home.githubCloseLabel") : t("home.githubLabel")
+          }
+          onClick={onGithubClick}
+        >
+          {t("home.github")}
+        </Button>
+      </div>
+
+      <div
+        className={cn(
           "absolute top-6 right-6 z-20 flex flex-col items-end gap-1 sm:top-8 sm:right-8",
           !settled && "opacity-0",
         )}
@@ -135,6 +177,7 @@ export function SplashHudChrome({
           ref={terminalTriggerRef}
           variant="hud"
           size="bare"
+          disabled={terminalDisabled}
           aria-expanded={terminalOpen}
           aria-label={
             terminalOpen

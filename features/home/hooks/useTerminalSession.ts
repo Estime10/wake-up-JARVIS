@@ -16,6 +16,7 @@ type UseTerminalSessionResult = {
   layer: boolean;
   homeUiHidden: boolean;
   modalRef: RefObject<HTMLDivElement | null>;
+  backdropRef: RefObject<HTMLButtonElement | null>;
   triggerRef: RefObject<HTMLButtonElement | null>;
   toggle: () => void;
   close: () => void;
@@ -27,6 +28,7 @@ type UseTerminalSessionResult = {
 export function useTerminalSession(): UseTerminalSessionResult {
   const [phase, setPhase] = useState<TerminalPhase>("closed");
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const backdropRef = useRef<HTMLButtonElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const open = phase === "open";
@@ -41,6 +43,7 @@ export function useTerminalSession(): UseTerminalSessionResult {
   useTerminalMarkExpand({
     open,
     modalRef,
+    backdropRef,
     onCloseComplete,
   });
 
@@ -76,6 +79,7 @@ export function useTerminalSession(): UseTerminalSessionResult {
     layer,
     homeUiHidden,
     modalRef,
+    backdropRef,
     triggerRef,
     toggle,
     close,
