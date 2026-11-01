@@ -25,8 +25,6 @@ export const fr = {
     /** Décor HUD — monospaces, jamais uppercase CSS (lisibilité l/1). */
     latLon: "LAT 50.85 N — LON 4.35 E",
     initProgress: "INIT · {percent} %",
-    /** Humidité relative (axe droit, à côté de la ville). */
-    humidity: "HUM {percent} %",
   },
   greeting: {
     morning: "Bonjour, {name}",

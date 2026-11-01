@@ -1,6 +1,7 @@
 import gsap from "gsap";
 
-import { animateAxisToCenter } from "@/features/intro/model/animateAxisToCenter";
+import { animateCornersFadeIn } from "@/features/intro/model/animateCornersFadeIn";
+import { animateWakeSequence } from "@/features/intro/model/animateWakeSequence";
 import { blinkCoreTwice } from "@/features/intro/model/blinkCoreTwice";
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 import { padTimelineToDuration } from "@/features/intro/model/padTimelineToDuration";
@@ -11,8 +12,7 @@ import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_FULL_MS } from "@/lib/intro/timings";
 
 /**
- * Noyau → cercle → cadran → traînée → tête + textes → axe → spin idle.
- * Rythme ralenti pour lecture visuelle.
+ * Wake (icône → typewriter) → centre → coins/équerres → spin idle.
  */
 export function buildFullIntroTimeline(
   targets: IntroTimelineTargets,
@@ -26,9 +26,11 @@ export function buildFullIntroTimeline(
   prepareHiddenTargets(targets);
   prepareMarkParts(targets);
 
-  tl.to(targets.mark, { opacity: 1, scale: 1, duration: 0.65 }, 0);
+  const afterWake = animateWakeSequence(tl, targets, 0.15);
 
-  const afterBlink = blinkCoreTwice(tl, targets.core, 0.55);
+  tl.to(targets.mark, { opacity: 1, scale: 1, duration: 0.65 }, afterWake);
+
+  const afterBlink = blinkCoreTwice(tl, targets.core, afterWake + 0.55);
 
   tl.to(
     targets.ringOuter,
@@ -63,9 +65,13 @@ export function buildFullIntroTimeline(
     tl.to(targets.greeting, { opacity: 1, y: 0, duration: 0.95 }, finale);
   }
 
-  animateAxisToCenter(tl, targets.axis, finale + 1.1);
+  animateCornersFadeIn(
+    tl,
+    { hudCorners: targets.hudCorners, hudBrackets: targets.hudBrackets },
+    finale + 1.1,
+  );
 
-  padTimelineToDuration(tl, Math.max(INTRO_DURATION_FULL_MS / 1000, 9.5));
+  padTimelineToDuration(tl, Math.max(INTRO_DURATION_FULL_MS / 1000, 12));
   scheduleDialIdleSpin(tl, targets.ringDial);
 
   return tl;

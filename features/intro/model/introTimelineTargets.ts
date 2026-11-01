@@ -12,10 +12,18 @@ export type IntroTimelineTargets = {
   head: SVGGElement;
   /** Noyau central. */
   core: SVGGElement;
-  /** Axe horizontal CAL / ligne / AZ — descend après la séquence. */
-  axis: HTMLElement;
   wordmark: HTMLElement;
   greeting: HTMLElement | null;
+  /** Icône son (réveil). */
+  wakeIcon: SVGSVGElement;
+  /** Barres de l'icône son. */
+  wakeBars: SVGRectElement[];
+  /** Lettres du texte « Réveil détecté… ». */
+  wakeChars: HTMLElement[];
+  /** Conteneur des textes des 4 coins HUD. */
+  hudCorners: HTMLElement;
+  /** Conteneur des 4 équerres (petites barres). */
+  hudBrackets: HTMLElement;
 };
 
 export type IntroTimelineOptions = {

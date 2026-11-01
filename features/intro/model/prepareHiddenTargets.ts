@@ -1,8 +1,10 @@
 import gsap from "gsap";
 
+import { prepareCornersHidden } from "@/features/intro/model/animateCornersFadeIn";
+import { prepareWakeTargets } from "@/features/intro/model/animateWakeSequence";
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 
-/** Cache mark / textes — scale 1 dès le départ (pas de zoom latéral). */
+/** Cache mark / textes / wake / coins / équerres. */
 export function prepareHiddenTargets(targets: IntroTimelineTargets): void {
   gsap.set(targets.mark, {
     scale: 1,
@@ -15,4 +17,9 @@ export function prepareHiddenTargets(targets: IntroTimelineTargets): void {
   if (targets.greeting) {
     gsap.set(targets.greeting, { opacity: 0, y: 10 });
   }
+  prepareWakeTargets(targets);
+  prepareCornersHidden({
+    hudCorners: targets.hudCorners,
+    hudBrackets: targets.hudBrackets,
+  });
 }

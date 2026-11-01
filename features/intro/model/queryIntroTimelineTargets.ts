@@ -7,8 +7,17 @@ export function queryIntroTimelineTargets(
   const mark = root.querySelector<HTMLElement>("[data-intro='mark']");
   const wordmark = root.querySelector<HTMLElement>("[data-intro='wordmark']");
   const greeting = root.querySelector<HTMLElement>("[data-intro='greeting']");
+  const wakeIcon = root.querySelector<SVGSVGElement>(
+    "[data-intro='wake-icon']",
+  );
+  const hudCorners = root.querySelector<HTMLElement>(
+    "[data-intro='hud-corners']",
+  );
+  const hudBrackets = root.querySelector<HTMLElement>(
+    "[data-intro='hud-brackets']",
+  );
 
-  if (!mark || !wordmark) {
+  if (!mark || !wordmark || !wakeIcon || !hudCorners || !hudBrackets) {
     return null;
   }
 
@@ -26,9 +35,14 @@ export function queryIntroTimelineTargets(
   const trail = mark.querySelector<SVGGeometryElement>("[data-jarvis='trail']");
   const head = mark.querySelector<SVGGElement>("[data-jarvis='head']");
   const core = mark.querySelector<SVGGElement>("[data-jarvis='core']");
-  const axis = mark.querySelector<HTMLElement>("[data-intro='axis']");
+  const wakeBars = [
+    ...wakeIcon.querySelectorAll<SVGRectElement>("[data-intro='wake-bar']"),
+  ];
+  const wakeChars = [
+    ...root.querySelectorAll<HTMLElement>("[data-intro='wake-char']"),
+  ];
 
-  if (!ringOuter || !ringDial || !trail || !head || !core || !axis) {
+  if (!ringOuter || !ringDial || !trail || !head || !core) {
     return null;
   }
 
@@ -40,8 +54,12 @@ export function queryIntroTimelineTargets(
     trail,
     head,
     core,
-    axis,
     wordmark,
     greeting,
+    wakeIcon,
+    wakeBars,
+    wakeChars,
+    hudCorners,
+    hudBrackets,
   };
 }

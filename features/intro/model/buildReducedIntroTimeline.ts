@@ -4,7 +4,7 @@ import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineT
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_REDUCED_MS } from "@/lib/intro/timings";
 
-/** Reduced motion : logo + textes complets en fondu, pas de tracé. */
+/** Reduced motion : tout en fondu, pas de tracé / typewriter / spin. */
 export function buildReducedIntroTimeline(
   targets: IntroTimelineTargets,
   onComplete: () => void,
@@ -16,7 +16,11 @@ export function buildReducedIntroTimeline(
 
   gsap.set(targets.mark, { scale: 1, opacity: 0, transformOrigin: "50% 50%" });
   gsap.set(targets.wordmark, { opacity: 0, y: 0 });
-  gsap.set(targets.axis, { opacity: 0, y: 0 });
+  gsap.set(targets.wakeIcon, { opacity: 0, scale: 1 });
+  gsap.set(targets.wakeBars, { scaleY: 1 });
+  gsap.set(targets.wakeChars, { opacity: 0 });
+  gsap.set(targets.hudCorners, { opacity: 0 });
+  gsap.set(targets.hudBrackets, { opacity: 0 });
   gsap.set(
     [
       targets.ringOuter,
@@ -35,7 +39,10 @@ export function buildReducedIntroTimeline(
   const fadeTargets: gsap.TweenTarget[] = [
     targets.mark,
     targets.wordmark,
-    targets.axis,
+    targets.wakeIcon,
+    targets.wakeChars,
+    targets.hudCorners,
+    targets.hudBrackets,
   ];
   if (targets.greeting) {
     fadeTargets.push(targets.greeting);

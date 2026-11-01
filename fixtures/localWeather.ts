@@ -5,6 +5,4 @@
 export const LOCAL_WEATHER_AT_OPEN = {
   city: "Bruxelles",
   celsius: 8,
-  /** Humidité relative — utile à côté de la ville sur l'axe. */
-  humidityPercent: 62,
 } as const;

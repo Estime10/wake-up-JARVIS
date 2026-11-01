@@ -18,7 +18,7 @@ export function SplashBackdrop({
     <div
       ref={scopeRef}
       role="presentation"
-      className="hud-frame fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg"
       onClick={onSkip}
     >
       <HudAmbient />

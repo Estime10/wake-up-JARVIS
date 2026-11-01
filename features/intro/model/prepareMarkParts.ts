@@ -1,14 +1,12 @@
 import gsap from "gsap";
 
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
-import { prepareAxis } from "@/features/intro/model/prepareAxis";
 import { prepareDrawStroke } from "@/features/intro/model/prepareDrawStroke";
 
 /** État initial des pièces du logo avant la timeline motion. */
 export function prepareMarkParts(targets: IntroTimelineTargets): void {
   prepareDrawStroke(targets.ringOuter);
   prepareDrawStroke(targets.trail);
-  prepareAxis(targets.axis, targets.mark);
 
   gsap.set(targets.ringDial, { opacity: 0 });
   if (targets.ringAccents.length > 0) {

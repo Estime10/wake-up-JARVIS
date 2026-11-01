@@ -140,41 +140,6 @@
     @apply font-mono text-dial font-normal tracking-dial uppercase;
   }
 
-  /*
-   * Coins en équerre (DA) — 8 gradients, sans DOM supplémentaire.
-   * Décor uniquement (hud-strong).
-   */
-  .hud-frame {
-    background-image:
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong)),
-      linear-gradient(var(--color-hud-strong), var(--color-hud-strong));
-    background-size:
-      1.5rem 1px,
-      1px 1.5rem,
-      1.5rem 1px,
-      1px 1.5rem,
-      1.5rem 1px,
-      1px 1.5rem,
-      1.5rem 1px,
-      1px 1.5rem;
-    background-position:
-      top 1.25rem left 1.25rem,
-      top 1.25rem left 1.25rem,
-      top 1.25rem right 1.25rem,
-      top 1.25rem right 1.25rem,
-      bottom 1.25rem left 1.25rem,
-      bottom 1.25rem left 1.25rem,
-      bottom 1.25rem right 1.25rem,
-      bottom 1.25rem right 1.25rem;
-    background-repeat: no-repeat;
-  }
-
   /* Vignette + scanlines ≤ 4 % — calque fixe, aria-hidden à l'usage. */
   .hud-ambient {
     background-image:
