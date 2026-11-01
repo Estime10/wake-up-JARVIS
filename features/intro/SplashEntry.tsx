@@ -1,18 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
 
 /**
- * Point d'entrée temporaire de `/` tant que MainScreen n'existe pas.
- * Le splash reste affiché après la timeline (revue visuelle).
+ * Point d'entrée `/` — intro, puis navigation vers `/home`.
  */
 export function SplashEntry() {
+  const router = useRouter();
+
   return (
     <div className="relative min-h-dvh bg-bg text-text">
-      <main className="min-h-dvh" aria-hidden>
-        {/* Placeholder sous le splash — MainScreen plus tard. */}
-      </main>
-      <SplashScreen mode="full" onComplete={() => {}} />
+      <SplashScreen mode="full" onComplete={() => router.replace("/home")} />
     </div>
   );
 }

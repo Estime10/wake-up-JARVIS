@@ -14,9 +14,9 @@ export function startWakeBarsIdlePulse(wakeBars: SVGRectElement[]): void {
   gsap.set(wakeBars, { transformOrigin: "50% 100%" });
   gsap.to(wakeBars, {
     scaleY: 1.6,
-    duration: 0.28,
+    duration: 0.26,
     ease: "sine.inOut",
-    stagger: { each: 0.08, from: "center", yoyo: true, repeat: -1 },
+    stagger: { each: 0.07, from: "center", yoyo: true, repeat: -1 },
   });
 }
 

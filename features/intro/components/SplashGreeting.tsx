@@ -1,18 +1,23 @@
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { cn } from "@/lib/cn";
 
 type SplashGreetingProps = {
   text: string;
+  settled?: boolean;
 };
 
 /**
- * Salut — opacity/y via GSAP ; curseur terminal décoratif (maquette).
- * Texte complet accessible ; lettres + curseur en `aria-hidden`.
+ * Salut — opacity/y via GSAP en intro ; visible si `settled`.
+ * Curseur terminal décoratif (maquette).
  */
-export function SplashGreeting({ text }: SplashGreetingProps) {
+export function SplashGreeting({ text, settled = false }: SplashGreetingProps) {
   return (
     <p
       data-intro="greeting"
-      className="t-body text-center text-lg text-text opacity-0 will-change-transform sm:text-xl"
+      className={cn(
+        "t-body text-center text-lg text-text will-change-transform sm:text-xl",
+        settled ? "opacity-100" : "opacity-0",
+      )}
     >
       <span aria-hidden>
         {text}

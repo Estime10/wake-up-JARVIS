@@ -5,9 +5,8 @@ import { scheduleWakeBarsIdlePulse } from "@/features/intro/model/startWakeBarsI
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 
 /**
- * 1) Icône son (apparition) + pulsation continue des barres
+ * 1) Icône son + pulsation
  * 2) Texte « Réveil détecté… » lettre par lettre
- * Retourne le temps de fin de séquence sur la timeline.
  */
 export function animateWakeSequence(
   tl: GsapTimeline,
@@ -18,20 +17,19 @@ export function animateWakeSequence(
 
   tl.to(
     wakeIcon,
-    { opacity: 1, scale: 1, duration: 0.55, ease: "power2.out" },
+    { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" },
     at,
   );
 
-  // Pulsation continue jusqu'à la fin (et au-delà en idle) — hors timeline
-  scheduleWakeBarsIdlePulse(tl, wakeBars, at + 0.35);
+  scheduleWakeBarsIdlePulse(tl, wakeBars, at + 0.25);
 
-  const typeAt = at + 0.9;
-  const charStagger = 0.038;
+  const typeAt = at + 0.7;
+  const charStagger = 0.032;
   tl.to(
     wakeChars,
     {
       opacity: 1,
-      duration: 0.04,
+      duration: 0.035,
       stagger: charStagger,
       ease: "none",
     },
@@ -39,12 +37,11 @@ export function animateWakeSequence(
   );
 
   const typedDuration =
-    wakeChars.length === 0 ? 0 : (wakeChars.length - 1) * charStagger + 0.04;
+    wakeChars.length === 0 ? 0 : (wakeChars.length - 1) * charStagger + 0.035;
 
-  return typeAt + typedDuration + 0.35;
+  return typeAt + typedDuration + 0.25;
 }
 
-/** État initial wake — hors reduced motion. */
 export function prepareWakeTargets(targets: IntroTimelineTargets): void {
   gsap.set(targets.wakeIcon, { opacity: 0, scale: 0.65 });
   gsap.set(targets.wakeBars, {

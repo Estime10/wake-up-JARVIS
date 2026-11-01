@@ -30,6 +30,11 @@ export const fr = {
     morning: "Bonjour, {name}",
     evening: "Bonsoir, {name}",
   },
+  home: {
+    sidePanelLabel: "Panneau latéral",
+    tabJournal: "Journal",
+    sideEmpty: "Le journal et les mails arriveront ici.",
+  },
 } as const;
 
 export type FrMessages = typeof fr;
