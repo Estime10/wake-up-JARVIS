@@ -1,4 +1,4 @@
-export type MarkSlotName = "home" | "splash";
+export type MarkSlotName = "home" | "splash" | "terminal";
 
 /**
  * Contrat DOM unique slots / textes handoff. Toutes les requêtes prennent

@@ -10,6 +10,8 @@ export const fr = {
   },
   user: {
     displayName: "DevinChat",
+    /** Host du prompt shell (identité machine — hors web API). */
+    terminalHost: "42:D6:C0:B0:3E:8D",
   },
   intro: {
     /** Total mails reçus au moment de l'ouverture (snapshot). */
@@ -41,7 +43,13 @@ export const fr = {
     title: "JARVIS, accueil",
     /** CTA HUD — agent terminal (branchement réel plus tard). */
     terminal: "Terminal",
+    terminalClose: "Close Terminal",
     terminalLabel: "Ouvrir le terminal",
+    terminalCloseLabel: "Fermer le terminal",
+    terminalShellLabel: "Terminal",
+    terminalInputLabel: "Commande",
+    /** Message zsh natif (macOS), toujours en anglais. */
+    terminalCommandNotFound: "zsh: command not found: {command}",
     sidePanelLabel: "Panneau latéral",
     sideTabsLabel: "Journal et mails",
     tabJournal: "Journal",

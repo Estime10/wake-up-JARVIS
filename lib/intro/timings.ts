@@ -34,3 +34,6 @@ export const DIAL_IDLE_SPIN_SECONDS = 36;
 
 /** Rotation thinking — miroir `--duration-think-spin`. */
 export const THINK_SPIN_SECONDS = 2.4;
+
+/** Ouverture terminal : mark → taille splash (secondes). */
+export const TERMINAL_EXPAND_SECONDS = 0.75;

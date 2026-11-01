@@ -1,5 +1,6 @@
 import type { AssistantState } from "@/features/home/model/assistantMachine";
 import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
+import { MARK_SLOT_SIZE } from "@/features/jarvis/model/markSlotSizes";
 import { t } from "@/lib/i18n";
 
 type AssistantStageProps = {
@@ -20,10 +21,7 @@ export function AssistantStage({ state }: AssistantStageProps) {
 
   return (
     <div className="flex w-full flex-col items-center">
-      <MarkSlot
-        name="home"
-        className="size-[min(54vw,17rem)] sm:size-[min(38vw,18.5rem)]"
-      />
+      <MarkSlot name="home" className={MARK_SLOT_SIZE.home} />
 
       {showListening ? (
         <div

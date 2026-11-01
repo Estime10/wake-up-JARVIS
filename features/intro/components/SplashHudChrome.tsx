@@ -1,6 +1,9 @@
 "use client";
 
-import { TerminalCta } from "@/features/intro/components/TerminalCta";
+import type { Ref } from "react";
+
+import { Button } from "@/components/ui/Button";
+import { HudCornerBracket } from "@/components/ui/HudCornerBracket";
 import { useInboxMailCount } from "@/features/intro/hooks/useInboxMailCount";
 import { useIntroClock } from "@/features/intro/hooks/useIntroClock";
 import { cn } from "@/lib/cn";
@@ -12,6 +15,9 @@ type SplashHudChromeProps = {
   settled?: boolean;
   /** Ligne « Réveil détecté » — intro seulement. */
   showWake?: boolean;
+  /** Terminal ouvert — CTA « Close Terminal ». */
+  terminalOpen?: boolean;
+  terminalTriggerRef?: Ref<HTMLButtonElement | null>;
   onTerminalClick?: () => void;
 };
 
@@ -19,6 +25,8 @@ type SplashHudChromeProps = {
 export function SplashHudChrome({
   settled = false,
   showWake = true,
+  terminalOpen = false,
+  terminalTriggerRef,
   onTerminalClick,
 }: SplashHudChromeProps) {
   const clock = useIntroClock();
@@ -36,10 +44,22 @@ export function SplashHudChrome({
           data-intro="hud-brackets"
           className={cn("absolute inset-0", !settled && "opacity-0")}
         >
-          <CornerBracket className="top-3 left-3 border-t border-l sm:top-4 sm:left-4" />
-          <CornerBracket className="top-3 right-3 border-t border-r sm:top-4 sm:right-4" />
-          <CornerBracket className="bottom-3 left-3 border-b border-l sm:bottom-4 sm:left-4" />
-          <CornerBracket className="right-3 bottom-3 border-r border-b sm:right-4 sm:bottom-4" />
+          <HudCornerBracket
+            corner="tl"
+            className="top-3 left-3 sm:top-4 sm:left-4"
+          />
+          <HudCornerBracket
+            corner="tr"
+            className="top-3 right-3 sm:top-4 sm:right-4"
+          />
+          <HudCornerBracket
+            corner="bl"
+            className="bottom-3 left-3 sm:bottom-4 sm:left-4"
+          />
+          <HudCornerBracket
+            corner="br"
+            className="right-3 bottom-3 sm:right-4 sm:bottom-4"
+          />
         </div>
 
         <div
@@ -64,7 +84,7 @@ export function SplashHudChrome({
               className="invisible t-mono text-dial uppercase sm:text-sm"
               aria-hidden
             >
-              {t("home.terminal")}
+              {terminalOpen ? t("home.terminalClose") : t("home.terminal")}
             </span>
           </div>
 
@@ -111,18 +131,22 @@ export function SplashHudChrome({
         <span className="invisible t-mono text-dial sm:text-sm" aria-hidden>
           {t("intro.mailTotal", { count: mailCount })}
         </span>
-        <TerminalCta onClick={onTerminalClick} />
+        <Button
+          ref={terminalTriggerRef}
+          variant="hud"
+          size="bare"
+          aria-expanded={terminalOpen}
+          aria-label={
+            terminalOpen
+              ? t("home.terminalCloseLabel")
+              : t("home.terminalLabel")
+          }
+          onClick={onTerminalClick}
+        >
+          {terminalOpen ? t("home.terminalClose") : t("home.terminal")}
+        </Button>
       </div>
     </>
-  );
-}
-
-function CornerBracket({ className }: { className: string }) {
-  return (
-    <span
-      data-intro="hud-bracket"
-      className={cn("absolute size-5 border-accent/40 sm:size-6", className)}
-    />
   );
 }
 

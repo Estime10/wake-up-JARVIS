@@ -29,6 +29,7 @@ const eslintConfig = defineConfig([
     files: [
       "app/providers.tsx",
       "adapters/**",
+      "__tests__/**",
       "**/*.test.ts",
       "**/*.test.tsx",
     ],
