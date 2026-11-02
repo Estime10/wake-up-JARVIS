@@ -1,0 +1,66 @@
+import { describe, expect, it } from "vitest";
+
+import { createMockPorts } from "@/adapters/mock";
+
+describe("createMockPorts", () => {
+  it("expose les cinq ports", () => {
+    const ports = createMockPorts();
+    expect(ports.llm).toBeDefined();
+    expect(ports.voice).toBeDefined();
+    expect(ports.action).toBeDefined();
+    expect(ports.memory).toBeDefined();
+    expect(ports.mail).toBeDefined();
+  });
+
+  it("MemoryPort liste le seed greeting", async () => {
+    const { memory } = createMockPorts();
+    const messages = await memory.listMessages();
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.role).toBe("assistant");
+  });
+
+  it("MailPort respecte la limite", async () => {
+    const { mail } = createMockPorts();
+    const three = await mail.listRecent(3);
+    expect(three).toHaveLength(3);
+  });
+
+  it("LlmPort streame une réponse texte puis done", async () => {
+    const { llm } = createMockPorts();
+    const ac = new AbortController();
+    const chunks: string[] = [];
+    let done = false;
+    for await (const chunk of llm.reply({ text: "salut" }, ac.signal)) {
+      if (chunk.type === "text") {
+        chunks.push(chunk.text);
+      }
+      if (chunk.type === "done") {
+        done = true;
+      }
+    }
+    expect(chunks.join("").length).toBeGreaterThan(10);
+    expect(done).toBe(true);
+  });
+
+  it("LlmPort #erreur échoue", async () => {
+    const { llm } = createMockPorts();
+    const ac = new AbortController();
+    await expect(async () => {
+      for await (const chunk of llm.reply({ text: "#erreur" }, ac.signal)) {
+        void chunk;
+      }
+    }).rejects.toThrow(/#erreur/);
+  });
+
+  it("LlmPort #action propose une action niveau 1", async () => {
+    const { llm } = createMockPorts();
+    const ac = new AbortController();
+    let proposalRisk: number | undefined;
+    for await (const chunk of llm.reply({ text: "voir #action" }, ac.signal)) {
+      if (chunk.type === "action-proposal") {
+        proposalRisk = chunk.proposal.risk;
+      }
+    }
+    expect(proposalRisk).toBe(1);
+  });
+});

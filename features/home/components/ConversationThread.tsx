@@ -8,15 +8,20 @@ import { t } from "@/lib/i18n";
 
 type ConversationThreadProps = {
   messages: ConversationMessage[];
+  onConfirmAction?: ((messageId: string) => void) | undefined;
+  onCancelAction?: ((messageId: string) => void) | undefined;
 };
 
 /**
  * Fil de conversation — scroll bas auto.
  * `role="log"` n'annonce que des messages terminés : la bulle en streaming est
- * masquée aux lecteurs d'écran, puis remontée (clé changée) une fois finie →
- * une seule insertion annoncée, avec le texte complet (ou partiel si Échap).
+ * masquée aux lecteurs d'écran, puis remontée (clé changée) une fois finie.
  */
-export function ConversationThread({ messages }: ConversationThreadProps) {
+export function ConversationThread({
+  messages,
+  onConfirmAction,
+  onCancelAction,
+}: ConversationThreadProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -34,6 +39,8 @@ export function ConversationThread({ messages }: ConversationThreadProps) {
         <ConversationMessageBubble
           key={message.streaming ? `${message.id}:streaming` : message.id}
           message={message}
+          onConfirmAction={onConfirmAction}
+          onCancelAction={onCancelAction}
         />
       ))}
       <div ref={endRef} />

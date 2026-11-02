@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 // Cache Components désactivé pour la phase UI : pas de données serveur,
 // et le rendu partiel est incompatible avec une CSP à nonce (voir ADR 0002).
+// CSP elle-même : uniquement dans proxy.ts (pas ici).
 const nextConfig: NextConfig = {
   turbopack: {
     rules: {
@@ -10,6 +11,24 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), geolocation=(), microphone=()",
+          },
+        ],
+      },
+    ];
   },
 };
 

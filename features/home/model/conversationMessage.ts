@@ -1,4 +1,15 @@
+import type { ActionStatus } from "@/lib/actions/lifecycle";
+import type { ActionProposal } from "@/lib/schemas";
+
 export type ConversationRole = "assistant" | "user";
+
+export type ConversationActionState = {
+  proposal: ActionProposal;
+  status: ActionStatus;
+  outputLines: string[];
+  exitCode?: number;
+  notice?: string;
+};
 
 export type ConversationMessage = {
   id: string;
@@ -7,6 +18,8 @@ export type ConversationMessage = {
   /** HH:MM local — affichage seul. */
   time: string;
   streaming?: boolean;
+  /** Carte d'action inline (assistant). */
+  action?: ConversationActionState;
 };
 
 export function formatMessageTime(date: Date): string {

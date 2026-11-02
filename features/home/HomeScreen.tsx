@@ -23,7 +23,6 @@ import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
 import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
-import { MOCK_LISTEN_DRAFT } from "@/fixtures/listenDraft";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
@@ -47,7 +46,15 @@ export function HomeScreen() {
     close: closeTerminal,
   } = useTerminalSession();
   const { open: repoOpen, toggle: toggleRepo } = useRepoPanel();
-  const { state, messages, toggleListen, submit } = useAssistantSession();
+  const {
+    state,
+    messages,
+    listenSeed,
+    toggleListen,
+    submit,
+    confirmAction,
+    cancelAction,
+  } = useAssistantSession();
 
   useVoiceRingMotion(state);
 
@@ -133,7 +140,11 @@ export function HomeScreen() {
           ) : null}
 
           {!showIdleBrand ? (
-            <ConversationThread messages={messages} />
+            <ConversationThread
+              messages={messages}
+              onConfirmAction={confirmAction}
+              onCancelAction={cancelAction}
+            />
           ) : (
             <div className="min-h-0 flex-1" />
           )}
@@ -148,7 +159,7 @@ export function HomeScreen() {
               onToggleListening={toggleListen}
               disabled={busy}
               ghost={state === "speaking"}
-              listenSeed={MOCK_LISTEN_DRAFT}
+              listenSeed={listenSeed}
             />
           </div>
         </div>

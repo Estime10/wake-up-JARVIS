@@ -2,6 +2,9 @@
 
 import { useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
 
+import { usePorts } from "@/app/ports-context";
+import { type ActionStatus, transitionAction } from "@/lib/actions/lifecycle";
+import { requiresSignature } from "@/lib/actions/risk";
 import {
   type AssistantEvent,
   type AssistantState,
@@ -13,10 +16,10 @@ import {
   type ConversationMessage,
 } from "@/features/home/model/conversationMessage";
 import { isMicShortcut } from "@/features/home/model/micShortcut";
-import {
-  MOCK_ASSISTANT_GREETING,
-  MOCK_ASSISTANT_REPLY,
-} from "@/fixtures/assistantReply";
+import { toConversationMessage } from "@/features/home/model/toConversationMessage";
+import { useLatestRef } from "@/lib/hooks/useLatestRef";
+import { t } from "@/lib/i18n";
+import type { ActionProposal, Message } from "@/lib/schemas";
 
 function sessionReducer(
   state: AssistantState,
@@ -25,45 +28,153 @@ function sessionReducer(
   return transition(state, event);
 }
 
-const THINKING_MS = 1400;
-const SPEAK_CHAR_MS = 28;
+const ACTION_TTL_MS = 120_000;
 
 type UseAssistantSessionResult = {
   state: AssistantState;
   messages: ConversationMessage[];
+  listenSeed: string | undefined;
   toggleListen: () => void;
   submit: (text: string) => void;
+  confirmAction: (messageId: string) => void;
+  cancelAction: (messageId: string) => void;
 };
 
 /**
- * Session assistant home — machine + fil mock (thinking → speak stream).
+ * Session assistant home — machine + ports (LLM / mémoire / voix / actions).
  */
 export function useAssistantSession(): UseAssistantSessionResult {
+  const { llm, memory, voice, action } = usePorts();
   const [assistant, dispatch] = useReducer(sessionReducer, "idle");
-  const [messages, setMessages] = useState<ConversationMessage[]>(() => [
-    {
-      id: "seed-greeting",
-      role: "assistant",
-      text: MOCK_ASSISTANT_GREETING,
-      time: formatMessageTime(new Date()),
-    },
-  ]);
-  const timersRef = useRef<number[]>([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const messagesRef = useLatestRef(messages);
+  const [listenSeed, setListenSeed] = useState<string | undefined>(undefined);
+  const abortRef = useRef<AbortController | null>(null);
+  const stopListenRef = useRef<(() => void) | null>(null);
   const speakIdRef = useRef<string | null>(null);
-
-  function clearTimers(): void {
-    for (const id of timersRef.current) {
-      window.clearTimeout(id);
-      window.clearInterval(id);
-    }
-    timersRef.current = [];
-  }
+  const actionTimersRef = useRef<Map<string, number>>(new Map());
+  const actionAbortRef = useRef<Map<string, AbortController>>(new Map());
 
   useEffect(() => {
-    return () => clearTimers();
+    let cancelled = false;
+    void memory.listMessages().then((list) => {
+      if (!cancelled) {
+        setMessages(list.map(toConversationMessage));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [memory]);
+
+  useEffect(() => {
+    const timers = actionTimersRef.current;
+    const aborts = actionAbortRef.current;
+    return () => {
+      abortRef.current?.abort();
+      stopListenRef.current?.();
+      for (const id of timers.values()) {
+        window.clearTimeout(id);
+      }
+      for (const ac of aborts.values()) {
+        ac.abort();
+      }
+    };
   }, []);
 
-  // Seul écouteur clavier global de la home : Échap + Ctrl+Maj+Espace.
+  function stopVoiceListen(): void {
+    stopListenRef.current?.();
+    stopListenRef.current = null;
+  }
+
+  function clearActionTimer(messageId: string): void {
+    const timer = actionTimersRef.current.get(messageId);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      actionTimersRef.current.delete(messageId);
+    }
+  }
+
+  function scheduleActionExpiry(messageId: string): void {
+    clearActionTimer(messageId);
+    const timer = window.setTimeout(() => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id !== messageId || !msg.action) {
+            return msg;
+          }
+          const next = transitionAction(
+            msg.action.status,
+            { type: "EXPIRE" },
+            msg.action.proposal.risk,
+          );
+          return {
+            ...msg,
+            action: { ...msg.action, status: next },
+          };
+        }),
+      );
+      actionTimersRef.current.delete(messageId);
+    }, ACTION_TTL_MS);
+    actionTimersRef.current.set(messageId, timer);
+  }
+
+  function patchAction(
+    messageId: string,
+    patch: (
+      status: ActionStatus,
+      proposal: ActionProposal,
+    ) => {
+      status: ActionStatus;
+      notice?: string | undefined;
+      clearNotice?: boolean;
+      outputLines?: string[];
+      exitCode?: number;
+    },
+  ): void {
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== messageId || !msg.action) {
+          return msg;
+        }
+        const result = patch(msg.action.status, msg.action.proposal);
+        const nextNotice = result.clearNotice
+          ? undefined
+          : (result.notice ?? msg.action.notice);
+        return {
+          ...msg,
+          action: {
+            proposal: msg.action.proposal,
+            status: result.status,
+            outputLines: result.outputLines ?? msg.action.outputLines,
+            ...(nextNotice !== undefined ? { notice: nextNotice } : {}),
+            ...(result.exitCode !== undefined
+              ? { exitCode: result.exitCode }
+              : msg.action.exitCode !== undefined
+                ? { exitCode: msg.action.exitCode }
+                : {}),
+          },
+        };
+      }),
+    );
+  }
+
+  function interrupt(): void {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    stopVoiceListen();
+    const streamingId = speakIdRef.current;
+    speakIdRef.current = null;
+    if (streamingId) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === streamingId ? { ...msg, streaming: false } : msg,
+        ),
+      );
+    }
+    dispatch({ type: "INTERRUPT" });
+  }
+
   const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
     const busy = assistant === "speaking" || assistant === "thinking";
     if (event.key === "Escape" && busy) {
@@ -87,68 +198,244 @@ export function useAssistantSession(): UseAssistantSessionResult {
 
   function toggleListen(): void {
     if (assistant === "listening") {
+      stopVoiceListen();
       dispatch({ type: "STOP_LISTEN" });
       return;
     }
     if (assistant === "idle") {
       dispatch({ type: "START_LISTEN" });
+      const session = voice.startListening({
+        onTranscript: (partial) => {
+          setListenSeed(partial);
+        },
+        onLevel: () => {},
+      });
+      stopListenRef.current = session.stop;
     }
   }
 
-  /**
-   * Coupe la réponse : le message en cours garde son texte partiel
-   * et n'est plus marqué « en train de répondre ».
-   */
-  function interrupt(): void {
-    clearTimers();
-    const streamingId = speakIdRef.current;
-    speakIdRef.current = null;
-    if (streamingId) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === streamingId ? { ...msg, streaming: false } : msg,
+  async function persist(message: Message): Promise<void> {
+    await memory.appendMessage(message);
+  }
+
+  async function runExecute(
+    messageId: string,
+    proposal: ActionProposal,
+  ): Promise<void> {
+    clearActionTimer(messageId);
+    const ac = new AbortController();
+    actionAbortRef.current.set(messageId, ac);
+    const lines: string[] = [];
+
+    patchAction(messageId, () => ({
+      status: "running",
+      outputLines: [],
+      clearNotice: true,
+    }));
+
+    try {
+      for await (const event of action.execute(proposal.id, ac.signal)) {
+        if (event.type === "stdout" || event.type === "stderr") {
+          lines.push(event.line);
+          patchAction(messageId, () => ({
+            status: "running",
+            outputLines: [...lines],
+          }));
+        }
+        if (event.type === "done") {
+          const ok = event.exitCode === 0;
+          patchAction(messageId, (status) => ({
+            status: transitionAction(
+              status,
+              { type: ok ? "SUCCEED" : "FAIL" },
+              proposal.risk,
+            ),
+            outputLines: [...lines],
+            exitCode: event.exitCode,
+          }));
+        }
+      }
+    } catch {
+      patchAction(messageId, (status) => ({
+        status: transitionAction(status, { type: "FAIL" }, proposal.risk),
+        exitCode: 1,
+        outputLines: [...lines],
+      }));
+    } finally {
+      actionAbortRef.current.delete(messageId);
+    }
+  }
+
+  function confirmAction(messageId: string): void {
+    const msg = messagesRef.current.find((m) => m.id === messageId);
+    const card = msg?.action;
+    if (!card || card.status !== "pending") {
+      return;
+    }
+
+    if (requiresSignature(card.proposal.risk)) {
+      patchAction(messageId, (status) => ({
+        status: transitionAction(
+          status,
+          { type: "CONFIRM" },
+          card.proposal.risk,
         ),
-      );
+        clearNotice: true,
+      }));
+
+      const ac = new AbortController();
+      actionAbortRef.current.set(messageId, ac);
+      void action
+        .requestSignature(card.proposal.id, ac.signal)
+        .then((result) => {
+          if (result === "refused") {
+            patchAction(messageId, (status) => ({
+              status: transitionAction(
+                status,
+                { type: "SIGNATURE_REFUSED" },
+                card.proposal.risk,
+              ),
+              notice: t("actions.signatureRefused"),
+            }));
+            return;
+          }
+          patchAction(messageId, (status) => ({
+            status: transitionAction(
+              status,
+              { type: "SIGNATURE_OK" },
+              card.proposal.risk,
+            ),
+            clearNotice: true,
+          }));
+          void runExecute(messageId, card.proposal);
+        });
+      return;
     }
-    dispatch({ type: "INTERRUPT" });
+
+    void runExecute(messageId, card.proposal);
   }
 
-  function beginSpeakStream(fullText: string): void {
+  function cancelAction(messageId: string): void {
+    const msg = messagesRef.current.find((m) => m.id === messageId);
+    const card = msg?.action;
+    if (!card) {
+      return;
+    }
+    clearActionTimer(messageId);
+    actionAbortRef.current.get(messageId)?.abort();
+    actionAbortRef.current.delete(messageId);
+    void action.cancel(card.proposal.id);
+    patchAction(messageId, (status) => ({
+      status: transitionAction(status, { type: "CANCEL" }, card.proposal.risk),
+    }));
+  }
+
+  async function runReply(userText: string): Promise<void> {
+    const ac = new AbortController();
+    abortRef.current = ac;
     const id = createMessageId();
     speakIdRef.current = id;
-    const time = formatMessageTime(new Date());
-    setMessages((prev) => [
-      ...prev,
-      { id, role: "assistant", text: "", time, streaming: true },
-    ]);
-    dispatch({ type: "REPLY_START" });
+    let started = false;
+    let fullText = "";
+    let proposal: ActionProposal | null = null;
 
-    let index = 0;
-    const tick = window.setInterval(() => {
-      index += 1;
-      const next = fullText.slice(0, index);
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === id
-            ? {
-                ...msg,
-                text: next,
-                streaming: index < fullText.length,
-              }
-            : msg,
-        ),
-      );
-      if (index >= fullText.length) {
-        window.clearInterval(tick);
-        timersRef.current = timersRef.current.filter((t) => t !== tick);
-        speakIdRef.current = null;
-        const endId = window.setTimeout(() => {
-          dispatch({ type: "SPEAK_END" });
-        }, 600);
-        timersRef.current.push(endId);
+    try {
+      for await (const chunk of llm.reply({ text: userText }, ac.signal)) {
+        if (ac.signal.aborted) {
+          break;
+        }
+        if (chunk.type === "text") {
+          fullText += chunk.text;
+          if (!started) {
+            started = true;
+            const time = formatMessageTime(new Date());
+            setMessages((prev) => [
+              ...prev,
+              {
+                id,
+                role: "assistant",
+                text: chunk.text,
+                time,
+                streaming: true,
+              },
+            ]);
+            dispatch({ type: "REPLY_START" });
+          } else {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === id ? { ...msg, text: msg.text + chunk.text } : msg,
+              ),
+            );
+          }
+        }
+        if (chunk.type === "action-proposal") {
+          proposal = chunk.proposal;
+        }
+        if (chunk.type === "done") {
+          break;
+        }
       }
-    }, SPEAK_CHAR_MS);
-    timersRef.current.push(tick);
+
+      if (ac.signal.aborted) {
+        return;
+      }
+
+      if (!started && !proposal) {
+        dispatch({ type: "REPLY_DONE" });
+        return;
+      }
+
+      if (started) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === id ? { ...msg, streaming: false } : msg,
+          ),
+        );
+        await persist({
+          id,
+          role: "assistant",
+          text: fullText,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      if (proposal) {
+        const confirmedProposal = proposal;
+        const actionId = createMessageId();
+        const time = formatMessageTime(new Date());
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: actionId,
+            role: "assistant",
+            text: "",
+            time,
+            action: {
+              proposal: confirmedProposal,
+              status: "pending",
+              outputLines: [],
+            },
+          },
+        ]);
+        scheduleActionExpiry(actionId);
+      }
+
+      speakIdRef.current = null;
+      dispatch({ type: "SPEAK_END" });
+    } catch {
+      if (ac.signal.aborted) {
+        return;
+      }
+      speakIdRef.current = null;
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === id ? { ...msg, streaming: false } : msg)),
+      );
+      dispatch({ type: "FAIL" });
+    } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
+    }
   }
 
   function submit(text: string): void {
@@ -156,28 +443,39 @@ export function useAssistantSession(): UseAssistantSessionResult {
     if (trimmed.length === 0) {
       return;
     }
-    clearTimers();
+    stopVoiceListen();
+    abortRef.current?.abort();
+
+    const userMessage: Message = {
+      id: createMessageId(),
+      role: "user",
+      text: trimmed,
+      createdAt: new Date().toISOString(),
+    };
+
     setMessages((prev) => [
       ...prev,
       {
-        id: createMessageId(),
+        id: userMessage.id,
         role: "user",
         text: trimmed,
-        time: formatMessageTime(new Date()),
+        time: formatMessageTime(new Date(userMessage.createdAt)),
       },
     ]);
     dispatch({ type: "SUBMIT" });
+    setListenSeed(undefined);
 
-    const thinkId = window.setTimeout(() => {
-      beginSpeakStream(MOCK_ASSISTANT_REPLY);
-    }, THINKING_MS);
-    timersRef.current.push(thinkId);
+    void persist(userMessage);
+    void runReply(trimmed);
   }
 
   return {
     state: assistant,
     messages,
+    listenSeed,
     toggleListen,
     submit,
+    confirmAction,
+    cancelAction,
   };
 }

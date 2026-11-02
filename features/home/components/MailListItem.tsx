@@ -1,8 +1,8 @@
-import type { MockMail } from "@/fixtures/mails";
 import { cn } from "@/lib/cn";
+import type { MailSummary } from "@/lib/schemas";
 
 type MailListItemProps = {
-  mail: MockMail;
+  mail: MailSummary;
 };
 
 /** Ligne mail — texte uniquement (jamais de HTML mail). */

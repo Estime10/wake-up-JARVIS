@@ -1,16 +1,45 @@
+import { ActionCard } from "@/features/actions/components/ActionCard";
 import type { ConversationMessage } from "@/features/home/model/conversationMessage";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 type ConversationMessageBubbleProps = {
   message: ConversationMessage;
+  onConfirmAction?: ((messageId: string) => void) | undefined;
+  onCancelAction?: ((messageId: string) => void) | undefined;
 };
 
-/** Bulle fil — assistant à gauche, utilisateur à droite. */
+/** Bulle fil — assistant à gauche, utilisateur à droite (+ carte d'action). */
 export function ConversationMessageBubble({
   message,
+  onConfirmAction,
+  onCancelAction,
 }: ConversationMessageBubbleProps) {
   const isUser = message.role === "user";
+
+  if (message.action) {
+    return (
+      <div className="flex w-full flex-col items-start gap-1">
+        <header className="t-mono flex items-baseline gap-2 text-sm text-text-muted">
+          <span>{t("app.name")}</span>
+          <time>{message.time}</time>
+        </header>
+        <ActionCard
+          proposal={message.action.proposal}
+          status={message.action.status}
+          outputLines={message.action.outputLines}
+          exitCode={message.action.exitCode}
+          notice={message.action.notice}
+          onConfirm={() => onConfirmAction?.(message.id)}
+          onCancel={() => onCancelAction?.(message.id)}
+        />
+      </div>
+    );
+  }
+
+  if (message.text.length === 0) {
+    return null;
+  }
 
   return (
     <article

@@ -51,14 +51,19 @@ export function useHomeComposer({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const canSubmit = !disabled && canSubmitComposerDraft(draft);
 
-  // Entrée en écoute (clic ou raccourci) → transcription mock injectée.
-  // Ajustement pendant le rendu (pas d'effet) : pattern React « prev prop ».
+  // Transcription VoicePort : peut arriver après le passage en écoute.
+  // Pattern React « prev props » (pas d'effet) pour injecter le brouillon.
   const [wasListening, setWasListening] = useState(listening);
+  const [appliedSeed, setAppliedSeed] = useState<string | undefined>(undefined);
   if (listening !== wasListening) {
     setWasListening(listening);
-    if (listening && listenSeed) {
-      setDraft(listenSeed);
+    if (!listening) {
+      setAppliedSeed(undefined);
     }
+  }
+  if (listening && listenSeed && listenSeed !== appliedSeed) {
+    setAppliedSeed(listenSeed);
+    setDraft(listenSeed);
   }
 
   useLayoutEffect(() => {
