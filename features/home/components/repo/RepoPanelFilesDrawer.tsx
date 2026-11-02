@@ -15,6 +15,7 @@ import {
 import { useRepoSession } from "@/features/home/context";
 import { useGithubConnection } from "@/features/github/hooks/useGithubConnection";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
+import { REPO_FILES_DRAWER_WIDTH_CLASS } from "@/features/home/model/repoDrawerLayout";
 import { repoFooterLabel } from "@/features/home/model/repoFooterLabel";
 import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
 import type { RepoTab } from "@/features/home/model/repoTab";
@@ -48,7 +49,8 @@ export function RepoPanelFilesDrawer({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 flex w-[min(22rem,28%)] flex-col border-r border-line-subtle bg-bg isolate transition-transform",
+        "fixed inset-y-0 left-0 flex flex-col border-r border-line-subtle bg-bg isolate transition-transform",
+        REPO_FILES_DRAWER_WIDTH_CLASS,
         REPO_MOTION_CLASS,
         REPO_LAYER_CLASS.panel,
         visible ? REPO_SLIDE_IN : REPO_SLIDE_OUT,
@@ -88,12 +90,14 @@ export function RepoPanelFilesDrawer({
           </div>
         ) : null}
 
-        <RepoPanelMain
-          tabId={tabId}
-          panelId={panelId}
-          tabRefs={tabRefs}
-          onTabKeyDown={onTabKeyDown}
-        />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <RepoPanelMain
+            tabId={tabId}
+            panelId={panelId}
+            tabRefs={tabRefs}
+            onTabKeyDown={onTabKeyDown}
+          />
+        </div>
 
         <footer className={REPO_CHROME.footer}>
           <p className={REPO_CHROME.footerText}>

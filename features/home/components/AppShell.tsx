@@ -19,6 +19,11 @@ type AppShellProps = {
  * `HudAmbient` au shell : calque visible sur toute la grille (y compris
  * la colonne side pendant le slide d’entrée, côté transparent).
  * Panneau REPO : overlay gauche au-dessus du centre (pas de push layout).
+ *
+ * `main` SANS z-index : sinon stacking context qui enferme backdrop/modale
+ * terminal (z-55/65) sous le PersistentMark (z-60) — mask au-dessus du
+ * terminal et fermeture mark hors logique. HudAmbient reste sous le contenu
+ * via son propre `z-0`.
  */
 export function AppShell({ children, side, repo }: AppShellProps) {
   const { shellRef, sideRef } = useHomeEnterMotion();
@@ -37,7 +42,7 @@ export function AppShell({ children, side, repo }: AppShellProps) {
         id="main"
         tabIndex={-1}
         aria-labelledby={MAIN_TITLE_ID}
-        className="relative z-10 min-h-0 min-w-0 outline-none"
+        className="relative min-h-0 min-w-0 outline-none"
       >
         {children}
       </main>

@@ -8,12 +8,12 @@ import {
   RepoFolderIcon,
   RepoLockIcon,
 } from "@/features/home/components/repo/icons";
-import type { MockRepoNode } from "@/fixtures/repos";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import type { RepoTreeNode } from "@/lib/schemas";
 
 type RepoFileTreeProps = {
-  nodes: MockRepoNode[];
+  nodes: RepoTreeNode[];
   depth?: number;
   pathPrefix?: string;
   selectedPath?: string | null;
@@ -51,7 +51,7 @@ function RepoTreeNode({
   selectedPath,
   onSelectFile,
 }: {
-  node: MockRepoNode;
+  node: RepoTreeNode;
   depth: number;
   pathPrefix: string;
   selectedPath: string | null;
@@ -69,6 +69,9 @@ function RepoTreeNode({
 
   if (node.kind === "file") {
     const selected = selectedPath === path;
+    const isProtected =
+      "protected" in node &&
+      (node as { protected?: boolean }).protected === true;
     return (
       <li role="treeitem" aria-selected={selected}>
         <Button
@@ -82,7 +85,7 @@ function RepoTreeNode({
           )}
           style={{ paddingLeft: `${depth * 0.75 + 0.25}rem` }}
           aria-label={
-            node.protected
+            isProtected
               ? t("home.repoFileProtectedLabel", { name: node.name })
               : node.name
           }
@@ -90,7 +93,7 @@ function RepoTreeNode({
         >
           <RepoFileIcon className="size-3.5 shrink-0 text-text-muted" />
           <span className="min-w-0 flex-1 truncate text-left">{node.name}</span>
-          {node.protected ? (
+          {isProtected ? (
             <RepoLockIcon className="size-3 shrink-0 text-text-muted" />
           ) : null}
         </Button>

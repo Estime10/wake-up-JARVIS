@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import type { MockRepoCommit } from "@/fixtures/repos";
 import { cn } from "@/lib/cn";
+import type { RepoCommit } from "@/lib/schemas";
 
 type RepoCommitsListProps = {
-  commits: MockRepoCommit[];
+  commits: RepoCommit[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 };

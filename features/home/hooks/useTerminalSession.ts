@@ -1,51 +1,20 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
-
-import { useTerminalMarkExpand } from "@/features/home/hooks/useTerminalMarkExpand";
-import type { TerminalPhase } from "@/features/home/model/terminalPhase";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 type UseTerminalSessionResult = {
   open: boolean;
-  layer: boolean;
-  homeUiHidden: boolean;
-  modalRef: RefObject<HTMLDivElement | null>;
-  backdropRef: RefObject<HTMLButtonElement | null>;
   triggerRef: RefObject<HTMLButtonElement | null>;
   toggle: () => void;
   close: () => void;
 };
 
 /**
- * Cycle terminal (open → closing → closed) + Esc + focus restore sur le CTA.
+ * Session terminal — ouverture in-place (zone messages), sans expand mark.
  */
 export function useTerminalSession(): UseTerminalSessionResult {
-  const [phase, setPhase] = useState<TerminalPhase>("closed");
-  const modalRef = useRef<HTMLDivElement | null>(null);
-  const backdropRef = useRef<HTMLButtonElement | null>(null);
+  const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
-
-  const open = phase === "open";
-  const layer = phase === "open" || phase === "closing";
-  const homeUiHidden = phase !== "closed";
-
-  const onCloseComplete = useCallback(() => {
-    setPhase("closed");
-    triggerRef.current?.focus();
-  }, []);
-
-  useTerminalMarkExpand({
-    open,
-    modalRef,
-    backdropRef,
-    onCloseComplete,
-  });
 
   useEffect(() => {
     if (!open) {
@@ -53,7 +22,8 @@ export function useTerminalSession(): UseTerminalSessionResult {
     }
     function onKeyDown(event: KeyboardEvent): void {
       if (event.key === "Escape") {
-        setPhase("closing");
+        setOpen(false);
+        triggerRef.current?.focus();
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -61,25 +31,22 @@ export function useTerminalSession(): UseTerminalSessionResult {
   }, [open]);
 
   function toggle(): void {
-    if (phase === "closing") {
-      return;
-    }
-    setPhase((current) => (current === "open" ? "closing" : "open"));
+    setOpen((current) => {
+      const next = !current;
+      if (!next) {
+        queueMicrotask(() => triggerRef.current?.focus());
+      }
+      return next;
+    });
   }
 
   function close(): void {
-    if (phase !== "open") {
-      return;
-    }
-    setPhase("closing");
+    setOpen(false);
+    triggerRef.current?.focus();
   }
 
   return {
     open,
-    layer,
-    homeUiHidden,
-    modalRef,
-    backdropRef,
     triggerRef,
     toggle,
     close,

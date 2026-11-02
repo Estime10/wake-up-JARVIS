@@ -105,10 +105,14 @@ export const fr = {
     repoScenarioDisconnected: "Non connecté",
     repoScenarioDenied: "Accès refusé",
     repoBranch: "{branch} branche courante",
-    repoTabsLabel: "Fichiers, commits et pull requests",
+    repoTabsLabel: "Branches, fichiers, commits et pull requests",
+    repoTabBranches: "Branches",
     repoTabFiles: "Fichiers",
     repoTabCommits: "Commits",
     repoTabPr: "PR",
+    repoBranchesEmpty: "Aucune branche.",
+    repoBranchDefault: "défaut",
+    repoBranchProtected: "protégée",
     repoEmpty: "Aucun repo trouvé.",
     repoEmptyTitle: "Aucun repo trouvé",
     repoEmptyHint: "Aucun repo n’est ouvert à JARVIS pour l’instant.",
@@ -125,7 +129,7 @@ export const fr = {
       "Hors ligne · mis à jour il y a 12 min. Arbre et commits en cache. Aperçu des fichiers indisponible.",
     repoDisconnectedTitle: "Accès GitHub non connecté",
     repoDisconnectedHint:
-      "Colle ici le fine-grained PAT que GitHub vient d’afficher (il ne le montrera plus).",
+      "Colle le fine-grained PAT. Sur GitHub : Repository access = All repositories (pas Public only), permissions Read : Contents + Metadata + Pull requests.",
     repoDeniedTitle: "Accès refusé (jeton expiré)",
     repoDeniedHint:
       "JARVIS ne peut plus lire tes repos — colle un nouveau PAT.",
@@ -137,6 +141,8 @@ export const fr = {
       "Déjà réglée sur GitHub ? Laisse vide. Sinon, date de fin pour la notice UI.",
     repoPatSubmit: "connecter",
     repoPatSubmitting: "vérification…",
+    repoPatPrivateHint:
+      "Privés absents ? Le PAT est souvent en « Public repositories » — recrée-le avec All repositories, puis reconnecte.",
     repoPatErrorUnauthorized: "Jeton invalide ou révoqué.",
     repoPatErrorForbidden: "Jeton refusé par GitHub (scopes / SSO).",
     repoPatErrorBody: "Formulaire invalide.",

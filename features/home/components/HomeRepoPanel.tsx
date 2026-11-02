@@ -3,10 +3,9 @@
 import { useId, useRef, type KeyboardEvent } from "react";
 
 import {
-  REPO_MOTION_MS,
-  usePresenceMotion,
-} from "@/features/home/hooks/usePresenceMotion";
-import { usePreviewSnapshot } from "@/features/home/hooks/usePreviewSnapshot";
+  LiveRepoPreviewProvider,
+  useLiveRepoPreview,
+} from "@/features/github/context/liveRepoPreviewContext";
 import { RepoPanelFilesDrawer } from "@/features/home/components/repo/RepoPanelFilesDrawer";
 import { RepoPanelHitLayer } from "@/features/home/components/repo/RepoPanelHitLayer";
 import { RepoPanelMask } from "@/features/home/components/repo/RepoPanelMask";
@@ -16,18 +15,26 @@ import {
   useRepoPanel,
   useRepoSession,
 } from "@/features/home/context";
+import {
+  REPO_MOTION_MS,
+  usePresenceMotion,
+} from "@/features/home/hooks/usePresenceMotion";
+import { usePreviewSnapshot } from "@/features/home/hooks/usePreviewSnapshot";
 import { REPO_TABS, type RepoTab } from "@/features/home/model/repoTab";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 
 /**
  * Orchestrateur panneau REPO — provider session + chrome animé.
+ * Aperçu live rendu en frère du tiroir fichiers (hors transform).
  */
 export function HomeRepoPanel() {
   const { open, close } = useRepoPanel();
 
   return (
     <RepoSessionProvider panelOpen={open}>
-      <HomeRepoPanelView open={open} close={close} />
+      <LiveRepoPreviewProvider>
+        <HomeRepoPanelView open={open} close={close} />
+      </LiveRepoPreviewProvider>
     </RepoSessionProvider>
   );
 }
@@ -40,14 +47,18 @@ function HomeRepoPanelView({
   close: () => void;
 }) {
   const session = useRepoSession();
+  const livePreview = useLiveRepoPreview();
   const idPrefix = useId();
   const tabRefs = useRef<Partial<Record<RepoTab, HTMLButtonElement>>>({});
-  const previewActive = Boolean(session.preview);
+
+  const activePreview = livePreview.preview ?? session.preview;
+  const previewActive = Boolean(activePreview);
+  const isLivePreview = Boolean(livePreview.preview);
 
   const panelMotion = usePresenceMotion(open, REPO_MOTION_MS);
   const previewMotion = usePresenceMotion(previewActive, REPO_MOTION_MS);
   const previewSnapshot = usePreviewSnapshot(
-    session.preview,
+    activePreview,
     previewMotion.mounted,
   );
 
@@ -69,14 +80,23 @@ function HomeRepoPanelView({
     tabRefs.current[nextTab]?.focus();
   }
 
+  function closeActivePreview(): void {
+    if (isLivePreview) {
+      livePreview.closePreview();
+      return;
+    }
+    session.closePreview();
+  }
+
   function dismissPanel(): void {
+    livePreview.closePreview();
     session.closePreview();
     close();
   }
 
   function onBackdropClick(): void {
     if (previewActive) {
-      session.closePreview();
+      closeActivePreview();
       return;
     }
     dismissPanel();
@@ -107,6 +127,14 @@ function HomeRepoPanelView({
         <RepoPanelPreviewDrawer
           visible={previewMotion.visible}
           model={previewSnapshot}
+          onClose={closeActivePreview}
+          onRetry={() => {
+            if (isLivePreview) {
+              livePreview.retryPreview();
+              return;
+            }
+            session.retryPreview();
+          }}
         />
       ) : null}
     </>

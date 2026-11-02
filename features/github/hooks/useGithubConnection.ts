@@ -1,13 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 
+import type { GithubConnectionLoadStatus } from "@/features/github/model/githubConnectionStatus";
+import {
+  bumpGithubConnectionAttempt,
+  getGithubConnectionSnapshot,
+  initGithubConnectionStore,
+  setGithubConnectionSnapshot,
+  subscribeGithubConnection,
+} from "@/features/github/model/githubConnectionStore";
+import { clearLiveRepoSessionCache } from "@/features/github/model/liveRepoSessionCache";
 import { ROUTES } from "@/lib/routes";
 import { githubConnectionSchema, type GithubConnection } from "@/lib/schemas";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 
-export type GithubConnectionLoadStatus =
-  "loading" | "ready" | "error" | "unavailable";
+export type { GithubConnectionLoadStatus };
 
 type UseGithubConnectionResult = {
   connection: GithubConnection | null;
@@ -27,23 +35,69 @@ type StatusResponse =
   | { ok: true; connected: true; connection: unknown }
   | { ok: false };
 
+let bootstrapped = false;
+/** Dernier `attempt` pour lequel le status a été résolu (module = partagé). */
+let resolvedAttempt = -1;
+let inFlight: Promise<void> | null = null;
+
+function ensureStoreBootstrapped(): void {
+  if (bootstrapped) {
+    return;
+  }
+  bootstrapped = true;
+  initGithubConnectionStore(SUPABASE_READY ? "loading" : "unavailable");
+}
+
+async function loadGithubStatus(): Promise<void> {
+  try {
+    const response = await fetch(ROUTES.githubStatus, {
+      credentials: "same-origin",
+    });
+    if (response.status === 401) {
+      setGithubConnectionSnapshot({ connection: null, status: "ready" });
+      return;
+    }
+    if (!response.ok) {
+      setGithubConnectionSnapshot({ connection: null, status: "error" });
+      return;
+    }
+    const json = (await response.json()) as StatusResponse;
+    if (!json.ok) {
+      setGithubConnectionSnapshot({ connection: null, status: "error" });
+      return;
+    }
+    if (!json.connected) {
+      setGithubConnectionSnapshot({ connection: null, status: "ready" });
+      return;
+    }
+    setGithubConnectionSnapshot({
+      connection: githubConnectionSchema.parse(json.connection),
+      status: "ready",
+    });
+  } catch {
+    setGithubConnectionSnapshot({ connection: null, status: "error" });
+  }
+}
+
 /**
  * Connexion GitHub (ADR 0011 étape 1) — status / connect / disconnect.
+ * Store partagé : un seul fetch SPA, pas de flash loading à chaque ouverture du tiroir.
  * Sans env Supabase : unavailable (panneau mock).
  */
 export function useGithubConnection(): UseGithubConnectionResult {
-  const [connection, setConnection] = useState<GithubConnection | null>(null);
-  const [status, setStatus] = useState<GithubConnectionLoadStatus>(() =>
-    SUPABASE_READY ? "loading" : "unavailable",
+  ensureStoreBootstrapped();
+
+  const snapshot = useSyncExternalStore(
+    subscribeGithubConnection,
+    getGithubConnectionSnapshot,
+    getGithubConnectionSnapshot,
   );
-  const [attempt, setAttempt] = useState(0);
 
   const refresh = useCallback(() => {
     if (!SUPABASE_READY) {
       return;
     }
-    setStatus("loading");
-    setAttempt((value) => value + 1);
+    bumpGithubConnectionAttempt();
   }, []);
 
   useEffect(() => {
@@ -51,48 +105,18 @@ export function useGithubConnection(): UseGithubConnectionResult {
       return;
     }
 
-    let cancelled = false;
+    const attempt = snapshot.attempt;
+    if (resolvedAttempt === attempt) {
+      return;
+    }
 
-    void fetch(ROUTES.githubStatus, { credentials: "same-origin" })
-      .then(async (response) => {
-        if (cancelled) {
-          return;
-        }
-        if (response.status === 401) {
-          setConnection(null);
-          setStatus("ready");
-          return;
-        }
-        if (!response.ok) {
-          setConnection(null);
-          setStatus("error");
-          return;
-        }
-        const json = (await response.json()) as StatusResponse;
-        if (!json.ok) {
-          setConnection(null);
-          setStatus("error");
-          return;
-        }
-        if (!json.connected) {
-          setConnection(null);
-          setStatus("ready");
-          return;
-        }
-        setConnection(githubConnectionSchema.parse(json.connection));
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setConnection(null);
-          setStatus("error");
-        }
+    if (!inFlight) {
+      inFlight = loadGithubStatus().finally(() => {
+        resolvedAttempt = attempt;
+        inFlight = null;
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [attempt]);
+    }
+  }, [snapshot.attempt]);
 
   const connect = useCallback(
     async (input: { token: string; expiresAt?: string }) => {
@@ -117,8 +141,12 @@ export function useGithubConnection(): UseGithubConnectionResult {
             error: json.error ?? "upstream",
           };
         }
-        setConnection(githubConnectionSchema.parse(json.connection));
-        setStatus("ready");
+        clearLiveRepoSessionCache();
+        setGithubConnectionSnapshot({
+          connection: githubConnectionSchema.parse(json.connection),
+          status: "ready",
+        });
+        resolvedAttempt = getGithubConnectionSnapshot().attempt;
         return { ok: true as const };
       } catch {
         return { ok: false as const, error: "network" };
@@ -136,13 +164,20 @@ export function useGithubConnection(): UseGithubConnectionResult {
       if (!response.ok) {
         return false;
       }
-      setConnection(null);
-      setStatus("ready");
+      clearLiveRepoSessionCache();
+      setGithubConnectionSnapshot({ connection: null, status: "ready" });
+      resolvedAttempt = getGithubConnectionSnapshot().attempt;
       return true;
     } catch {
       return false;
     }
   }, []);
 
-  return { connection, status, refresh, connect, disconnect };
+  return {
+    connection: snapshot.connection,
+    status: snapshot.status,
+    refresh,
+    connect,
+    disconnect,
+  };
 }

@@ -6,6 +6,7 @@ import {
   REPO_SLIDE_OUT,
 } from "@/features/home/animations";
 import { useRepoSession } from "@/features/home/context";
+import { REPO_PREVIEW_INSET_CLASS } from "@/features/home/model/repoDrawerLayout";
 import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -13,6 +14,8 @@ import { t } from "@/lib/i18n";
 type RepoPanelPreviewDrawerProps = {
   visible: boolean;
   model: RepoFilePreviewModel;
+  onClose?: () => void;
+  onRetry?: () => void;
 };
 
 /**
@@ -22,13 +25,18 @@ type RepoPanelPreviewDrawerProps = {
 export function RepoPanelPreviewDrawer({
   visible,
   model,
+  onClose,
+  onRetry,
 }: RepoPanelPreviewDrawerProps) {
-  const { closePreview, retryPreview } = useRepoSession();
+  const session = useRepoSession();
+  const close = onClose ?? session.closePreview;
+  const retry = onRetry ?? session.retryPreview;
 
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-y-0 left-[min(22rem,28%)] right-[25%] overflow-hidden",
+        "pointer-events-none fixed inset-y-0 overflow-hidden",
+        REPO_PREVIEW_INSET_CLASS,
         REPO_LAYER_CLASS.preview,
       )}
       aria-hidden
@@ -45,11 +53,7 @@ export function RepoPanelPreviewDrawer({
         aria-hidden={!visible || undefined}
         inert={!visible ? true : undefined}
       >
-        <RepoFilePreview
-          model={model}
-          onClose={closePreview}
-          onRetry={retryPreview}
-        />
+        <RepoFilePreview model={model} onClose={close} onRetry={retry} />
       </aside>
     </div>
   );

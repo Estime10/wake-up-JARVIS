@@ -10,9 +10,6 @@ type AssistantStageProps = {
 /**
  * Zone centrale — MarkSlot + libellés d’état.
  * L’anneau SVG animé vit dans PersistentMark (useVoiceRingMotion).
- * Libellés visuels seulement (`aria-hidden`) : l'écoute est annoncée par le
- * `role="status"` unique du header (HomeStatusHeader), les autres états par
- * l'annonceur polite unique (StatusAnnouncer).
  */
 export function AssistantStage({ state }: AssistantStageProps) {
   const showListening = state === "listening";

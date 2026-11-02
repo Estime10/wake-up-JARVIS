@@ -1,6 +1,6 @@
 # 0011 — GitHub : lecture repos (privés + publics), jeton Vault
 
-- **Statut** : Proposé (étape 1 à démarrer sur `feature/api` — connexion seule)
+- **Statut** : Proposé (étape 2 en cours sur `feature/api` — lecture repos live)
 - **Niveau** : 3 (jeton GitHub, repos privés) — **revue HACKER obligatoire avant implémentation**
 - **Date** : 2026-11-02
 - **Auteur** : ARCHITECT — suite API après [ADR 0010](./0010-tri-des-mails.md)
@@ -13,7 +13,7 @@ Le panneau REPO home est mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)).
 ## Décision
 
 - **Auth API** : **fine-grained PAT** (ou classic `repo` en secours) collé une fois, stocké dans **Vault** ; la table ne garde que `vault_secret_id` + métadonnées (login GitHub, `expires_at`, statut).
-- **Portée** : **tous** les repos du compte (privés + publics) — pas d’allowlist en V0b.
+- **Portée** : **tous** les repos du compte (privés + publics) — pas d’allowlist en V0b. Le PAT doit être créé avec **Repository access = All repositories** (pas « Public repositories ») ; sinon l’API ne remonte que le public.
 - **Lecture seule** : Contents / Metadata / Pull requests en **Read** uniquement. Aucune écriture (push, merge, issue, etc.).
 - **Pas de miroir DB des trees** : fetch GitHub **à la demande** via routes serveur (proxy) ; le browser ne voit jamais le PAT.
 - **Côté app** : `RepoPort` + adapter mock / futur adapter live ; routes `app/api/github/*` ; RPC Vault `security definer` calquées sur mail.

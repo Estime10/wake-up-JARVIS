@@ -64,6 +64,76 @@ export const githubConnectionSchema = z.object({
 
 export type GithubConnection = z.infer<typeof githubConnectionSchema>;
 
+/** Dépôt GitHub (liste) — id = full_name `owner/repo`. */
+export const repoSummarySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  owner: z.string().min(1),
+  private: z.boolean(),
+  defaultBranch: z.string().min(1),
+  updatedAt: z.iso.datetime({ offset: true }),
+});
+
+export type RepoSummary = z.infer<typeof repoSummarySchema>;
+
+export const repoBranchSchema = z.object({
+  name: z.string().min(1),
+  protected: z.boolean(),
+  isDefault: z.boolean(),
+});
+
+export type RepoBranch = z.infer<typeof repoBranchSchema>;
+
+/** Nœud arbre fichiers — même forme que le mock UI. */
+export type RepoTreeFile = {
+  kind: "file";
+  name: string;
+  sizeLabel?: string;
+  protected?: boolean;
+};
+
+export type RepoTreeDir = {
+  kind: "dir";
+  name: string;
+  children: RepoTreeNode[];
+};
+
+export type RepoTreeNode = RepoTreeFile | RepoTreeDir;
+
+export const repoCommitSchema = z.object({
+  id: z.string().min(1),
+  sha: z.string().min(1),
+  message: z.string(),
+  author: z.string().min(1),
+  relativeTime: z.string().min(1),
+});
+
+export type RepoCommit = z.infer<typeof repoCommitSchema>;
+
+export const repoPullSchema = z.object({
+  id: z.string().min(1),
+  number: z.number().int().positive(),
+  title: z.string(),
+  author: z.string().min(1),
+  state: z.enum(["open", "closed"]),
+  relativeTime: z.string().min(1),
+});
+
+export type RepoPull = z.infer<typeof repoPullSchema>;
+
+export const repoFileContentSchema = z.object({
+  path: z.string().min(1),
+  name: z.string().min(1),
+  size: z.number().int().nonnegative(),
+  sizeLabel: z.string(),
+  linesLabel: z.string().optional(),
+  kind: z.enum(["nominal", "tooLarge", "binary", "empty"]),
+  content: z.string().optional(),
+  htmlUrl: z.string().url().optional(),
+});
+
+export type RepoFileContent = z.infer<typeof repoFileContentSchema>;
+
 export const riskLevelSchema = z.union([
   z.literal(1),
   z.literal(2),
