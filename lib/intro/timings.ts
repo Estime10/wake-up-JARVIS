@@ -1,22 +1,21 @@
 /** Durées en ms — miroir des tokens CSS (`--duration-intro-*`). */
-export const INTRO_DURATION_FULL_MS = 3500;
+export const INTRO_DURATION_FULL_MS = 2900;
 export const INTRO_DURATION_SHORT_MS = 800;
 export const INTRO_DURATION_REDUCED_MS = 300;
 
 type IntroPhaseWindow = { start: number; end: number };
 
 /**
- * Fenêtres de l'intro « full » en secondes (validées SKETCH).
- * `corners.end` = `INTRO_DURATION_FULL_MS / 1000`.
+ * Fenêtres splash « full » — wake + mark uniquement.
+ * (Équerres / wordmark / greeting : révélés sur /home après le Flip.)
  */
 export const FULL_INTRO_PHASES = {
   wake: { start: 0, end: 0.9 },
   blink: { start: 0.9, end: 1.75 },
   ring: { start: 1.75, end: 2.55 },
   dial: { start: 1.95, end: 2.55 },
-  trail: { start: 2, end: 2.9 },
-  finale: { start: 2.75, end: 3.2 },
-  corners: { start: 3.1, end: 3.5 },
+  trail: { start: 2, end: 2.75 },
+  head: { start: 2.55, end: 2.9 },
 } as const satisfies Record<string, IntroPhaseWindow>;
 
 /**

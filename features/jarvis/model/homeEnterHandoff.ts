@@ -1,11 +1,7 @@
-import {
-  isElement,
-  queryGreeting,
-  queryWordmark,
-} from "@/features/jarvis/model/markDom";
+import { isElement } from "@/features/jarvis/model/markDom";
 import { Flip, type FlipState } from "@/lib/gsap/flip";
 
-/** État Flip du splash (mark + textes), rejoué par `Flip.from` sur /home. */
+/** État Flip du splash (mark seul), rejoué par `Flip.from` sur /home. */
 export type SplashEnterSnapshot = FlipState;
 
 export type HomeEnterHandoff = {
@@ -22,18 +18,15 @@ export type HomeEnterHandoff = {
 };
 
 /**
- * `Flip.getState` du mark persistant + textes du splash (scope `splashRoot`),
- * pris avant `router.replace` : lecture seule, aucune animation créée.
+ * `Flip.getState` du mark persistant seul (splash = mark + wake).
+ * Wordmark / greeting ne font plus partie du Flip.
  */
 export function captureSplashSnapshot(
   mark: HTMLElement | null,
-  splashRoot: ParentNode,
+  _splashRoot: ParentNode,
 ): SplashEnterSnapshot {
-  return Flip.getState(
-    [mark, queryWordmark(splashRoot), queryGreeting(splashRoot)].filter(
-      isElement,
-    ),
-  );
+  void _splashRoot;
+  return Flip.getState([mark].filter(isElement));
 }
 
 /**

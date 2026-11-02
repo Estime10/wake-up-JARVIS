@@ -1,8 +1,11 @@
 import gsap from "gsap";
 
 import {
-  appendChromeEnter,
-  appendComposerEnter,
+  appendHomeChromeWave,
+  HOME_CHROME_DURATION,
+  MARK_ENTER_DURATION,
+  prepareBrandTextsHidden,
+  prepareChromeHidden,
   prepareComposerHidden,
 } from "@/features/home/model/homeEnterTweens";
 import {
@@ -19,8 +22,7 @@ import {
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect } from "@/features/jarvis/model/markPlacement";
 
-const DURATION = 1.05;
-const EASE = "power3.out";
+const MARK_EASE = "power3.out";
 
 type PlayHomeDirectEnterArgs = {
   root: HTMLElement;
@@ -32,7 +34,7 @@ type PlayHomeDirectEnterArgs = {
 
 /**
  * Entrée home sans snapshot Flip (refresh / URL directe).
- * Pose le mark APRÈS le panneau offscreen, puis fade opacity only (pas de x/scale).
+ * Mark d'abord, puis vague chrome/textes/input ensemble.
  */
 export function playHomeDirectEnter({
   root,
@@ -47,7 +49,6 @@ export function playHomeDirectEnter({
   const chrome = queryChrome(root);
   const texts = [wordmark, greeting].filter(isElement);
 
-  // Panneau hors champ d'abord (transform only) — puis mesure du slot stable.
   if (!reducedMotion) {
     setSidePanelOffscreen(aside);
   } else {
@@ -58,7 +59,6 @@ export function playHomeDirectEnter({
 
   if (mark && slot) {
     placeOnRect(mark, slot.getBoundingClientRect());
-    // left/top via style — clear tout transform GSAP résiduel, puis fade only.
     gsap.set(mark, { clearProps: "transform" });
     gsap.set(mark, { opacity: 0, x: 0, y: 0, scale: 1 });
   }
@@ -74,24 +74,20 @@ export function playHomeDirectEnter({
     if (composer) {
       gsap.set(composer, { clearProps: "opacity,transform" });
     }
+    gsap.set(texts, { clearProps: "opacity,transform" });
     onEnd();
     return () => {};
   }
 
-  if (texts.length > 0) {
-    gsap.set(texts, { opacity: 0, y: 18 });
-  }
+  prepareBrandTextsHidden(texts);
   prepareComposerHidden(composer);
-  if (chrome) {
-    gsap.set(chrome, { opacity: 0 });
-  }
+  prepareChromeHidden(chrome);
 
   const tl = gsap.timeline({
-    defaults: { ease: EASE },
+    defaults: { ease: MARK_EASE },
     onComplete: onEnd,
   });
 
-  // Re-pose au 1er tick : fonts / scrollbar peuvent encore décaler le slot.
   if (mark && slot) {
     tl.call(
       () => {
@@ -101,36 +97,35 @@ export function playHomeDirectEnter({
       undefined,
       0,
     );
-    tl.to(mark, { opacity: 1, duration: DURATION, ease: EASE }, 0);
-  }
-
-  if (texts.length > 0) {
     tl.to(
-      texts,
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.85,
-        ease: "power2.out",
-        stagger: 0.06,
-      },
-      0.1,
+      mark,
+      { opacity: 1, duration: MARK_ENTER_DURATION, ease: MARK_EASE },
+      0,
     );
   }
 
-  tl.to(aside, { xPercent: 0, opacity: 1, duration: DURATION }, 0);
-  appendComposerEnter(tl, composer);
-  appendChromeEnter(tl, chrome);
+  appendHomeChromeWave(tl, {
+    at: MARK_ENTER_DURATION,
+    aside,
+    chrome,
+    texts,
+    composer,
+  });
+
+  // Garde une durée minimale cohérente si mark absent.
+  if (!mark) {
+    tl.to({}, { duration: HOME_CHROME_DURATION }, MARK_ENTER_DURATION);
+  }
 
   return () => {
     tl.kill();
     setSidePanelOpen(aside);
-    gsap.set(texts, { clearProps: "opacity,transform" });
+    gsap.set(texts, { clearProps: "transform", opacity: 1 });
     if (composer) {
-      gsap.set(composer, { clearProps: "opacity,transform" });
+      gsap.set(composer, { clearProps: "transform", opacity: 1, y: 0 });
     }
     if (chrome) {
-      gsap.set(chrome, { clearProps: "opacity" });
+      gsap.set(chrome, { opacity: 1 });
     }
     if (mark) {
       const home = queryMarkSlot(root, "home");

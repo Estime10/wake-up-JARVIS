@@ -23,8 +23,10 @@ const nextConfig: NextConfig = {
             value: "strict-origin-when-cross-origin",
           },
           {
+            // geolocation=(self) : HUD GEOLOC (useDeviceLocation).
+            // microphone=() tant que la voix réelle n'est pas branchée (V0b).
             key: "Permissions-Policy",
-            value: "camera=(), geolocation=(), microphone=()",
+            value: "camera=(), geolocation=(self), microphone=()",
           },
         ],
       },

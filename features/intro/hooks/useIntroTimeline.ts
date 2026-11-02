@@ -7,10 +7,9 @@ import { useCallback, useRef, type RefObject } from "react";
 import { useFinishOnce } from "@/features/intro/hooks/useFinishOnce";
 import { useSkipHotkeys } from "@/features/intro/hooks/useSkipHotkeys";
 import { createIntroTimeline } from "@/features/intro/model/createIntroTimeline";
-import { useJarvisShell } from "@/features/jarvis/context";
 import { queryIntroTimelineTargets } from "@/features/intro/model/queryIntroTimelineTargets";
-import { shouldWaitForGreeting } from "@/features/intro/model/shouldWaitForGreeting";
 import { skipIntroTimeline } from "@/features/intro/model/skipIntroTimeline";
+import { useJarvisShell } from "@/features/jarvis/context";
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import type { IntroMode } from "@/lib/intro/modes";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
@@ -19,7 +18,6 @@ gsap.registerPlugin(useGSAP);
 
 type UseIntroTimelineArgs = {
   mode: Exclude<IntroMode, "none">;
-  greetingReady: boolean;
   onComplete: () => void;
 };
 
@@ -30,11 +28,10 @@ type UseIntroTimelineResult = {
 
 /**
  * Compose : finish-once + hotkeys + timeline GSAP.
- * Une responsabilité par collaborateur — ce hook orchestre seulement.
+ * Splash = mark + wake uniquement (pas d'attente greeting).
  */
 export function useIntroTimeline({
   mode,
-  greetingReady,
   onComplete,
 }: UseIntroTimelineArgs): UseIntroTimelineResult {
   const scopeRef = useRef<HTMLDivElement | null>(null);
@@ -54,20 +51,7 @@ export function useIntroTimeline({
         return undefined;
       }
 
-      // Préférence lue par GSAP au montage (pas d'état React) ; un changement
-      // en cours d'intro revert la timeline et la reconstruit.
       return matchReducedMotion(owner, (reducedMotion) => {
-        if (
-          shouldWaitForGreeting({
-            mode,
-            reducedMotion,
-            greetingReady,
-            hasGreetingNode: targets.greeting !== null,
-          })
-        ) {
-          return undefined;
-        }
-
         reset();
 
         timelineRef.current = createIntroTimeline(targets, {
@@ -83,7 +67,7 @@ export function useIntroTimeline({
     },
     {
       scope: scopeRef,
-      dependencies: [mode, greetingReady, finish, reset],
+      dependencies: [mode, finish, reset],
       revertOnUpdate: true,
     },
   );

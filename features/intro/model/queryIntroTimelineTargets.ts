@@ -1,24 +1,16 @@
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 
-/** Résout les cibles DOM de la timeline (mark `data-jarvis` + textes `data-intro`). */
+/** Résout les cibles DOM splash — mark + wake uniquement. */
 export function queryIntroTimelineTargets(
   root: HTMLElement,
   /** Mark persistant (hors scope splash) — fourni par ref. */
   mark: HTMLElement | null,
 ): IntroTimelineTargets | null {
-  const wordmark = root.querySelector<HTMLElement>("[data-intro='wordmark']");
-  const greeting = root.querySelector<HTMLElement>("[data-intro='greeting']");
   const wakeIcon = root.querySelector<SVGSVGElement>(
     "[data-intro='wake-icon']",
   );
-  const hudCorners = root.querySelector<HTMLElement>(
-    "[data-intro='hud-corners']",
-  );
-  const hudBrackets = root.querySelector<HTMLElement>(
-    "[data-intro='hud-brackets']",
-  );
 
-  if (!mark || !wordmark || !wakeIcon || !hudCorners || !hudBrackets) {
+  if (!mark || !wakeIcon) {
     return null;
   }
 
@@ -55,12 +47,8 @@ export function queryIntroTimelineTargets(
     trail,
     head,
     core,
-    wordmark,
-    greeting,
     wakeIcon,
     wakeBars,
     wakeChars,
-    hudCorners,
-    hudBrackets,
   };
 }

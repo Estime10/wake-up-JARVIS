@@ -134,8 +134,9 @@ export function HomeScreen() {
 
           {showIdleBrand ? (
             <div className="mt-5 flex min-h-16 flex-col items-center justify-center gap-2">
-              <SplashWordmark settled />
-              <SplashGreeting text={greetingText} settled />
+              {/* opacity-0 initiale : révélés avec le chrome au landing du mark. */}
+              <SplashWordmark />
+              <SplashGreeting text={greetingText} />
             </div>
           ) : null}
 

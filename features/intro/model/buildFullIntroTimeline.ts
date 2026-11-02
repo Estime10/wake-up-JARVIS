@@ -1,6 +1,5 @@
 import gsap from "gsap";
 
-import { animateCornersFadeIn } from "@/features/intro/model/animateCornersFadeIn";
 import { animateWakeSequence } from "@/features/intro/model/animateWakeSequence";
 import { blinkCoreTwice } from "@/features/intro/model/blinkCoreTwice";
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
@@ -19,8 +18,8 @@ const MARK_FADE_SECONDS = 0.35;
 const ACCENT_STAGGER_SECONDS = 0.2;
 
 /**
- * Wake → noyau → anneau/cadran → traîne → finale → coins, en 3,5 s
- * (fenêtres `FULL_INTRO_PHASES`), puis spin idle.
+ * Splash minimal : wake → mark (noyau, anneau, cadran, traîne, tête).
+ * Wordmark / greeting / équerres : révélés sur /home après le Flip.
  */
 export function buildFullIntroTimeline(
   targets: IntroTimelineTargets,
@@ -34,13 +33,12 @@ export function buildFullIntroTimeline(
   prepareHiddenTargets(targets);
   prepareMarkParts(targets);
 
-  const { wake, blink, ring, dial, trail, finale, corners } = FULL_INTRO_PHASES;
+  const { wake, blink, ring, dial, trail, head } = FULL_INTRO_PHASES;
   const span = (phase: { start: number; end: number }) =>
     phase.end - phase.start;
 
   animateWakeSequence(tl, targets, wake);
 
-  // Mark (pièces encore masquées) posé juste avant le clignotement du noyau.
   tl.to(
     targets.mark,
     { opacity: 1, scale: 1, duration: MARK_FADE_SECONDS },
@@ -79,27 +77,8 @@ export function buildFullIntroTimeline(
 
   tl.to(
     targets.head,
-    { opacity: 1, scale: 1, duration: span(finale), ease: "power2.out" },
-    finale.start,
-  );
-  tl.to(
-    targets.wordmark,
-    { opacity: 1, y: 0, duration: span(finale) },
-    finale.start,
-  );
-  if (targets.greeting) {
-    tl.to(
-      targets.greeting,
-      { opacity: 1, y: 0, duration: span(finale) },
-      finale.start,
-    );
-  }
-
-  animateCornersFadeIn(
-    tl,
-    { hudCorners: targets.hudCorners, hudBrackets: targets.hudBrackets },
-    corners.start,
-    span(corners),
+    { opacity: 1, scale: 1, duration: span(head), ease: "power2.out" },
+    head.start,
   );
 
   padTimelineToDuration(tl, INTRO_DURATION_FULL_MS / 1000);

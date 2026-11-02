@@ -1,6 +1,5 @@
 import gsap from "gsap";
 
-import { animateCornersFadeIn } from "@/features/intro/model/animateCornersFadeIn";
 import { blinkCoreTwice } from "@/features/intro/model/blinkCoreTwice";
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 import { padTimelineToDuration } from "@/features/intro/model/padTimelineToDuration";
@@ -11,7 +10,7 @@ import { scheduleWakeBarsIdlePulse } from "@/features/intro/model/startWakeBarsI
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_SHORT_MS } from "@/lib/intro/timings";
 
-/** Version courte — même ordre, rythme compressé. */
+/** Version courte — wake + mark seulement. */
 export function buildShortIntroTimeline(
   targets: IntroTimelineTargets,
   onComplete: () => void,
@@ -51,17 +50,10 @@ export function buildShortIntroTimeline(
     afterBlink + 0.25,
   );
 
-  const finale = afterBlink + 0.65;
-  tl.to(targets.head, { opacity: 1, scale: 1, duration: 0.25 }, finale);
-  tl.to(targets.wordmark, { opacity: 1, y: 0, duration: 0.25 }, finale);
+  const headAt = afterBlink + 0.65;
+  tl.to(targets.head, { opacity: 1, scale: 1, duration: 0.25 }, headAt);
 
-  animateCornersFadeIn(
-    tl,
-    { hudCorners: targets.hudCorners, hudBrackets: targets.hudBrackets },
-    finale + 0.3,
-  );
-
-  padTimelineToDuration(tl, Math.max(INTRO_DURATION_SHORT_MS / 1000, 2.2));
+  padTimelineToDuration(tl, Math.max(INTRO_DURATION_SHORT_MS / 1000, 1.8));
   scheduleDialIdleSpin(tl, targets.ringDial);
 
   return tl;

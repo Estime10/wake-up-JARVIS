@@ -15,6 +15,11 @@ type SplashHudChromeProps = {
   settled?: boolean;
   /** Ligne « Réveil détecté » — intro seulement. */
   showWake?: boolean;
+  /**
+   * Splash minimal : uniquement la ligne wake (pas d'équerres / méta / CTA).
+   * Wordmark + chrome complets arrivent sur /home après le Flip du mark.
+   */
+  wakeOnly?: boolean;
   /** Terminal ouvert — CTA « Fermer ». */
   terminalOpen?: boolean;
   /** Désactivé tant que le panneau REPO est ouvert. */
@@ -32,6 +37,7 @@ type SplashHudChromeProps = {
 export function SplashHudChrome({
   settled = false,
   showWake = true,
+  wakeOnly = false,
   terminalOpen = false,
   terminalDisabled = false,
   terminalTriggerRef,
@@ -44,6 +50,17 @@ export function SplashHudChrome({
   const mailCount = useInboxMailCount();
   const place = useDeviceLocation();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
+
+  if (wakeOnly) {
+    return (
+      <div
+        className="pointer-events-none absolute inset-0 z-10 text-text-muted"
+        aria-hidden
+      >
+        {showWake ? <WakeLine settled={settled} wakeText={wakeText} /> : null}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -116,24 +133,7 @@ export function SplashHudChrome({
           </div>
         </div>
 
-        {showWake ? (
-          <div className="absolute bottom-6 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8">
-            <WakeIcon settled={settled} />
-            <p className="t-mono truncate text-dial sm:text-sm">
-              {settled
-                ? wakeText
-                : wakeText.split("").map((char, index) => (
-                    <span
-                      key={`${char}-${index}`}
-                      data-intro="wake-char"
-                      className="inline-block opacity-0"
-                    >
-                      {char === " " ? "\u00A0" : char}
-                    </span>
-                  ))}
-            </p>
-          </div>
-        ) : null}
+        {showWake ? <WakeLine settled={settled} wakeText={wakeText} /> : null}
       </div>
 
       <div
@@ -190,6 +190,33 @@ export function SplashHudChrome({
         </Button>
       </div>
     </>
+  );
+}
+
+function WakeLine({
+  settled,
+  wakeText,
+}: {
+  settled: boolean;
+  wakeText: string;
+}) {
+  return (
+    <div className="absolute bottom-6 left-1/2 flex max-w-[min(90vw,28rem)] -translate-x-1/2 items-center gap-2 sm:bottom-8">
+      <WakeIcon settled={settled} />
+      <p className="t-mono truncate text-dial sm:text-sm">
+        {settled
+          ? wakeText
+          : wakeText.split("").map((char, index) => (
+              <span
+                key={`${char}-${index}`}
+                data-intro="wake-char"
+                className="inline-block opacity-0"
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
+      </p>
+    </div>
   );
 }
 

@@ -1,7 +1,11 @@
 import gsap from "gsap";
 
 import {
-  appendComposerEnter,
+  appendHomeChromeWave,
+  MARK_ENTER_DURATION,
+  MARK_ENTER_EASE,
+  prepareBrandTextsHidden,
+  prepareChromeHidden,
   prepareComposerHidden,
 } from "@/features/home/model/homeEnterTweens";
 import {
@@ -11,6 +15,7 @@ import {
 import type { SplashEnterSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
 import {
   isElement,
+  queryChrome,
   queryComposer,
   queryGreeting,
   queryMarkSlot,
@@ -18,9 +23,6 @@ import {
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
 import { Flip } from "@/lib/gsap/flip";
-
-const DURATION = 1.2;
-const EASE = "power3.inOut";
 
 type PlayHomeEnterTransitionArgs = {
   /** Scope des requêtes (coquille home). */
@@ -35,10 +37,8 @@ type PlayHomeEnterTransitionArgs = {
 };
 
 /**
- * Timeline unique : mark scale-down + panneau + textes + composer.
- * Layout final posé d'abord (grille 75/25 fixe), puis GSAP Flip (ADR 0004) :
- * mark et textes repartent de l'état splash (`data-flip-id`), en transform
- * seulement (`scale: true` → x/y/scale, jamais width/height).
+ * 1) Flip mark splash → slot home (scale-down).
+ * 2) Au landing : chrome + textes + composer + panneau — tous ensemble.
  */
 export function playHomeEnterTransition({
   root,
@@ -52,11 +52,12 @@ export function playHomeEnterTransition({
   const wordmark = queryWordmark(root);
   const greeting = queryGreeting(root);
   const composer = queryComposer(root);
+  const chrome = queryChrome(root);
+  const texts = [wordmark, greeting].filter(isElement);
 
   setSidePanelOpen(aside);
 
   if (mark && slot) {
-    // Placement définitif hors contexte GSAP (jamais revert, cf. markPlacement).
     placeOnRect(mark, slot.getBoundingClientRect());
     showMark(mark);
   }
@@ -65,44 +66,55 @@ export function playHomeEnterTransition({
     if (composer) {
       gsap.set(composer, { clearProps: "opacity,transform" });
     }
+    if (chrome) {
+      gsap.set(chrome, { clearProps: "opacity" });
+    }
+    gsap.set(texts, { clearProps: "opacity,transform" });
     onEnd();
     return () => {};
   }
 
-  const targets = [mark, wordmark, greeting].filter(isElement);
-  const texts = [wordmark, greeting].filter(isElement);
-
   prepareComposerHidden(composer);
+  prepareBrandTextsHidden(texts);
+  prepareChromeHidden(chrome);
 
   const tl = gsap.timeline({
-    defaults: { ease: EASE },
+    defaults: { ease: MARK_ENTER_EASE },
     onComplete: onEnd,
   });
 
-  // Flip mesure l'état final maintenant (panneau encore ouvert), puis
-  // seulement on décale le panneau (transform, sans effet sur la grille).
-  tl.add(
-    Flip.from(snapshot, {
-      targets,
-      scale: true,
-      duration: DURATION,
-      ease: EASE,
-    }),
-    0,
-  );
+  // Flip mesure l'état final (panneau ouvert), puis on décale le panneau.
+  if (mark) {
+    tl.add(
+      Flip.from(snapshot, {
+        targets: [mark],
+        scale: true,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+      }),
+      0,
+    );
+  }
 
   setSidePanelOffscreen(aside);
-  tl.to(aside, { xPercent: 0, opacity: 1, duration: DURATION }, 0);
-  appendComposerEnter(tl, composer);
+
+  appendHomeChromeWave(tl, {
+    at: MARK_ENTER_DURATION,
+    aside,
+    chrome,
+    texts,
+    composer,
+  });
 
   return () => {
-    // Abort (kill sans onEnd : pending survit → un remount
-    // rejoue). On repose l'état final pour ne rien laisser invisible/décalé.
     tl.kill();
     setSidePanelOpen(aside);
-    gsap.set(texts, { clearProps: "transform" });
+    gsap.set(texts, { clearProps: "transform", opacity: 1 });
     if (composer) {
-      gsap.set(composer, { clearProps: "opacity,transform" });
+      gsap.set(composer, { clearProps: "transform", opacity: 1, y: 0 });
+    }
+    if (chrome) {
+      gsap.set(chrome, { opacity: 1 });
     }
     if (mark) {
       gsap.set(mark, { x: 0, y: 0, scale: 1 });

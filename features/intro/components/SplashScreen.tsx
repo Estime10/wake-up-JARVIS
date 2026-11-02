@@ -4,11 +4,8 @@ import { useEffect, useEffectEvent, useRef } from "react";
 
 import { SkipIntroButton } from "@/features/intro/components/SkipIntroButton";
 import { SplashBackdrop } from "@/features/intro/components/SplashBackdrop";
-import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashMarkStage } from "@/features/intro/components/SplashMarkStage";
-import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
-import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
 import { useIntroTimeline } from "@/features/intro/hooks/useIntroTimeline";
 import { isPlayableIntroMode, type IntroModeState } from "@/lib/intro/modes";
 
@@ -25,17 +22,16 @@ function SplashScreenPlaying({
   mode: "full" | "short";
   onComplete: () => void;
 }) {
-  const greetingText = useIntroGreeting();
   const { scopeRef, skip } = useIntroTimeline({
     mode,
-    greetingReady: true,
     onComplete,
   });
 
   return (
     <SplashBackdrop scopeRef={scopeRef} onSkip={skip}>
       <SkipIntroButton onSkip={skip} />
-      <SplashHudChrome />
+      {/* Splash minimal : wake text only (pas d'équerres / méta HUD). */}
+      <SplashHudChrome wakeOnly />
       <div
         className="relative z-10 flex flex-col items-center gap-8 px-6 sm:gap-10"
         onClick={(event) => {
@@ -43,10 +39,6 @@ function SplashScreenPlaying({
         }}
       >
         <SplashMarkStage />
-        <div className="flex min-h-16 flex-col items-center justify-center gap-2">
-          <SplashWordmark />
-          <SplashGreeting text={greetingText} />
-        </div>
       </div>
     </SplashBackdrop>
   );

@@ -15,7 +15,8 @@ export function proxy(request: NextRequest) {
       : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    "connect-src 'self'",
+    // BigDataCloud : reverse geocode du HUD (sans clé).
+    "connect-src 'self' https://api.bigdatacloud.net",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

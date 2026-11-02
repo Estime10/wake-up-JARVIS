@@ -9,11 +9,11 @@ import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
 
-const FADE_DURATION = 0.75;
-
 /**
- * Équerres + méta HUD : invisibles pendant l’enter.
- * Handoff Flip → fade à `handoff.end` ; entrée directe → `playHomeDirectEnter`.
+ * Équerres + méta HUD.
+ * - Handoff / entrée directe : opacity 0 initiale ; les timelines
+ *   `playHomeEnter*` les révèlent au landing du mark.
+ * - Reduced motion : visibles tout de suite.
  */
 export function useHomeChromeReveal(
   chromeRef: RefObject<HTMLElement | null>,
@@ -26,30 +26,18 @@ export function useHomeChromeReveal(
       return undefined;
     }
 
-    return matchReducedMotion(owner, (reducedMotion, context) => {
+    return matchReducedMotion(owner, (reducedMotion) => {
       if (reducedMotion) {
         gsap.set(el, { opacity: 1 });
         return undefined;
       }
 
-      gsap.set(el, { opacity: 0 });
-
-      // Sans handoff : l’entrée directe anime le chrome (`data-home="chrome"`).
-      if (!handoff.hasPending()) {
-        return undefined;
+      // Évite un flash avant le 1er tick GSAP de l'enter.
+      if (handoff.hasPending()) {
+        gsap.set(el, { opacity: 0 });
       }
 
-      const fadeIn = () => {
-        context.add(() => {
-          gsap.to(el, {
-            opacity: 1,
-            duration: FADE_DURATION,
-            ease: "power2.out",
-          });
-        });
-      };
-
-      return handoff.onComplete(fadeIn);
+      return undefined;
     });
   });
 }
