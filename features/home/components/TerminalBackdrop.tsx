@@ -2,6 +2,10 @@
 
 import { Button } from "@/components/ui/Button";
 import { HudOverlay } from "@/features/home/components/HudOverlay";
+import {
+  mainSectionBoxStyle,
+  useMainSectionBox,
+} from "@/features/home/hooks/useMainSectionBox";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -12,10 +16,11 @@ type TerminalBackdropProps = {
 };
 
 /**
- * Overlay terminal (visuel = HudOverlay) + hit transparent pour fermer.
- * Le flou n’est plus sur le Button (évite divergence avec GitHub).
+ * Overlay terminal (visuel = HudOverlay) + hit transparent — zone `main` seulement.
  */
 export function TerminalBackdrop({ open, onClose }: TerminalBackdropProps) {
+  const box = useMainSectionBox(open);
+
   return (
     <>
       <HudOverlay visible={open} className={TERMINAL_LAYER_CLASS.backdrop} />
@@ -27,12 +32,13 @@ export function TerminalBackdrop({ open, onClose }: TerminalBackdropProps) {
         aria-hidden={!open || undefined}
         aria-label={t("home.terminalCloseLabel")}
         className={cn(
-          "fixed inset-0 block h-full w-full cursor-default rounded-none bg-transparent",
+          "fixed block cursor-default rounded-none bg-transparent",
           TERMINAL_LAYER_CLASS.backdrop,
           open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0",
         )}
+        style={mainSectionBoxStyle(box)}
         onClick={onClose}
       >
         <span className="sr-only">{t("home.terminalClose")}</span>

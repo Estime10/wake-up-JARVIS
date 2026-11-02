@@ -5,7 +5,10 @@ import type { ReactNode } from "react";
 import { HudAmbient } from "@/components/ui/HudAmbient";
 import { useHomeEnterMotion } from "@/features/home/hooks/useHomeEnterMotion";
 import { useMainFocusAfterIntro } from "@/features/home/hooks/useMainFocusAfterIntro";
-import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
+import {
+  MAIN_LANDMARK_ID,
+  MAIN_TITLE_ID,
+} from "@/features/home/model/landmarks";
 import { t } from "@/lib/i18n";
 
 type AppShellProps = {
@@ -39,7 +42,7 @@ export function AppShell({ children, side, repo }: AppShellProps) {
 
       <main
         ref={mainRef}
-        id="main"
+        id={MAIN_LANDMARK_ID}
         tabIndex={-1}
         aria-labelledby={MAIN_TITLE_ID}
         className="relative min-h-0 min-w-0 outline-none"

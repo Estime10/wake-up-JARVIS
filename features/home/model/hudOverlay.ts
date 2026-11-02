@@ -1,7 +1,6 @@
 /**
  * Surface overlay HUD partagée — terminal + tiroir GitHub.
- * Une seule couche : même DOM / mêmes classes (pas de Button ghost qui
- * peut absorber `bg-*` / affaiblir le rendu du blur).
+ * Bornée à `<main>` via `useMainSectionBox` (le side panel reste net).
  */
 export const HUD_OVERLAY_SURFACE_CLASS =
   "bg-bg/85 backdrop-blur-[var(--blur-glass)]";

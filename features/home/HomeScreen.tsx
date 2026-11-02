@@ -32,7 +32,6 @@ import { t } from "@/lib/i18n";
 export function HomeScreen() {
   const greetingText = useIntroGreeting();
   const chromeRef = useRef<HTMLDivElement | null>(null);
-  const terminalAnchorRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
 
   const {
@@ -88,7 +87,7 @@ export function HomeScreen() {
       </div>
 
       <TerminalBackdrop open={terminalOpen} onClose={closeTerminal} />
-      <HomeTerminalPanel open={terminalOpen} anchorRef={terminalAnchorRef} />
+      <HomeTerminalPanel open={terminalOpen} />
 
       <div className="relative z-10 flex h-full flex-col">
         <h1 id={MAIN_TITLE_ID} className="sr-only">
@@ -99,10 +98,7 @@ export function HomeScreen() {
         <div className="flex min-h-0 flex-1 flex-col items-center px-6 pt-10 sm:pt-12">
           <AssistantStage state={state} />
 
-          <div
-            ref={terminalAnchorRef}
-            className="relative flex min-h-0 w-full flex-1 flex-col"
-          >
+          <div className="relative flex min-h-0 w-full flex-1 flex-col">
             <div
               className={cn(
                 "flex min-h-0 w-full flex-1 flex-col items-center",

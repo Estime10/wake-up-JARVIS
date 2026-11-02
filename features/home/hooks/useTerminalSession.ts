@@ -10,7 +10,7 @@ type UseTerminalSessionResult = {
 };
 
 /**
- * Session terminal — ouverture in-place (zone messages), sans expand mark.
+ * Session terminal — ouverture centrée dans la colonne main, sans expand mark.
  */
 export function useTerminalSession(): UseTerminalSessionResult {
   const [open, setOpen] = useState(false);

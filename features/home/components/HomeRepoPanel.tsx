@@ -102,27 +102,26 @@ function HomeRepoPanelView({
     dismissPanel();
   }
 
-  if (!panelMotion.mounted) {
-    return null;
-  }
-
   return (
     <>
-      <RepoPanelMask visible={panelMotion.visible} />
+      {/* Overlay / hit : même logique que le terminal (`open` direct + fade HUD). */}
+      <RepoPanelMask visible={open} />
       <RepoPanelHitLayer
-        visible={panelMotion.visible}
+        visible={open}
         previewActive={previewActive}
         onClick={onBackdropClick}
       />
-      <RepoPanelFilesDrawer
-        visible={panelMotion.visible}
-        idPrefix={idPrefix}
-        tabId={tabId}
-        panelId={panelId}
-        tabRefs={tabRefs}
-        onTabKeyDown={handleTabKeyDown}
-        onDismiss={dismissPanel}
-      />
+      {panelMotion.mounted ? (
+        <RepoPanelFilesDrawer
+          visible={panelMotion.visible}
+          idPrefix={idPrefix}
+          tabId={tabId}
+          panelId={panelId}
+          tabRefs={tabRefs}
+          onTabKeyDown={handleTabKeyDown}
+          onDismiss={dismissPanel}
+        />
+      ) : null}
       {previewMotion.mounted && previewSnapshot ? (
         <RepoPanelPreviewDrawer
           visible={previewMotion.visible}
