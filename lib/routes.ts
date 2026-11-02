@@ -4,4 +4,6 @@ export const ROUTES = {
   login: "/login",
   home: "/home",
   signOut: "/auth/signout",
+  googleOAuthConnect: "/api/google/oauth/connect",
+  googleOAuthCallback: "/api/google/oauth/callback",
 } as const;

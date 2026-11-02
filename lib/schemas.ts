@@ -10,9 +10,29 @@ export const messageSchema = z.object({
 
 export type Message = z.infer<typeof messageSchema>;
 
+export const mailAccountStatusSchema = z.enum([
+  "active",
+  "disabled",
+  "needs_reauth",
+]);
+
+export type MailAccountStatus = z.infer<typeof mailAccountStatusSchema>;
+
+/** Compte / boîte mail (UI + table mail_accounts — sans jeton). */
+export const mailAccountSchema = z.object({
+  id: z.string().min(1),
+  email: z.email(),
+  /** Libellé court UI (sans `@gmail.com`). */
+  label: z.string().min(1),
+  status: mailAccountStatusSchema.default("active"),
+});
+
+export type MailAccount = z.infer<typeof mailAccountSchema>;
+
 /** Mail lecture seule (MailPort). */
 export const mailSummarySchema = z.object({
   id: z.string().min(1),
+  accountId: z.string().min(1),
   from: z.string().min(1),
   subject: z.string(),
   excerpt: z.string(),

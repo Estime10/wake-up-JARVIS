@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-import { reverseGeocodePlace } from "@/lib/geo/reverseGeocode";
 import { t } from "@/lib/i18n";
 
+type ReverseResponse = {
+  place: string | null;
+};
+
 /**
- * Lieu appareil (Geolocation + reverse geocode) — libellé HUD seul.
+ * Lieu appareil (Geolocation + reverse geocode via `/api/geo/reverse`).
  * Permission refusée / indispo → placeholder.
  */
 export function useDeviceLocation(): string {
@@ -33,8 +36,18 @@ export function useDeviceLocation(): string {
           return;
         }
         const { latitude, longitude } = position.coords;
+        const url = new URL("/api/geo/reverse", window.location.origin);
+        url.searchParams.set("latitude", String(latitude));
+        url.searchParams.set("longitude", String(longitude));
 
-        void reverseGeocodePlace(latitude, longitude)
+        void fetch(url.toString())
+          .then(async (response) => {
+            if (!response.ok) {
+              return null;
+            }
+            const data = (await response.json()) as ReverseResponse;
+            return data.place;
+          })
           .then((resolved) => {
             if (cancelled) {
               return;

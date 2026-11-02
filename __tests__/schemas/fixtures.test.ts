@@ -21,6 +21,7 @@ describe("fixtures Zod", () => {
   it("rejette un mail invalide", () => {
     const result = mailSummarySchema.safeParse({
       id: "bad",
+      accountId: "acc_x",
       from: "x",
       subject: "y",
       excerpt: "z",

@@ -1,6 +1,7 @@
 /**
- * Reverse geocode client (BigDataCloud, sans clé) → libellé lieu.
- * Échec réseau / quota → `null` (le HUD garde les coords).
+ * Reverse geocode serveur (BigDataCloud, sans clé) → libellé lieu.
+ * Appelé uniquement depuis `/api/geo/reverse` (CSP : pas de connect tiers navigateur).
+ * Échec réseau / quota → `null`.
  */
 
 type BigDataCloudResponse = {

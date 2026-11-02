@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { AppShell } from "@/features/home/components/AppShell";
 import { HomeRepoPanel } from "@/features/home/components/HomeRepoPanel";
@@ -26,7 +26,14 @@ export default async function MainLayout({
 
   return (
     <RepoPanelProvider>
-      <AppShell side={<HomeSidePanel />} repo={<HomeRepoPanel />}>
+      <AppShell
+        side={
+          <Suspense fallback={null}>
+            <HomeSidePanel />
+          </Suspense>
+        }
+        repo={<HomeRepoPanel />}
+      >
         {children}
       </AppShell>
     </RepoPanelProvider>
