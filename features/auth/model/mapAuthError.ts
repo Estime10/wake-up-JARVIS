@@ -36,5 +36,12 @@ export function mapAuthError(message: string): MessageKey {
     return "auth.errorConfirmEmail";
   }
 
+  if (
+    normalized.includes("rate limit") ||
+    normalized.includes("over_email_send_rate_limit")
+  ) {
+    return "auth.errorRateLimit";
+  }
+
   return "auth.errorGeneric";
 }

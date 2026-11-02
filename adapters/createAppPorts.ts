@@ -1,11 +1,14 @@
 import { createMockPorts } from "@/adapters/mock";
-import { createSupabaseMemory } from "@/adapters/supabase";
+import {
+  createSupabaseMemory,
+  createSupabaseProfile,
+} from "@/adapters/supabase";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import type { Ports } from "@/ports";
 
 /**
- * Branchement V0b : mocks partout, MemoryPort → Supabase si env présente.
+ * Branchement V0b : mocks partout ; Memory + Profile → Supabase si env.
  * Seul `app/providers.tsx` appelle cette fabrique.
  */
 export function createAppPorts(): Ports {
@@ -15,8 +18,10 @@ export function createAppPorts(): Ports {
     return ports;
   }
 
+  const client = createSupabaseBrowserClient();
   return {
     ...ports,
-    memory: createSupabaseMemory(createSupabaseBrowserClient()),
+    memory: createSupabaseMemory(client),
+    profile: createSupabaseProfile(client),
   };
 }

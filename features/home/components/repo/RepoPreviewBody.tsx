@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
 import {
   RepoEmptyBoxIcon,
   RepoFileIcon,
@@ -39,17 +41,14 @@ export function RepoPreviewBody({
 }: RepoPreviewBodyProps) {
   if (kind === "loading") {
     return (
-      <div className="flex flex-col gap-3" aria-busy="true">
-        <p className="t-mono text-sm text-text-muted">
+      <div className="flex flex-col gap-3" aria-busy="true" role="status">
+        <VisuallyHidden>
           {t("home.repoPreviewLoading", {
             name: path.split("/").pop() ?? path,
           })}
-        </p>
-        {SKELETON_WIDTHS.map((widthClass, index) => (
-          <div
-            key={index}
-            className={`h-3 animate-pulse rounded bg-surface-2 ${widthClass}`}
-          />
+        </VisuallyHidden>
+        {SKELETON_WIDTHS.map((widthClass) => (
+          <Skeleton key={widthClass} className={`h-3 ${widthClass}`} />
         ))}
       </div>
     );

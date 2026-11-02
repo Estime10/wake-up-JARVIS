@@ -3,13 +3,14 @@ import { describe, expect, it } from "vitest";
 import { createMockPorts } from "@/adapters/mock";
 
 describe("createMockPorts", () => {
-  it("expose les cinq ports", () => {
+  it("expose les six ports", () => {
     const ports = createMockPorts();
     expect(ports.llm).toBeDefined();
     expect(ports.voice).toBeDefined();
     expect(ports.action).toBeDefined();
     expect(ports.memory).toBeDefined();
     expect(ports.mail).toBeDefined();
+    expect(ports.profile).toBeDefined();
   });
 
   it("MemoryPort liste le seed greeting", async () => {

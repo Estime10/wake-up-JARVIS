@@ -2,6 +2,7 @@ import { createMockAction } from "@/adapters/mock/createMockAction";
 import { createMockLlm } from "@/adapters/mock/createMockLlm";
 import { createMockMail } from "@/adapters/mock/createMockMail";
 import { createMockMemory } from "@/adapters/mock/createMockMemory";
+import { createMockProfile } from "@/adapters/mock/createMockProfile";
 import { createMockVoice } from "@/adapters/mock/createMockVoice";
 import type { Ports } from "@/ports";
 
@@ -13,5 +14,6 @@ export function createMockPorts(): Ports {
     action: createMockAction(),
     memory: createMockMemory(),
     mail: createMockMail(),
+    profile: createMockProfile(),
   };
 }

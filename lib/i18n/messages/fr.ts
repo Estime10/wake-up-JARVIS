@@ -66,6 +66,7 @@ export const fr = {
     errorPasswordMismatch: "Les mots de passe ne correspondent pas.",
     errorConfirmEmail:
       "Compte créé. Confirme ton e-mail avant de te connecter.",
+    errorRateLimit: "Trop de tentatives. Attends un moment avant de réessayer.",
     errorMissingConfig:
       "La connexion n’est pas configurée sur cet environnement.",
     dialogLabel: "Connexion JARVIS",

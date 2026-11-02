@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { HudAmbient } from "@/components/ui/HudAmbient";
 import { useHomeEnterMotion } from "@/features/home/hooks/useHomeEnterMotion";
 import { useMainFocusAfterIntro } from "@/features/home/hooks/useMainFocusAfterIntro";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
@@ -15,6 +16,8 @@ type AppShellProps = {
 
 /**
  * Coquille `(main)` — 75/25 dès le premier paint (slot mark stable).
+ * `HudAmbient` au shell : calque visible sur toute la grille (y compris
+ * la colonne side pendant le slide d’entrée, côté transparent).
  * Panneau REPO : overlay gauche au-dessus du centre (pas de push layout).
  */
 export function AppShell({ children, side, repo }: AppShellProps) {
@@ -26,6 +29,7 @@ export function AppShell({ children, side, repo }: AppShellProps) {
       ref={shellRef}
       className="relative grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,75%)_minmax(0,25%)]"
     >
+      <HudAmbient />
       {repo}
 
       <main
@@ -33,13 +37,13 @@ export function AppShell({ children, side, repo }: AppShellProps) {
         id="main"
         tabIndex={-1}
         aria-labelledby={MAIN_TITLE_ID}
-        className="relative min-h-0 min-w-0 outline-none"
+        className="relative z-10 min-h-0 min-w-0 outline-none"
       >
         {children}
       </main>
       <aside
         ref={sideRef}
-        className="relative flex min-h-0 min-w-0 flex-col will-change-transform"
+        className="relative z-10 flex min-h-0 min-w-0 flex-col will-change-transform"
         aria-label={t("home.sidePanelLabel")}
       >
         {side}

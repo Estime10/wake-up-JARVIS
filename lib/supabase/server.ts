@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { SUPABASE_COOKIE_ENCODE } from "@/lib/supabase/cookieOptions";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 /** Client serveur — Server Components, Route Handlers, Server Actions. */
@@ -9,6 +10,7 @@ export async function createSupabaseServerClient() {
 
   return createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
     cookies: {
+      encode: SUPABASE_COOKIE_ENCODE,
       getAll() {
         return cookieStore.getAll();
       },

@@ -74,7 +74,9 @@ export function playHomeDirectEnter({
     if (composer) {
       gsap.set(composer, { clearProps: "opacity,transform" });
     }
-    gsap.set(texts, { clearProps: "opacity,transform" });
+    if (texts.length > 0) {
+      gsap.set(texts, { clearProps: "opacity,transform" });
+    }
     onEnd();
     return () => {};
   }
@@ -120,7 +122,9 @@ export function playHomeDirectEnter({
   return () => {
     tl.kill();
     setSidePanelOpen(aside);
-    gsap.set(texts, { clearProps: "transform", opacity: 1 });
+    if (texts.length > 0) {
+      gsap.set(texts, { clearProps: "transform", opacity: 1 });
+    }
     if (composer) {
       gsap.set(composer, { clearProps: "transform", opacity: 1, y: 0 });
     }

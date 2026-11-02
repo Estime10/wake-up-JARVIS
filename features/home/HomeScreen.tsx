@@ -3,7 +3,6 @@
 import { useRef } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { HudAmbient } from "@/components/ui/HudAmbient";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
@@ -68,9 +67,7 @@ export function HomeScreen() {
     memoryStatus === "ready" && state === "idle" && messages.length <= 1;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-bg">
-      <HudAmbient />
-
+    <div className="relative h-full w-full overflow-hidden">
       <div
         ref={chromeRef}
         data-home="chrome"
@@ -139,9 +136,12 @@ export function HomeScreen() {
 
           {showIdleBrand ? (
             <div className="mt-5 flex min-h-16 flex-col items-center justify-center gap-2">
-              {/* opacity-0 initiale : révélés avec le chrome au landing du mark. */}
-              <SplashWordmark />
-              <SplashGreeting text={greetingText} />
+              {/*
+                `settled` : le slot brand n’existe qu’après mémoire ready,
+                donc après la vague d’enter GSAP — sans settled il reste opacity-0.
+              */}
+              <SplashWordmark settled />
+              <SplashGreeting text={greetingText} settled />
             </div>
           ) : null}
 

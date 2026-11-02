@@ -44,18 +44,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     let cancelled = false;
 
-    void client.auth.getUser().then(({ data }) => {
-      if (cancelled) {
-        return;
-      }
-      const next = toAuthUser(data.user);
-      setUser(next);
-      setStatus(next ? "authenticated" : "anonymous");
-    });
+    void client.auth
+      .getUser()
+      .then(({ data }) => {
+        if (cancelled) {
+          return;
+        }
+        const next = toAuthUser(data.user);
+        setUser(next);
+        setStatus(next ? "authenticated" : "anonymous");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUser(null);
+          setStatus("anonymous");
+        }
+      });
 
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) {
+        return;
+      }
       const next = toAuthUser(session?.user ?? null);
       setUser(next);
       setStatus(next ? "authenticated" : "anonymous");

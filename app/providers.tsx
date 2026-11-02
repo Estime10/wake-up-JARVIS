@@ -12,7 +12,7 @@ type ProvidersProps = {
 
 /**
  * Seul endroit autorisé à importer `@/adapters/*`.
- * V0b : MemoryPort Supabase si env ; Auth email via AuthProvider.
+ * V0b : Memory + Profile Supabase si env ; Auth email via AuthProvider.
  */
 export function Providers({ children }: ProvidersProps) {
   const [ports] = useState(() => createAppPorts());

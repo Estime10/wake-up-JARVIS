@@ -11,6 +11,7 @@ La V0 UI est branchable. On a besoin d’une identité persistante et d’une m�
 ## Décision
 
 - **Auth** : Supabase Auth e-mail/password ; `AuthProvider` ; gate splash → `/login` → `/home` (RLS `messages` déjà par `auth.uid()`).
+- **Profil** : table `public.profiles` (`display_name`, `username`) ; trigger à l’inscription ; `ProfilePort` pour le salut « Bonjour, {name} » (`display_name` saisi manuellement en base).
 - **Mémoire** : `MemoryPort` via `adapters/supabase` si env publique présente, sinon mock ; sans session → seed local, pas d’écriture distante.
 - **Composition** : `createAppPorts()` appelé seulement depuis `app/providers.tsx`.
 - **Système** : `not-found` / `error` / `global-error` brandés (`SystemNoticeScreen`) ; états mails/mémoire loading·empty·error.

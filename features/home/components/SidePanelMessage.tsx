@@ -9,7 +9,7 @@ type SidePanelMessageProps = {
   tone?: "muted" | "danger";
 };
 
-/** Message d’état panneau latéral — loading / empty / error. */
+/** Message d’état panneau latéral — empty / error uniquement (pas de loading). */
 export function SidePanelMessage({
   text,
   actionLabel,

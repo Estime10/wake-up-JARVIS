@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { ConversationSkeleton } from "@/features/home/components/ConversationSkeleton";
 import { t } from "@/lib/i18n";
 
 type ConversationLoadStateProps = {
@@ -8,22 +9,13 @@ type ConversationLoadStateProps = {
   onRetry: () => void;
 };
 
-/** États mémoire conversation — loading / error + retry. */
+/** Mémoire conversation — skeleton si loading ; texte + retry si error. */
 export function ConversationLoadState({
   status,
   onRetry,
 }: ConversationLoadStateProps) {
   if (status === "loading") {
-    return (
-      <div
-        className="flex min-h-0 w-full max-w-xl flex-1 items-center justify-center px-6 py-4"
-        role="status"
-      >
-        <p className="t-body text-sm text-text-muted">
-          {t("home.conversationLoading")}
-        </p>
-      </div>
-    );
+    return <ConversationSkeleton />;
   }
 
   return (

@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { AuthModal } from "@/features/auth/components/AuthModal";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 import { HudAmbient } from "@/components/ui/HudAmbient";
-import { ROUTES } from "@/lib/routes";
-import { t } from "@/lib/i18n";
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { AuthModal } from "@/features/auth/components/AuthModal";
+import { AuthSkeleton } from "@/features/auth/components/AuthSkeleton";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { t } from "@/lib/i18n";
+import { ROUTES } from "@/lib/routes";
 
 /**
  * Page gate — splash → ici si anonyme → home après session.
@@ -35,9 +36,7 @@ export function AuthScreen() {
       </VisuallyHidden>
       <div className="relative z-10 w-full max-w-md">
         {status === "loading" ? (
-          <p className="t-body text-center text-text-muted" role="status">
-            {t("auth.loading")}
-          </p>
+          <AuthSkeleton />
         ) : (
           <AuthModal onSuccess={goHome} />
         )}

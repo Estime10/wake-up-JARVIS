@@ -3,4 +3,5 @@ export const ROUTES = {
   splash: "/",
   login: "/login",
   home: "/home",
+  signOut: "/auth/signout",
 } as const;

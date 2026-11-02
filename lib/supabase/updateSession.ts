@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { SUPABASE_COOKIE_ENCODE } from "@/lib/supabase/cookieOptions";
 import {
   getSupabasePublishableKey,
   getSupabaseUrl,
@@ -27,6 +28,7 @@ export async function updateSupabaseSession(
     getSupabasePublishableKey(),
     {
       cookies: {
+        encode: SUPABASE_COOKIE_ENCODE,
         getAll() {
           return request.cookies.getAll();
         },

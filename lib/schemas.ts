@@ -75,6 +75,15 @@ export const actionEventSchema = z.discriminatedUnion("type", [
 
 export type ActionEvent = z.infer<typeof actionEventSchema>;
 
+/** Profil utilisateur (frontière ProfilePort / table `profiles`). */
+export const userProfileSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().nullable(),
+  username: z.string().nullable(),
+});
+
+export type UserProfile = z.infer<typeof userProfileSchema>;
+
 /** Identifiants email/mot de passe — Auth Supabase. */
 export const authCredentialsSchema = z.object({
   email: z.email(),
