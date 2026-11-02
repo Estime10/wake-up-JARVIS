@@ -2,14 +2,14 @@
 
 import type { Ref } from "react";
 
-import { HudCornerBracket } from "@/components/ui/HudCornerBracket";
+import { HudModal } from "@/components/ui/HudModal";
 import { TerminalShell } from "@/features/home/components/TerminalShell";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 /**
- * Modale glass + équerres + shell (Last login / prompt) au-dessus du mark.
+ * Modale terminal — chrome HudModal + shell au-dessus du mark.
  */
 export function TerminalMarkModal({
   modalRef,
@@ -19,34 +19,13 @@ export function TerminalMarkModal({
   active: boolean;
 }) {
   return (
-    <div
+    <HudModal
       ref={modalRef}
       data-terminal-modal
-      role="dialog"
-      aria-modal="true"
       aria-label={t("home.terminalShellLabel")}
-      className={cn(
-        "fixed bg-surface/55 opacity-0 shadow-glass backdrop-blur-[var(--blur-glass)]",
-        TERMINAL_LAYER_CLASS.modal,
-      )}
+      className={cn("fixed opacity-0", TERMINAL_LAYER_CLASS.modal)}
     >
-      <HudCornerBracket
-        corner="tl"
-        className="top-2 left-2 sm:top-3 sm:left-3"
-      />
-      <HudCornerBracket
-        corner="tr"
-        className="top-2 right-2 sm:top-3 sm:right-3"
-      />
-      <HudCornerBracket
-        corner="bl"
-        className="bottom-2 left-2 sm:bottom-3 sm:left-3"
-      />
-      <HudCornerBracket
-        corner="br"
-        className="right-2 bottom-2 sm:right-3 sm:bottom-3"
-      />
       <TerminalShell active={active} />
-    </div>
+    </HudModal>
   );
 }

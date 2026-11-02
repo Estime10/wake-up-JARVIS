@@ -74,3 +74,22 @@ export const actionEventSchema = z.discriminatedUnion("type", [
 ]);
 
 export type ActionEvent = z.infer<typeof actionEventSchema>;
+
+/** Identifiants email/mot de passe — Auth Supabase. */
+export const authCredentialsSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8).max(72),
+});
+
+export type AuthCredentials = z.infer<typeof authCredentialsSchema>;
+
+export const authRegisterSchema = authCredentialsSchema
+  .extend({
+    confirmPassword: z.string().min(8).max(72),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "password_mismatch",
+  });
+
+export type AuthRegisterInput = z.infer<typeof authRegisterSchema>;

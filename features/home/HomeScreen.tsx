@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { HudAmbient } from "@/components/ui/HudAmbient";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
+import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
 import { HomeStatusHeader } from "@/features/home/components/HomeStatusHeader";
@@ -49,6 +50,8 @@ export function HomeScreen() {
   const {
     state,
     messages,
+    memoryStatus,
+    retryMemory,
     listenSeed,
     toggleListen,
     submit,
@@ -60,7 +63,9 @@ export function HomeScreen() {
 
   const listening = state === "listening";
   const busy = state === "thinking" || state === "speaking";
-  const showIdleBrand = state === "idle" && messages.length <= 1;
+  const memoryBlocked = memoryStatus !== "ready";
+  const showIdleBrand =
+    memoryStatus === "ready" && state === "idle" && messages.length <= 1;
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-bg">
@@ -140,7 +145,12 @@ export function HomeScreen() {
             </div>
           ) : null}
 
-          {!showIdleBrand ? (
+          {memoryBlocked ? (
+            <ConversationLoadState
+              status={memoryStatus === "error" ? "error" : "loading"}
+              onRetry={retryMemory}
+            />
+          ) : !showIdleBrand ? (
             <ConversationThread
               messages={messages}
               onConfirmAction={confirmAction}
@@ -158,7 +168,7 @@ export function HomeScreen() {
               onSubmit={submit}
               listening={listening}
               onToggleListening={toggleListen}
-              disabled={busy}
+              disabled={busy || memoryBlocked}
               ghost={state === "speaking"}
               listenSeed={listenSeed}
             />

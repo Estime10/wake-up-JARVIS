@@ -40,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         disabled={disabled}
         className={cn(
-          "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md transition-[color,background-color,border-color,filter] duration-[var(--duration-fast)]",
+          "inline-flex cursor-pointer items-center justify-center gap-2 transition-[color,background-color,border-color,filter] duration-[var(--duration-fast)]",
           // v4 : `outline-hidden`/`outline-none` posent `--tw-outline-style: none` ;
           // `focus-visible:outline` le relirait → style explicite `outline-solid`.
           "outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid",

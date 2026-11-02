@@ -30,9 +30,13 @@ function sessionReducer(
 
 const ACTION_TTL_MS = 120_000;
 
+export type MemoryLoadStatus = "loading" | "ready" | "error";
+
 type UseAssistantSessionResult = {
   state: AssistantState;
   messages: ConversationMessage[];
+  memoryStatus: MemoryLoadStatus;
+  retryMemory: () => void;
   listenSeed: string | undefined;
   toggleListen: () => void;
   submit: (text: string) => void;
@@ -48,6 +52,8 @@ export function useAssistantSession(): UseAssistantSessionResult {
   const [assistant, dispatch] = useReducer(sessionReducer, "idle");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const messagesRef = useLatestRef(messages);
+  const [memoryStatus, setMemoryStatus] = useState<MemoryLoadStatus>("loading");
+  const [memoryAttempt, setMemoryAttempt] = useState(0);
   const [listenSeed, setListenSeed] = useState<string | undefined>(undefined);
   const abortRef = useRef<AbortController | null>(null);
   const stopListenRef = useRef<(() => void) | null>(null);
@@ -57,15 +63,24 @@ export function useAssistantSession(): UseAssistantSessionResult {
 
   useEffect(() => {
     let cancelled = false;
-    void memory.listMessages().then((list) => {
-      if (!cancelled) {
+    void memory
+      .listMessages()
+      .then((list) => {
+        if (cancelled) {
+          return;
+        }
         setMessages(list.map(toConversationMessage));
-      }
-    });
+        setMemoryStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMemoryStatus("error");
+        }
+      });
     return () => {
       cancelled = true;
     };
-  }, [memory]);
+  }, [memory, memoryAttempt]);
 
   useEffect(() => {
     const timers = actionTimersRef.current;
@@ -215,7 +230,16 @@ export function useAssistantSession(): UseAssistantSessionResult {
   }
 
   async function persist(message: Message): Promise<void> {
-    await memory.appendMessage(message);
+    try {
+      await memory.appendMessage(message);
+    } catch {
+      // Écriture mémoire : ne pas faire planter la session UI.
+    }
+  }
+
+  function retryMemory(): void {
+    setMemoryStatus("loading");
+    setMemoryAttempt((value) => value + 1);
   }
 
   async function runExecute(
@@ -472,6 +496,8 @@ export function useAssistantSession(): UseAssistantSessionResult {
   return {
     state: assistant,
     messages,
+    memoryStatus,
+    retryMemory,
     listenSeed,
     toggleListen,
     submit,

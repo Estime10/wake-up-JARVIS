@@ -1,5 +1,5 @@
-import { theme } from "@/lib/theme/tokens";
 import { t } from "@/lib/i18n";
+import { theme } from "@/lib/theme/tokens";
 
 const COLOR_SWATCHES = [
   { name: "bg", value: theme.color.bg, className: "bg-bg" },
@@ -64,14 +64,20 @@ export function TokensBlock() {
           {t("dev.tokensType")}
         </h3>
         <div className="mt-3 flex flex-col gap-2">
-          <p className="t-wordmark text-wordmark text-accent">JARVIS</p>
-          <p className="t-title text-base text-text">Titre de section</p>
-          <p className="t-label text-sm text-text-muted">Label statut</p>
+          <p className="t-wordmark text-wordmark text-accent">
+            {t("app.name")}
+          </p>
+          <p className="t-title text-base text-text">
+            {t("dev.tokensSampleTitle")}
+          </p>
+          <p className="t-label text-sm text-text-muted">
+            {t("dev.tokensSampleLabel")}
+          </p>
           <p className="t-body text-base text-text">
-            Corps 16 px — lisible, sans tracking.
+            {t("dev.tokensSampleBody")}
           </p>
           <p className="t-mono text-sm text-text">
-            mono /usr/bin/git status -sb
+            {t("dev.tokensSampleMono")}
           </p>
         </div>
       </div>
@@ -81,7 +87,7 @@ export function TokensBlock() {
           {t("dev.tokensTouch")}
         </h3>
         <div className="mt-3 flex min-h-touch min-w-touch items-center justify-center rounded-md border border-accent bg-surface-2 text-sm text-text">
-          44×44
+          {t("dev.tokensSampleTouch")}
         </div>
       </div>
     </section>

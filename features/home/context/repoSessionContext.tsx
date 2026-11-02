@@ -26,7 +26,9 @@ export function RepoSessionProvider({
 export function useRepoSession(): RepoPanelSession {
   const ctx = useContext(RepoSessionContext);
   if (!ctx) {
-    throw new Error("useRepoSession must be used within RepoSessionProvider");
+    throw new Error(
+      "useRepoSession doit être utilisé sous RepoSessionProvider",
+    );
   }
   return ctx;
 }

@@ -35,7 +35,7 @@ export function RepoPanelProvider({ children }: { children: ReactNode }) {
 export function useRepoPanel(): RepoPanelContextValue {
   const ctx = useContext(RepoPanelContext);
   if (!ctx) {
-    throw new Error("useRepoPanel must be used within RepoPanelProvider");
+    throw new Error("useRepoPanel doit être utilisé sous RepoPanelProvider");
   }
   return ctx;
 }

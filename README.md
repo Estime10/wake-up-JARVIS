@@ -39,12 +39,15 @@ JARVIS, c'est :
 
 ## 2) Statut actuel
 
-🚧 **Phase V0 — UI seule.**
+🚧 **Phase V0 → V0b (partiel).**
 
-- Toutes les données et tous les comportements sont **simulés** (mocks) : réponses, voix, actions, journal, mails.
-- **Pas** de terminal, **pas** de Supabase, **pas** de LLM réel, **pas** de voix réelle, **pas** de Gmail.
-- L'UI ne parle qu'à des **interfaces (ports)** : on branchera le vrai plus tard **sans toucher l'UI**.
-- Le plan étape par étape est dans **[PLAN-UI.md](./PLAN-UI.md)** (24 étapes, dont 1 optionnelle, un commit chacune). **L'étape 1 (init du projet Next.js) est faite** ; la suite commence à l'étape 2.
+- **UI** : splash → gate auth → home ; terminal mock, panneau REPO mock, conversation, cartes d’action, `/dev/states`.
+- **V0b déjà branché** : Auth Supabase **e-mail/mot de passe** (`/login`) ; `MemoryPort` → table `messages` (+ RLS) si env publique présente, sinon mock + seed local.
+- **Encore mock** : LLM, voix, mails, actions, journal ; **pas** de Gmail ni d’agent terminal réel.
+- **Système** : `not-found` / `error` / `global-error` brandés ; mails & mémoire gèrent loading / empty / error (+ retry).
+- **Hors scope volontaire** : offline navigateur (`navigator.onLine`) — usage perso desktop.
+- L'UI ne parle qu'aux **ports** ; composition dans `app/providers.tsx` via `createAppPorts()`.
+- Détail décision : [ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md). Plan UI : **[PLAN-UI.md](./PLAN-UI.md)**.
 
 ## 3) Fonctionnalités prévues de l'UI
 
@@ -102,12 +105,12 @@ flowchart LR
   D["Domaine pur (lib)<br/>machine d'états, risques, schémas Zod"]
   H --> D
 
-  subgraph NOW["Aujourd'hui — V0"]
-    MOCK["Adapters mock<br/>(adapters/mock)"]
+  subgraph NOW["Aujourd'hui — V0 + V0b partiel"]
+    MOCK["Adapters mock<br/>(llm, voice, action, mail)"]
+    SUPA_MEM["Adapter Supabase<br/>(MemoryPort + Auth)"]
   end
 
-  subgraph LATER["Plus tard — V0b à V4"]
-    SUPA["Adapter Supabase<br/>(mémoire, file d'ordres)"]
+  subgraph LATER["Plus tard — reste V0b à V4"]
     LLMA["Adapter LLM"]
     VOICEA["Adapter voix<br/>(micro, Web Audio, synthèse)"]
     AGENT["Agent macOS<br/>(Tauri v2, via la file Supabase)"]
@@ -117,18 +120,17 @@ flowchart LR
   LLM -.-> MOCK
   VOICE -.-> MOCK
   ACTION -.-> MOCK
-  MEM -.-> MOCK
   MAIL -.-> MOCK
+  MEM -.-> SUPA_MEM
+  MEM -.-> MOCK
 
   LLM -.-> LLMA
   VOICE -.-> VOICEA
-  MEM -.-> SUPA
-  ACTION -.-> SUPA
-  SUPA -.-> AGENT
+  ACTION -.-> AGENT
   MAIL -.-> GMAIL
 ```
 
-Détails : [PLAN-UI.md §1.9](./PLAN-UI.md) et [ADR 0001](./docs/adr/0001-ui-d-abord-ports-et-mocks.md).
+Détails : [PLAN-UI.md §1.9](./PLAN-UI.md), [ADR 0001](./docs/adr/0001-ui-d-abord-ports-et-mocks.md), [ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md).
 
 ## 5) Stack
 
@@ -139,6 +141,7 @@ Détails : [PLAN-UI.md §1.9](./PLAN-UI.md) et [ADR 0001](./docs/adr/0001-ui-d-a
 | Style          | Tailwind CSS v4 via `@tailwindcss/turbopack` (tokens dans `@theme`), IBM Plex Sans + IBM Plex Mono (`next/font/google`, auto-hébergées car CSP)             |
 | Animation      | GSAP + `@gsap/react` (SVG + CSS), Canvas 2D pour la voix                                                                                                    |
 | Validation     | Zod                                                                                                                                                         |
+| Backend (V0b)  | Supabase Auth (e-mail) + Postgres (`messages`, RLS) ; clients `@supabase/ssr`                                                                               |
 | Tests          | Vitest + Testing Library, Playwright + axe                                                                                                                  |
 | Lint et format | ESLint (`eslint-config-next`) + Prettier (`eslint-config-prettier`) ; Husky + lint-staged au commit                                                         |
 | PWA            | `app/manifest.ts`, **seul manifest** (sans service worker pour l'instant) ; icônes `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `public/icons/` |
@@ -179,27 +182,34 @@ pnpm e2e              # tests de bout en bout + accessibilité (Playwright + axe
 pnpm check            # toutes les vérifications d'un coup (les tests y sont ajoutés à l'étape 5)
 ```
 
-En développement : ouvre **`/dev/states`** pour voir tous les états de l'UI.
-Dans la phase UI, **aucune variable d'environnement n'est nécessaire**.
+En développement : ouvre **`/dev/states`** pour voir tous les états de l'UI (hors prod).
+
+**Auth / mémoire Supabase** — copier `.env.example` → `.env.local` :
+
+```zsh
+cp .env.example .env.local
+# renseigner NEXT_PUBLIC_SUPABASE_URL + publishable (ou anon) key
+```
+
+Dans le dashboard Supabase : Provider **Email** ON ; en local sans SMTP, **Confirm email** OFF.  
+Flux : `/` (splash) → `/login` si anonyme → `/home` si session.
 
 ## 8) Arborescence (résumée)
 
 ```
 wake-up-JARVIS/
-├─ proxy.ts        # CSP à nonce (seul endroit de la CSP)
-├─ app/            # routes + composition (layout, page, manifest, providers, ports-context, dev/states)
-│                  #   + icônes : icon.svg, favicon.ico, apple-icon.png
-├─ public/         # fichiers statiques : assets/jarvis-mark.svg, icons/ (PWA)
-├─ features/       # écrans : orchestrateur PascalCase à la racine, puis components/ hooks/ model/
-├─ components/ui/  # composants réutilisables (JarvisMark, VisuallyHidden…)
-├─ lib/            # domaine pur + assets/index.ts (chemins public/ centralisés)
-
-├─ ports/          # interfaces : LlmPort, VoicePort, ActionPort, MemoryPort, MailPort
-├─ fixtures/       # données factices (seul endroit), validées par Zod
-├─ adapters/mock/  # implémentations simulées des ports
-├─ e2e/            # tests Playwright (*.spec.ts)
-├─ docs/adr/       # décisions d'architecture
-└─ docs/design/v3/ # maquettes de référence DA v3 (PNG + README)
+├─ proxy.ts           # CSP à nonce + refresh session Supabase
+├─ .env.example       # modèle env publique (pas de secrets)
+├─ app/               # routes : /, /login, /home, not-found, error, global-error, /dev/states
+├─ features/          # auth, home, intro, jarvis, actions, system, dev…
+├─ components/ui/     # Button, HudModal, HudFrameBrackets, JarvisMark…
+├─ lib/               # domaine + i18n + supabase/{client,server,env,updateSession}
+├─ ports/             # interfaces TypeScript
+├─ fixtures/          # données factices (Zod)
+├─ adapters/          # mock/* + supabase/* + createAppPorts.ts
+├─ supabase/          # config CLI + migrations (messages + RLS)
+├─ e2e/               # Playwright
+└─ docs/adr/          # ADR 0001–0008
 ```
 
 Version complète : [PLAN-UI.md §1.8](./PLAN-UI.md).
@@ -245,7 +255,7 @@ Version complète : [PLAN-UI.md §1.8](./PLAN-UI.md).
 - Pas de `dangerouslySetInnerHTML` ; tout contenu externe (réponses, sorties, mails) affiché **en texte**.
 - **SVG (règles HACKER)** : aucun script, aucun attribut `on*`, pas de `style=`, pas de liens, pas de `data:`.
 - **Carte de signature** : JCS brut entier, sans troncature, `dir="ltr"` ; échappements JSON et cases `U+XXXX` (caractère invisible, de contrôle ou non ASCII) dans le même style, sans ambre.
-- **Aucun secret dans le dépôt** (il est public). Les fichiers `.env*`, dont **`.env.local`**, sont ignorés par Git — ne jamais les commiter.
+- **Aucun secret dans le dépôt** (il est public). `.env.local` et autres `.env*` sont ignorés ; **`.env.example`** (sans secrets) est versionné.
 
 **Plus tard (phases terminal) :**
 
@@ -259,22 +269,22 @@ Détails : [PLAN-UI.md §6](./PLAN-UI.md), [ADR 0006](./docs/adr/0006-execution-
 
 ## 12) Feuille de route
 
-| Phase                        | Contenu                                                                                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **V0 — UI** _(en cours)_     | Toute l'interface avec données simulées, accessibilité, PWA, tests                                                                                            |
-| **V0b — Branchements**       | Supabase (mémoire, auth), LLM réel, voix réelle (micro, Web Audio, synthèse) — on ne change que les adapters                                                  |
-| **V1 — Agent lecture seule** | Agent macOS Tauri v2, file Supabase, ordres signés, actions de niveau 1 seulement                                                                             |
-| **V2 — Actions**             | Exécution après clic + Touch ID / mot de passe du Mac, multi-Mac, arrêt d'urgence                                                                             |
-| **V3 — « Wake up, JARVIS »** | openWakeWord local, `caffeinate -u` pour l'écran, déverrouillage par mot de passe ou Touch ID seulement ; reconnaissance locale ; mémoire Supabase + pgvector |
-| **V4 — Gmail**               | Lecture + brouillons (jamais d'envoi automatique)                                                                                                             |
-| **V5 — Premium**             | Voix premium + mode cinéma 3D (Three.js, optionnel)                                                                                                           |
+| Phase                              | Contenu                                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **V0 — UI** _(fait)_               | Interface + mocks, accessibilité, PWA, tests, terminal/REPO mock                                                                                              |
+| **V0b — Branchements** _(partiel)_ | **Fait** : Auth e-mail + MemoryPort Supabase + pages système. **Reste** : LLM réel, voix réelle — toujours via adapters seulement                             |
+| **V1 — Agent lecture seule**       | Agent macOS Tauri v2, file Supabase, ordres signés, actions de niveau 1 seulement                                                                             |
+| **V2 — Actions**                   | Exécution après clic + Touch ID / mot de passe du Mac, multi-Mac, arrêt d'urgence                                                                             |
+| **V3 — « Wake up, JARVIS »**       | openWakeWord local, `caffeinate -u` pour l'écran, déverrouillage par mot de passe ou Touch ID seulement ; reconnaissance locale ; mémoire Supabase + pgvector |
+| **V4 — Gmail**                     | Lecture + brouillons (jamais d'envoi automatique)                                                                                                             |
+| **V5 — Premium**                   | Voix premium + mode cinéma 3D (Three.js, optionnel)                                                                                                           |
 
 **HACKER relit toute phase qui touche au terminal** (V1, V2, V3).
 
 ## 13) Documentation
 
 - **[PLAN-UI.md](./PLAN-UI.md)** — le plan complet de la phase UI (stack, commandes, composants, tokens, accessibilité, 24 étapes).
-- **[docs/adr/](./docs/adr/README.md)** — les décisions d'architecture (ADR 0001 à 0007) et le modèle pour en écrire.
+- **[docs/adr/](./docs/adr/README.md)** — les décisions d'architecture (ADR 0001 à 0008) et le modèle pour en écrire.
 - **[docs/design/v3/](./docs/design/v3/README.md)** — les maquettes de la DA v3 « blanc nacré » (écrans bureau, mobile, planche de composants) et leurs notes ([README-front](./docs/design/v3/README-front.md)).
 
 ## 14) Travailler avec l'équipe

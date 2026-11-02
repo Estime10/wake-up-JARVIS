@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { updateSupabaseSession } from "@/lib/supabase/updateSession";
+
 /**
- * CSP à nonce — seul endroit de la Content-Security-Policy (ADR 0002 / PLAN-UI §6).
- * `proxy` = convention Next 16 (ex-middleware).
+ * Proxy Next 16 — CSP à nonce + refresh session Supabase.
+ * CSP : seul endroit de la Content-Security-Policy (ADR 0002 / PLAN-UI §6).
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV === "development";
   const csp = [
@@ -15,8 +17,8 @@ export function proxy(request: NextRequest) {
       : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    // BigDataCloud : reverse geocode du HUD (sans clé).
-    "connect-src 'self' https://api.bigdatacloud.net",
+    // BigDataCloud : reverse geocode HUD. Supabase : Auth + Data API.
+    "connect-src 'self' https://api.bigdatacloud.net https://*.supabase.co wss://*.supabase.co",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -32,7 +34,8 @@ export function proxy(request: NextRequest) {
     request: { headers: requestHeaders },
   });
   response.headers.set("Content-Security-Policy", csp);
-  return response;
+
+  return updateSupabaseSession(request, response, requestHeaders);
 }
 
 export const config = {

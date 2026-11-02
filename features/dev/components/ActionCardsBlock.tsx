@@ -1,8 +1,8 @@
 "use client";
 
 import { ActionCard } from "@/features/actions/components/ActionCard";
-import type { ActionStatus } from "@/lib/actions/lifecycle";
 import { MOCK_ACTION_PROPOSALS } from "@/fixtures/actionProposals";
+import type { ActionStatus } from "@/lib/actions/lifecycle";
 import { t } from "@/lib/i18n";
 
 const STATUSES: ActionStatus[] = [
@@ -30,7 +30,7 @@ export function ActionCardsBlock() {
       {PROPOSALS.map((proposal) => (
         <div key={proposal.id} className="flex flex-col gap-4">
           <h3 className="t-label text-sm text-text-muted">
-            risk {proposal.risk}
+            {t("dev.actionsRisk", { level: proposal.risk })}
           </h3>
           <div className="grid gap-4 lg:grid-cols-2">
             {STATUSES.map((status) => {
@@ -47,9 +47,9 @@ export function ActionCardsBlock() {
                     status={status}
                     outputLines={
                       status === "running" || status === "succeeded"
-                        ? ["ok"]
+                        ? [t("dev.actionsOutputOk")]
                         : status === "failed"
-                          ? ["error: mock"]
+                          ? [t("dev.actionsOutputError")]
                           : []
                     }
                     exitCode={
@@ -58,11 +58,6 @@ export function ActionCardsBlock() {
                         : status === "succeeded"
                           ? 0
                           : undefined
-                    }
-                    notice={
-                      status === "pending" && proposal.risk >= 2
-                        ? undefined
-                        : undefined
                     }
                     onConfirm={() => {}}
                     onCancel={() => {}}
@@ -75,7 +70,9 @@ export function ActionCardsBlock() {
       ))}
 
       <div id="dev-action-crash-test">
-        <h3 className="t-label mb-3 text-sm text-text-muted">CRASH TEST</h3>
+        <h3 className="t-label mb-3 text-sm text-text-muted">
+          {t("dev.actionsCrashTest")}
+        </h3>
         <ActionCard
           proposal={MOCK_ACTION_PROPOSALS.crashTest}
           status="pending"
@@ -86,7 +83,7 @@ export function ActionCardsBlock() {
 
       <div id="dev-action-signature-refused">
         <h3 className="t-label mb-3 text-sm text-text-muted">
-          signature refused → pending
+          {t("dev.actionsSignatureRefused")}
         </h3>
         <ActionCard
           proposal={MOCK_ACTION_PROPOSALS.modify}

@@ -4,6 +4,7 @@ import { useId, useRef, useState, type KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { MailListItem } from "@/features/home/components/MailListItem";
+import { SidePanelMessage } from "@/features/home/components/SidePanelMessage";
 import { useRecentMails } from "@/features/home/hooks/useRecentMails";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { t } from "@/lib/i18n";
@@ -19,10 +20,11 @@ const TAB_LABEL_KEY = {
 /** Panneau droit — fond global + blur, onglets centrés (pattern ARIA Tabs). */
 export function HomeSidePanel() {
   const [tab, setTab] = useState<SideTab>("mails");
-  const { mails, loading } = useRecentMails();
+  const { mails, status: mailStatus, retry: retryMails } = useRecentMails();
   const idPrefix = useId();
   const tabRefs = useRef<Partial<Record<SideTab, HTMLButtonElement>>>({});
-  const entryCount = tab === "mails" ? mails.length : 0;
+  const entryCount =
+    tab === "mails" && mailStatus === "ready" ? mails.length : 0;
   const tabId = (value: SideTab) => `${idPrefix}-tab-${value}`;
   const panelId = `${idPrefix}-panel`;
 
@@ -95,10 +97,17 @@ export function HomeSidePanel() {
           tabIndex={0}
         >
           {tab === "mails" ? (
-            loading ? (
-              <p className="t-mono px-1 text-sm text-text-muted">
-                {t("home.mailLoading")}
-              </p>
+            mailStatus === "loading" ? (
+              <SidePanelMessage text={t("home.mailLoading")} />
+            ) : mailStatus === "error" ? (
+              <SidePanelMessage
+                text={t("home.mailError")}
+                tone="danger"
+                actionLabel={t("home.mailRetry")}
+                onAction={retryMails}
+              />
+            ) : mails.length === 0 ? (
+              <SidePanelMessage text={t("home.mailEmpty")} />
             ) : (
               <ul className="flex flex-col gap-2">
                 {mails.map((mail) => (
@@ -109,9 +118,7 @@ export function HomeSidePanel() {
               </ul>
             )
           ) : (
-            <p className="t-mono px-1 text-sm text-text-muted">
-              {t("home.journalEmpty")}
-            </p>
+            <SidePanelMessage text={t("home.journalEmpty")} />
           )}
         </div>
       </div>

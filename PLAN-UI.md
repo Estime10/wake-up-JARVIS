@@ -52,7 +52,7 @@ Tout passe par des **interfaces (ports)**. Plus tard, on remplace les mocks par 
 **Hors scope (rien de tout ça dans cette phase) :**
 
 - pas de terminal, pas d'agent macOS, aucune commande réellement exécutée ;
-- pas de Supabase (ni base, ni auth, ni mémoire) ;
+- _(historique V0)_ pas de Supabase au démarrage UI — **V0b partiel** : auth e-mail + mémoire `messages` ([ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md)) ;
 - pas de LLM réel ;
 - pas de voix réelle (ni micro, ni reconnaissance, ni synthèse vocale, ni Web Audio) ;
 - pas de Gmail (les mails sont factices) ;
@@ -1153,7 +1153,7 @@ Rappel : **DevinChat commit et push lui-même**. L'équipe relit : **PIXEL** (fr
 
 ## 5) Après l'UI — feuille de route
 
-- **V0b — Branchement réel (avant tout terminal)** : adapters Supabase (auth + messages), LLM réel, voix réelle (micro + Web Audio pour l'amplitude, synthèse vocale) ; on ne change que `providers.tsx` et on ajoute `adapters/*`.
+- **V0b — Branchement réel (avant tout terminal)** : **partiel livré** — Auth e-mail + `MemoryPort` Supabase + `not-found`/`error` ([ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md)). **Reste** : LLM réel, voix réelle (micro + Web Audio, synthèse) ; on ne change que les adapters / `createAppPorts`. Pas d’offline navigateur (choix produit desktop).
 - **V1 — Agent macOS lecture seule** ([ADR 0006](./docs/adr/0006-execution-terminal.md)) : agent **Tauri v2** (LaunchAgent) sur le Mac, file d'ordres via Supabase, **ordres signés** ; seulement des commandes de niveau 1.
 - **V2 — Actions** : exécution après clic + signature **Touch ID ou mot de passe du Mac** (WebAuthn), multi-Mac, **arrêt d'urgence**.
 - **V3 — « Wake up, JARVIS »** ([ADR 0007](./docs/adr/0007-mot-de-reveil.md)) : mot de réveil **openWakeWord** en local dans l'agent (Porcupine n'a plus d'offre gratuite depuis le 30/06/2026), `caffeinate -u` pour allumer l'écran, déverrouillage **par mot de passe ou Touch ID, jamais par la voix** ; reconnaissance vocale locale ; **mémoire Supabase + pgvector**.
