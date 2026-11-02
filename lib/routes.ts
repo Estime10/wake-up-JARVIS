@@ -6,4 +6,7 @@ export const ROUTES = {
   signOut: "/auth/signout",
   googleOAuthConnect: "/api/google/oauth/connect",
   googleOAuthCallback: "/api/google/oauth/callback",
+  githubConnect: "/api/github/connect",
+  githubStatus: "/api/github/status",
+  githubDisconnect: "/api/github/disconnect",
 } as const;

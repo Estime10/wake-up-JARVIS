@@ -1,6 +1,6 @@
 "use client";
 
-import type { KeyboardEvent, MutableRefObject } from "react";
+import { useState, type KeyboardEvent, type MutableRefObject } from "react";
 
 import { Button } from "@/components/ui/Button";
 import {
@@ -15,9 +15,12 @@ import { RepoPanelError } from "@/features/home/components/repo/RepoPanelError";
 import { RepoPanelLoading } from "@/features/home/components/repo/RepoPanelLoading";
 import { RepoTabContent } from "@/features/home/components/repo/RepoTabContent";
 import { useRepoSession } from "@/features/home/context";
-import { REPO_TAB_LABEL_KEY } from "@/features/home/model/repoTabsUi";
+import { useGithubConnection } from "@/features/github/hooks/useGithubConnection";
+import { githubPatErrorKey } from "@/features/github/model/githubPatErrorKey";
 import { REPO_TABS, type RepoTab } from "@/features/home/model/repoTab";
+import { REPO_TAB_LABEL_KEY } from "@/features/home/model/repoTabsUi";
 import { cn } from "@/lib/cn";
+import type { MessageKey } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
 
 const TAB_ICON = {
@@ -33,7 +36,7 @@ type RepoPanelMainProps = {
   onTabKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
 };
 
-/** Corps du tiroir fichiers — états scénario ou onglets. */
+/** Corps du tiroir fichiers — live GitHub (étape 1) ou scénarios mock. */
 export function RepoPanelMain({
   tabId,
   panelId,
@@ -41,6 +44,94 @@ export function RepoPanelMain({
   onTabKeyDown,
 }: RepoPanelMainProps) {
   const session = useRepoSession();
+  const github = useGithubConnection();
+  const [submitting, setSubmitting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+
+  const live = github.status !== "unavailable";
+
+  async function handleConnect(input: {
+    token: string;
+    expiresAt?: string;
+  }): Promise<void> {
+    setSubmitting(true);
+    setErrorKey(null);
+    const result = await github.connect(input);
+    setSubmitting(false);
+    if (!result.ok) {
+      setErrorKey(githubPatErrorKey(result.error));
+    }
+  }
+
+  async function handleDisconnect(): Promise<void> {
+    setDisconnecting(true);
+    await github.disconnect();
+    setDisconnecting(false);
+  }
+
+  const liveConnect = {
+    submitting,
+    errorKey,
+    onConnect: handleConnect,
+  };
+
+  if (live && (github.status === "loading" || session.scenario === "loading")) {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <RepoPanelLoading />
+      </div>
+    );
+  }
+
+  if (live && github.status === "error") {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <RepoPanelError
+          repoName="GitHub"
+          detail={t("home.repoPatErrorUpstream")}
+          onRetry={github.refresh}
+        />
+      </div>
+    );
+  }
+
+  if (live && github.status === "ready" && !github.connection) {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <RepoPanelDisconnected live={liveConnect} />
+      </div>
+    );
+  }
+
+  if (
+    live &&
+    github.status === "ready" &&
+    github.connection?.status === "needs_reauth"
+  ) {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <RepoPanelDenied live={liveConnect} />
+      </div>
+    );
+  }
+
+  if (live && github.status === "ready" && github.connection) {
+    // Étape 1 : connecté, pas encore de listing repos (CA3).
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <RepoPanelEmptyRepos
+          live={{
+            login: github.connection.login,
+            disconnecting,
+            onDisconnect: () => {
+              void handleDisconnect();
+            },
+          }}
+        />
+      </div>
+    );
+  }
 
   if (session.scenario === "loading") {
     return (

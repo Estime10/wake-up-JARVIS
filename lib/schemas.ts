@@ -47,6 +47,23 @@ export const mailSummarySchema = z.object({
 
 export type MailSummary = z.infer<typeof mailSummarySchema>;
 
+export const githubConnectionStatusSchema = z.enum(["active", "needs_reauth"]);
+
+export type GithubConnectionStatus = z.infer<
+  typeof githubConnectionStatusSchema
+>;
+
+/** Connexion GitHub UI — sans PAT ni vault_secret_id. */
+export const githubConnectionSchema = z.object({
+  id: z.string().min(1),
+  login: z.string().min(1),
+  status: githubConnectionStatusSchema,
+  expiresAt: z.iso.datetime({ offset: true }).nullable(),
+  connectedAt: z.iso.datetime({ offset: true }),
+});
+
+export type GithubConnection = z.infer<typeof githubConnectionSchema>;
+
 export const riskLevelSchema = z.union([
   z.literal(1),
   z.literal(2),

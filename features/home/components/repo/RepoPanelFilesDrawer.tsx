@@ -13,6 +13,7 @@ import {
   REPO_SLIDE_OUT,
 } from "@/features/home/animations";
 import { useRepoSession } from "@/features/home/context";
+import { useGithubConnection } from "@/features/github/hooks/useGithubConnection";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
 import { repoFooterLabel } from "@/features/home/model/repoFooterLabel";
 import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
@@ -30,7 +31,7 @@ type RepoPanelFilesDrawerProps = {
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — arbre / commits / états. */
+/** Tiroir 1 — arbre / commits / états (mock) ou connexion live. */
 export function RepoPanelFilesDrawer({
   visible,
   idPrefix,
@@ -41,6 +42,8 @@ export function RepoPanelFilesDrawer({
   onDismiss,
 }: RepoPanelFilesDrawerProps) {
   const session = useRepoSession();
+  const github = useGithubConnection();
+  const live = github.status !== "unavailable";
 
   return (
     <aside
@@ -55,7 +58,10 @@ export function RepoPanelFilesDrawer({
       inert={!visible ? true : undefined}
     >
       <div className="relative flex h-full min-h-0 flex-col">
-        <header className={cn(REPO_CHROME.header, "justify-end")}>
+        <header className={cn(REPO_CHROME.header, "justify-between")}>
+          <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
+            {t("home.repoTitle")}
+          </p>
           <Button
             variant="ghost"
             size="bare"
@@ -67,15 +73,16 @@ export function RepoPanelFilesDrawer({
           </Button>
         </header>
 
-        <RepoPanelToolbar idPrefix={idPrefix} />
+        {/* Scénarios mock : uniquement hors Supabase (dev UI). */}
+        {!live ? <RepoPanelToolbar idPrefix={idPrefix} /> : null}
 
-        {session.scenario === "nominal" && session.repo ? (
+        {!live && session.scenario === "nominal" && session.repo ? (
           <div className="shrink-0 pt-3">
             <RepoPanelNotice />
           </div>
         ) : null}
 
-        {session.scenario === "offline" ? (
+        {!live && session.scenario === "offline" ? (
           <div className="shrink-0 pt-3">
             <RepoPanelOffline />
           </div>
@@ -90,7 +97,9 @@ export function RepoPanelFilesDrawer({
 
         <footer className={REPO_CHROME.footer}>
           <p className={REPO_CHROME.footerText}>
-            {repoFooterLabel(session.scenario)}
+            {live
+              ? t("home.repoFooterGithub")
+              : repoFooterLabel(session.scenario)}
           </p>
         </footer>
       </div>
