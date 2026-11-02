@@ -20,7 +20,7 @@ type RepoFileTreeProps = {
   onSelectFile?: (path: string) => void;
 };
 
-/** Arbre fichiers mock — expand/collapse + sélection aperçu. */
+/** Arbre fichiers — expand/collapse + sélection aperçu. */
 export function RepoFileTree({
   nodes,
   depth = 0,

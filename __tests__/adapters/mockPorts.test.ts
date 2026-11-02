@@ -20,10 +20,10 @@ describe("createMockPorts", () => {
     expect(messages[0]?.role).toBe("assistant");
   });
 
-  it("MailPort respecte la limite", async () => {
+  it("MailPort mock est vide (données = Gmail live)", async () => {
     const { mail } = createMockPorts();
-    const three = await mail.listRecent(3);
-    expect(three).toHaveLength(3);
+    expect(await mail.listRecent(3)).toHaveLength(0);
+    expect(await mail.listFlagged(3)).toHaveLength(0);
   });
 
   it("LlmPort streame une réponse texte puis done", async () => {

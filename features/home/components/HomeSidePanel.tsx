@@ -19,9 +19,7 @@ import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { MailAccountsBar } from "@/features/mail/components/MailAccountsBar";
 import { useMailAccounts } from "@/features/mail/hooks/useMailAccounts";
 import { runMailPoll } from "@/features/mail/model/mailPollSchedule";
-import { MOCK_MAIL_ACCOUNTS } from "@/fixtures/mailAccounts";
 import { t } from "@/lib/i18n";
-import type { MailAccount } from "@/lib/schemas";
 
 const OAUTH_FLASH = {
   ok: "home.mailOAuthOk",
@@ -36,14 +34,13 @@ const OAUTH_FLASH = {
 } as const;
 
 /**
- * Panneau droit — boîtes Gmail + mails relevés (étape 2).
- * Sans session Supabase : fixtures mock.
+ * Panneau droit — boîtes Gmail + mails relevés (live uniquement).
  * Poll Gmail auto : MailFeedProvider (10 min). Actualiser : manuel ici.
  */
 export function HomeSidePanel() {
   const searchParams = useSearchParams();
   const {
-    accounts: linkedAccounts,
+    accounts,
     status: accountsStatus,
     refresh: refreshAccounts,
     setEnabled,
@@ -56,11 +53,7 @@ export function HomeSidePanel() {
   const oauthHandled = useRef<string | null>(null);
   const [polling, setPolling] = useState(false);
 
-  const useLiveAccounts =
-    accountsStatus === "ready" || accountsStatus === "error";
-  const accounts: readonly MailAccount[] = useLiveAccounts
-    ? linkedAccounts
-    : MOCK_MAIL_ACCOUNTS;
+  const live = accountsStatus !== "unavailable";
 
   const selectedAccountId = useMemo(() => {
     if (accounts.length === 0) {
@@ -107,12 +100,10 @@ export function HomeSidePanel() {
 
   const tabId = (id: string) => `${idPrefix}-tab-${id}`;
   const panelId = `${idPrefix}-panel`;
-  const canConnect =
-    useLiveAccounts && linkedAccounts.length < 3 && accountsStatus === "ready";
+  const canConnect = live && accounts.length < 3 && accountsStatus === "ready";
 
   const handleRefresh = () => {
-    if (!useLiveAccounts) {
-      retryMails();
+    if (!live) {
       return;
     }
     setPolling(true);
@@ -145,9 +136,9 @@ export function HomeSidePanel() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col border-l border-line-subtle">
-      {useLiveAccounts ? (
+      {live ? (
         <MailAccountsBar
-          accounts={linkedAccounts}
+          accounts={accounts}
           canConnect={canConnect}
           polling={polling}
           onRefresh={handleRefresh}
@@ -227,7 +218,21 @@ export function HomeSidePanel() {
         }
         tabIndex={0}
       >
-        {useLiveAccounts && linkedAccounts.length === 0 ? (
+        {!live ? (
+          <SidePanelMessage text={t("home.mailUnavailable")} />
+        ) : accountsStatus === "loading" && accounts.length === 0 ? (
+          <MailListSkeleton />
+        ) : accountsStatus === "error" && accounts.length === 0 ? (
+          <SidePanelMessage
+            text={t("home.mailError")}
+            tone="danger"
+            actionLabel={t("home.mailRetry")}
+            onAction={() => {
+              refreshAccounts();
+              retryMails();
+            }}
+          />
+        ) : accounts.length === 0 ? (
           <SidePanelMessage text={t("home.mailConnectFirst")} />
         ) : mailStatus === "loading" || polling ? (
           <MailListSkeleton />

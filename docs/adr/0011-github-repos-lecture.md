@@ -25,7 +25,7 @@ Le panneau REPO home est mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)).
 
 - Table `github_connections` (1 ligne / user JARVIS) + Vault.
 - API : enregistrer PAT (valider via `GET /user`), status, révoquer (purge Vault).
-- Panneau REPO : états connecté / déconnecté / `needs_reauth` — **pas** encore de tree/commits/PR live (fixtures ou empty selon statut).
+- Panneau REPO : états connecté / déconnecté / `needs_reauth` — tree/commits/PR live (étape 2).
 
 **Étape 2 — Lecture API**
 

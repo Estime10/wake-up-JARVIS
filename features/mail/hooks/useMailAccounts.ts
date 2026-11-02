@@ -27,7 +27,7 @@ const SUPABASE_READY = hasSupabasePublicEnv();
 
 /**
  * Liste des boîtes Gmail connectées (sans jeton).
- * Sans env Supabase : unavailable (UI mock locale).
+ * Sans env Supabase : unavailable (pas de fixtures).
  */
 export function useMailAccounts(): UseMailAccountsResult {
   const [accounts, setAccounts] = useState<MailAccount[]>([]);

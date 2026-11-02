@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { MOCK_JOURNAL } from "@/fixtures/journal";
-import { MOCK_MAILS } from "@/fixtures/mails";
 import { MOCK_SEED_MESSAGES } from "@/fixtures/messages";
 import {
   journalEntrySchema,
@@ -11,14 +10,7 @@ import {
 } from "@/lib/schemas";
 
 describe("fixtures Zod", () => {
-  it("valide les mails mock", () => {
-    expect(MOCK_MAILS.length).toBeGreaterThan(0);
-    for (const mail of MOCK_MAILS) {
-      expect(mailSummarySchema.parse(mail)).toEqual(mail);
-    }
-  });
-
-  it("rejette un mail invalide", () => {
+  it("rejette un mail invalide (schéma live)", () => {
     const result = mailSummarySchema.safeParse({
       id: "bad",
       accountId: "acc_x",

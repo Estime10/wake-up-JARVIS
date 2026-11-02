@@ -9,14 +9,23 @@ import {
 import { RepoPreviewBody } from "@/features/home/components/repo/RepoPreviewBody";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
 import type { RepoPreviewKind } from "@/features/home/model/repoPanelScenario";
-import type { MockRepoFile } from "@/fixtures/repos";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+
+/** Fichier affiché dans l’aperçu (shape UI, indépendante des fixtures). */
+export type RepoPreviewFile = {
+  kind: "file";
+  name: string;
+  sizeLabel?: string;
+  linesLabel?: string;
+  content?: string;
+  protected?: boolean;
+};
 
 export type RepoFilePreviewModel = {
   path: string;
   branch: string;
-  file: MockRepoFile;
+  file: RepoPreviewFile;
   kind: RepoPreviewKind;
 };
 

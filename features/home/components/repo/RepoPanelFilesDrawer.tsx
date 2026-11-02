@@ -1,51 +1,28 @@
 "use client";
 
-import type { KeyboardEvent, MutableRefObject } from "react";
-
 import { Button } from "@/components/ui/Button";
 import { RepoPanelMain } from "@/features/home/components/repo/RepoPanelMain";
-import { RepoPanelNotice } from "@/features/home/components/repo/RepoPanelNotice";
-import { RepoPanelOffline } from "@/features/home/components/repo/RepoPanelOffline";
-import { RepoPanelToolbar } from "@/features/home/components/repo/RepoPanelToolbar";
 import {
   REPO_MOTION_CLASS,
   REPO_SLIDE_IN,
   REPO_SLIDE_OUT,
 } from "@/features/home/animations";
-import { useRepoSession } from "@/features/home/context";
-import { useGithubConnection } from "@/features/github/hooks/useGithubConnection";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
 import { REPO_FILES_DRAWER_WIDTH_CLASS } from "@/features/home/model/repoDrawerLayout";
-import { repoFooterLabel } from "@/features/home/model/repoFooterLabel";
 import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
-import type { RepoTab } from "@/features/home/model/repoTab";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 type RepoPanelFilesDrawerProps = {
   visible: boolean;
-  idPrefix: string;
-  tabId: (value: RepoTab) => string;
-  panelId: string;
-  tabRefs: MutableRefObject<Partial<Record<RepoTab, HTMLButtonElement>>>;
-  onTabKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — arbre / commits / états (mock) ou connexion live. */
+/** Tiroir 1 — connexion / lecture GitHub live. */
 export function RepoPanelFilesDrawer({
   visible,
-  idPrefix,
-  tabId,
-  panelId,
-  tabRefs,
-  onTabKeyDown,
   onDismiss,
 }: RepoPanelFilesDrawerProps) {
-  const session = useRepoSession();
-  const github = useGithubConnection();
-  const live = github.status !== "unavailable";
-
   return (
     <aside
       className={cn(
@@ -75,36 +52,12 @@ export function RepoPanelFilesDrawer({
           </Button>
         </header>
 
-        {/* Scénarios mock : uniquement hors Supabase (dev UI). */}
-        {!live ? <RepoPanelToolbar idPrefix={idPrefix} /> : null}
-
-        {!live && session.scenario === "nominal" && session.repo ? (
-          <div className="shrink-0 pt-3">
-            <RepoPanelNotice />
-          </div>
-        ) : null}
-
-        {!live && session.scenario === "offline" ? (
-          <div className="shrink-0 pt-3">
-            <RepoPanelOffline />
-          </div>
-        ) : null}
-
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <RepoPanelMain
-            tabId={tabId}
-            panelId={panelId}
-            tabRefs={tabRefs}
-            onTabKeyDown={onTabKeyDown}
-          />
+          <RepoPanelMain />
         </div>
 
         <footer className={REPO_CHROME.footer}>
-          <p className={REPO_CHROME.footerText}>
-            {live
-              ? t("home.repoFooterGithub")
-              : repoFooterLabel(session.scenario)}
-          </p>
+          <p className={REPO_CHROME.footerText}>{t("home.repoFooterGithub")}</p>
         </footer>
       </div>
     </aside>
