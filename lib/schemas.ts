@@ -39,6 +39,10 @@ export const mailSummarySchema = z.object({
   /** Affichage HH:MM (mock / UI). */
   time: z.string().regex(/^\d{2}:\d{2}$/, "time must be HH:MM"),
   unread: z.boolean(),
+  category: z.string().optional(),
+  flagged: z.boolean().optional(),
+  flagReason: z.string().nullable().optional(),
+  summary: z.string().nullable().optional(),
 });
 
 export type MailSummary = z.infer<typeof mailSummarySchema>;

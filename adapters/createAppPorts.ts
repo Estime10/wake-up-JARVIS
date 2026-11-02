@@ -1,5 +1,6 @@
 import { createMockPorts } from "@/adapters/mock";
 import {
+  createSupabaseMail,
   createSupabaseMemory,
   createSupabaseProfile,
 } from "@/adapters/supabase";
@@ -8,7 +9,7 @@ import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import type { Ports } from "@/ports";
 
 /**
- * Branchement V0b : mocks partout ; Memory + Profile → Supabase si env.
+ * Branchement V0b : mocks partout ; Memory + Profile + Mail → Supabase si env.
  * Seul `app/providers.tsx` appelle cette fabrique.
  */
 export function createAppPorts(): Ports {
@@ -23,5 +24,6 @@ export function createAppPorts(): Ports {
     ...ports,
     memory: createSupabaseMemory(client),
     profile: createSupabaseProfile(client),
+    mail: createSupabaseMail(client),
   };
 }

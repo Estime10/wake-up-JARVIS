@@ -95,7 +95,10 @@ export function SplashHudChrome({
           className={cn("absolute inset-0", !settled && "opacity-0")}
         >
           <div className="absolute top-6 left-6 flex flex-col gap-1 sm:top-8 sm:left-8">
-            <p className="t-mono text-dial sm:text-sm" suppressHydrationWarning>
+            <p
+              className="t-mono text-dial uppercase sm:text-sm"
+              suppressHydrationWarning
+            >
               {place}
             </p>
             {/* Emplacement réservé — CTA GitHub hors aria-hidden */}
@@ -108,7 +111,7 @@ export function SplashHudChrome({
           </div>
 
           <div className="absolute top-6 right-6 flex flex-col items-end gap-1 sm:top-8 sm:right-8">
-            <p className="t-mono text-dial sm:text-sm">
+            <p className="t-mono text-dial uppercase sm:text-sm">
               {t("intro.mailTotal", { count: mailCount })}
             </p>
             {/* Emplacement réservé — CTA Terminal hors aria-hidden */}
@@ -143,7 +146,7 @@ export function SplashHudChrome({
         )}
       >
         <span
-          className="invisible t-mono text-dial sm:text-sm"
+          className="invisible t-mono text-dial uppercase sm:text-sm"
           aria-hidden
           suppressHydrationWarning
         >
@@ -170,7 +173,10 @@ export function SplashHudChrome({
         )}
       >
         {/* Spacer aligné sur le compteur mails (décor) */}
-        <span className="invisible t-mono text-dial sm:text-sm" aria-hidden>
+        <span
+          className="invisible t-mono text-dial uppercase sm:text-sm"
+          aria-hidden
+        >
           {t("intro.mailTotal", { count: mailCount })}
         </span>
         <Button

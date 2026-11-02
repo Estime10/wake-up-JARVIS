@@ -35,6 +35,10 @@ const eslintConfig = defineConfig([
     ],
     rules: { "no-restricted-imports": "off" },
   },
+  {
+    files: ["scripts/**"],
+    rules: { "no-console": "off" },
+  },
   eslintConfigPrettier,
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);

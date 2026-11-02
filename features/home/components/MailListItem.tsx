@@ -1,3 +1,4 @@
+import { resolveMailLabelColor } from "@/features/mail/model/mailLabelColors";
 import { cn } from "@/lib/cn";
 import type { MailSummary } from "@/lib/schemas";
 
@@ -7,6 +8,11 @@ type MailListItemProps = {
 
 /** Ligne mail — texte uniquement (jamais de HTML mail). */
 export function MailListItem({ mail }: MailListItemProps) {
+  const labelText = mail.category?.trim() || mail.flagReason?.trim() || null;
+  const labelColor = resolveMailLabelColor(
+    mail.category ?? mail.flagReason ?? undefined,
+  );
+
   return (
     <article
       className={cn(
@@ -35,6 +41,20 @@ export function MailListItem({ mail }: MailListItemProps) {
       >
         {mail.subject}
       </p>
+      {labelText ? (
+        <p
+          className={cn(
+            "t-mono mt-1 truncate text-sm uppercase",
+            !labelColor && "text-text-muted",
+          )}
+          style={labelColor ? { color: labelColor } : undefined}
+        >
+          {labelText}
+          {mail.flagReason && mail.category && mail.flagReason !== mail.category
+            ? ` · ${mail.flagReason}`
+            : null}
+        </p>
+      ) : null}
       <p className="t-mono mt-1 line-clamp-2 text-sm text-text-muted">
         {mail.excerpt}
       </p>

@@ -15,6 +15,7 @@ export const fr = {
   },
   intro: {
     /** Total mails reçus au moment de l'ouverture (snapshot). */
+    /** Affiché en uppercase CSS (HUD). */
     mailTotal: "{count} mails",
     /** Sigle : capitales dans la source (exception DA). */
     wordmark: "JARVIS",
@@ -156,13 +157,13 @@ export const fr = {
     repoPreviewEmptyContent: "// Fichier vide",
     sidePanelLabel: "Panneau latéral",
     sideTabsLabel: "Boîtes mail",
-    mailboxesTitle: "Boîtes",
-    mailAddMailbox: "+ Gmail",
+    mailboxesTitle: "boîtes",
+    mailAddMailbox: "+ gmail",
     mailNoMailbox: "Aucune boîte connectée.",
-    mailNeedsReauth: "À reconnecter",
-    mailStatusActive: "Active",
-    mailStatusDisabled: "Off",
-    mailDisconnect: "Retirer",
+    mailNeedsReauth: "à reconnecter",
+    mailStatusActive: "active",
+    mailStatusDisabled: "activer",
+    mailDisconnect: "retirer",
     mailOAuthOk: "Boîte Gmail connectée.",
     mailOAuthDenied: "Connexion Google annulée.",
     mailOAuthLimit: "Maximum 3 boîtes.",
@@ -175,13 +176,15 @@ export const fr = {
     mailOAuthScope:
       "Autorise bien Gmail (lecture seule) sur l’écran Google, puis réessaie.",
     mailOAuthConfig: "Config Google / Supabase manquante.",
-    /** Compteur sous les onglets boîte — mails de la boîte active. */
+    /** Compteur section liste — mails de la boîte active. */
     entriesCount: "{count} mails",
     mailboxTabA11y: "{label}, {count} mails",
     mailLoading: "Chargement des mails…",
     mailEmpty: "Aucun mail pour le moment.",
     mailError: "Impossible de charger les mails.",
     mailRetry: "Réessayer",
+    mailRefresh: "actualiser",
+    mailPolling: "relève…",
     mailConnectFirst: "Connecte une boîte Gmail pour commencer.",
     conversationLoading: "Chargement de la conversation…",
     conversationError: "Impossible de charger la mémoire.",

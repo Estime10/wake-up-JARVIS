@@ -9,6 +9,8 @@ import { ROUTES } from "@/lib/routes";
 type MailAccountsBarProps = {
   accounts: MailAccount[];
   canConnect: boolean;
+  polling?: boolean;
+  onRefresh?: () => void;
   onToggle: (accountId: string, enabled: boolean) => void;
   onDisconnect: (accountId: string) => void;
 };
@@ -17,23 +19,39 @@ type MailAccountsBarProps = {
 export function MailAccountsBar({
   accounts,
   canConnect,
+  polling = false,
+  onRefresh,
   onToggle,
   onDisconnect,
 }: MailAccountsBarProps) {
   return (
     <div className="flex shrink-0 flex-col gap-2 border-b border-line-subtle px-3 py-3 sm:px-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-text-muted">
+        <p className="text-sm font-medium tracking-wide text-text-muted uppercase">
           {t("home.mailboxesTitle")}
         </p>
-        {canConnect ? (
-          <a
-            href={ROUTES.googleOAuthConnect}
-            className="font-mono text-sm tracking-normal text-text-muted uppercase transition-colors hover:text-text"
-          >
-            {t("home.mailAddMailbox")}
-          </a>
-        ) : null}
+        <div className="flex items-center gap-3">
+          {onRefresh && accounts.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="bare"
+              disabled={polling}
+              onClick={onRefresh}
+              className="font-mono text-sm tracking-wide text-text-muted uppercase hover:text-text"
+            >
+              {polling ? t("home.mailPolling") : t("home.mailRefresh")}
+            </Button>
+          ) : null}
+          {canConnect ? (
+            <a
+              href={ROUTES.googleOAuthConnect}
+              className="font-mono text-sm tracking-wide text-text-muted uppercase transition-colors hover:text-text"
+            >
+              {t("home.mailAddMailbox")}
+            </a>
+          ) : null}
+        </div>
       </div>
 
       {accounts.length === 0 ? (
@@ -51,9 +69,11 @@ export function MailAccountsBar({
                 className="flex items-center justify-between gap-2"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm text-text">{account.label}</p>
+                  <p className="truncate text-sm tracking-wide text-text uppercase">
+                    {account.label}
+                  </p>
                   {needsReauth ? (
-                    <p className="text-sm text-attention">
+                    <p className="text-sm tracking-wide text-attention uppercase">
                       {t("home.mailNeedsReauth")}
                     </p>
                   ) : null}
@@ -64,7 +84,7 @@ export function MailAccountsBar({
                     variant="ghost"
                     size="bare"
                     className={cn(
-                      "text-sm normal-case tracking-normal",
+                      "text-sm tracking-wide uppercase",
                       enabled ? "text-success" : "text-text-muted",
                     )}
                     disabled={needsReauth}
@@ -78,7 +98,7 @@ export function MailAccountsBar({
                     type="button"
                     variant="ghost"
                     size="bare"
-                    className="text-sm text-danger normal-case tracking-normal"
+                    className="text-sm tracking-wide text-danger uppercase"
                     onClick={() => onDisconnect(account.id)}
                   >
                     {t("home.mailDisconnect")}

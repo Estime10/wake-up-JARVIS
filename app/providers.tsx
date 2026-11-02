@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { createAppPorts } from "@/adapters/createAppPorts";
 import { PortsProvider } from "@/app/ports-context";
 import { AuthProvider } from "@/features/auth";
+import { MailFeedProvider } from "@/features/mail/MailFeedProvider";
 
 type ProvidersProps = {
   children: ReactNode;
@@ -12,14 +13,16 @@ type ProvidersProps = {
 
 /**
  * Seul endroit autorisé à importer `@/adapters/*`.
- * V0b : Memory + Profile Supabase si env ; Auth email via AuthProvider.
+ * V0b : Memory + Profile + Mail Supabase si env ; Auth email via AuthProvider.
  */
 export function Providers({ children }: ProvidersProps) {
   const [ports] = useState(() => createAppPorts());
 
   return (
     <PortsProvider value={ports}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <MailFeedProvider>{children}</MailFeedProvider>
+      </AuthProvider>
     </PortsProvider>
   );
 }

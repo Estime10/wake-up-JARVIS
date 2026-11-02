@@ -18,6 +18,7 @@ import { useRecentMails } from "@/features/home/hooks/useRecentMails";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { MailAccountsBar } from "@/features/mail/components/MailAccountsBar";
 import { useMailAccounts } from "@/features/mail/hooks/useMailAccounts";
+import { runMailPoll } from "@/features/mail/model/mailPollSchedule";
 import { MOCK_MAIL_ACCOUNTS } from "@/fixtures/mailAccounts";
 import { t } from "@/lib/i18n";
 import type { MailAccount } from "@/lib/schemas";
@@ -35,8 +36,9 @@ const OAUTH_FLASH = {
 } as const;
 
 /**
- * Panneau droit — boîtes Gmail (OAuth étape 1) + onglets libellés courts.
- * Contenu mails : mock tant que la relève (étape 2) n’existe pas.
+ * Panneau droit — boîtes Gmail + mails relevés (étape 2).
+ * Sans session Supabase : fixtures mock.
+ * Poll Gmail auto : MailFeedProvider (10 min). Actualiser : manuel ici.
  */
 export function HomeSidePanel() {
   const searchParams = useSearchParams();
@@ -52,6 +54,7 @@ export function HomeSidePanel() {
   const tabRefs = useRef<Partial<Record<string, HTMLButtonElement>>>({});
   const [accountId, setAccountId] = useState<string | null>(null);
   const oauthHandled = useRef<string | null>(null);
+  const [polling, setPolling] = useState(false);
 
   const useLiveAccounts =
     accountsStatus === "ready" || accountsStatus === "error";
@@ -88,27 +91,43 @@ export function HomeSidePanel() {
     for (const account of accounts) {
       counts.set(account.id, 0);
     }
-    if (useLiveAccounts || mailStatus !== "ready") {
+    if (mailStatus !== "ready") {
       return counts;
     }
     for (const mail of mails) {
       counts.set(mail.accountId, (counts.get(mail.accountId) ?? 0) + 1);
     }
     return counts;
-  }, [accounts, mailStatus, mails, useLiveAccounts]);
+  }, [accounts, mailStatus, mails]);
 
-  const activeMails = useMemo(() => {
-    if (useLiveAccounts) {
-      return [];
-    }
-    return mails.filter((mail) => mail.accountId === selectedAccountId);
-  }, [mails, selectedAccountId, useLiveAccounts]);
+  const activeMails = useMemo(
+    () => mails.filter((mail) => mail.accountId === selectedAccountId),
+    [mails, selectedAccountId],
+  );
 
-  const entryCount = countsByAccount.get(selectedAccountId) ?? 0;
   const tabId = (id: string) => `${idPrefix}-tab-${id}`;
   const panelId = `${idPrefix}-panel`;
   const canConnect =
     useLiveAccounts && linkedAccounts.length < 3 && accountsStatus === "ready";
+
+  const handleRefresh = () => {
+    if (!useLiveAccounts) {
+      retryMails();
+      return;
+    }
+    setPolling(true);
+    void runMailPoll()
+      .then((ok) => {
+        if (!ok) {
+          return;
+        }
+        refreshAccounts();
+        retryMails();
+      })
+      .finally(() => {
+        setPolling(false);
+      });
+  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const currentIndex = accounts.findIndex(
@@ -130,6 +149,8 @@ export function HomeSidePanel() {
         <MailAccountsBar
           accounts={linkedAccounts}
           canConnect={canConnect}
+          polling={polling}
+          onRefresh={handleRefresh}
           onToggle={(id, enabled) => {
             void setEnabled(id, enabled);
           }}
@@ -180,14 +201,14 @@ export function HomeSidePanel() {
                 })}
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setAccountId(account.id)}
-                className="min-w-0 flex-1 justify-center text-sm font-medium normal-case tracking-normal"
+                className="min-w-0 flex-1 justify-center text-sm font-medium tracking-wide uppercase"
               >
                 <span
                   className="inline-flex max-w-full items-baseline gap-1.5 text-sm"
                   aria-hidden
                 >
-                  <span className="truncate">{account.label}</span>
-                  <span className="shrink-0 font-mono text-sm font-normal tabular-nums text-text-muted">
+                  <span className="truncate uppercase">{account.label}</span>
+                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text-muted normal-case">
                     {count}
                   </span>
                 </span>
@@ -197,15 +218,9 @@ export function HomeSidePanel() {
         </div>
       ) : null}
 
-      <div className="flex shrink-0 items-center px-4 py-3">
-        <p className="flex min-h-touch items-center text-sm text-text-muted">
-          {t("home.entriesCount", { count: entryCount })}
-        </p>
-      </div>
-
       <div
         id={panelId}
-        className="min-h-0 flex-1 overflow-y-auto px-3 pb-4"
+        className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-4"
         role="tabpanel"
         aria-labelledby={
           selectedAccountId ? tabId(selectedAccountId) : undefined
@@ -214,16 +229,14 @@ export function HomeSidePanel() {
       >
         {useLiveAccounts && linkedAccounts.length === 0 ? (
           <SidePanelMessage text={t("home.mailConnectFirst")} />
-        ) : useLiveAccounts ? (
-          <SidePanelMessage text={t("home.mailEmpty")} />
-        ) : mailStatus === "loading" ? (
+        ) : mailStatus === "loading" || polling ? (
           <MailListSkeleton />
         ) : mailStatus === "error" ? (
           <SidePanelMessage
             text={t("home.mailError")}
             tone="danger"
             actionLabel={t("home.mailRetry")}
-            onAction={retryMails}
+            onAction={handleRefresh}
           />
         ) : activeMails.length === 0 ? (
           <SidePanelMessage text={t("home.mailEmpty")} />
