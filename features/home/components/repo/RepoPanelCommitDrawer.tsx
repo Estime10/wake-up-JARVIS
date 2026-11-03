@@ -31,7 +31,6 @@ export function RepoPanelCommitDrawer({
         REPO_PREVIEW_INSET_CLASS,
         REPO_LAYER_CLASS.preview,
       )}
-      aria-hidden
     >
       <aside
         className={cn(

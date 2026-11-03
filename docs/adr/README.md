@@ -19,10 +19,11 @@ Statuts possibles : **Proposé** → **Accepté** (validé par DevinChat) → é
 | [0008](./0008-auth-email-memoire-supabase.md) | Auth e-mail + MemoryPort Supabase (V0b partiel) ; pages système ; pas d’offline navigateur                 | Proposé | 2026-11-02 |
 | [0010](./0010-tri-des-mails.md)               | Tri des mails : Gmail readonly, Vault, tri déterministe, résumé sur demande (étape 1 = connexion seule)    | Proposé | 2026-11-02 |
 | [0011](./0011-github-repos-lecture.md)        | GitHub : lecture repos (privés + publics), fine-grained PAT dans Vault (étape 1 = connexion seule)         | Proposé | 2026-11-02 |
+| [0012](./0012-voix-de-jarvis.md)              | Voix JARVIS : Piper siwis (FR local) + proxy Next + repli speechSynthesis                                  | Proposé | 2026-11-03 |
 
 Les ADR **0002, 0003 et 0004** ont été **révisés le 2026-11-01 après relecture PIXEL** (CSP et `connection()`, règle `style`, icônes PWA, `quickTo` et Flip). Leur statut reste « Proposé ».
 
-Qui relit : **DevinChat** valide (passe en « Accepté ») ; **THE JUDGE** relit tous les ADR ; **HACKER** relit obligatoirement 0006, 0007, 0008, **0010** et **0011** (niveau 3 jetons) ; **PIXEL** relit 0002 à 0004 et 0008 ; **SKETCH** relit 0004.
+Qui relit : **DevinChat** valide (passe en « Accepté ») ; **THE JUDGE** relit tous les ADR ; **HACKER** relit obligatoirement 0006, 0007, 0008, **0010**, **0011** et **0012** (niveau 3 jetons) ; **PIXEL** relit 0002 à 0004 et 0008 ; **SKETCH** relit 0004.
 
 ## Modèle (copier dans `00XX-titre-court.md`)
 

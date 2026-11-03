@@ -7,6 +7,7 @@ export const ROUTES = {
   googleOAuthConnect: "/api/google/oauth/connect",
   googleOAuthCallback: "/api/google/oauth/callback",
   assistantReply: "/api/assistant/reply",
+  voicePiper: "/api/voice/piper",
   githubConnect: "/api/github/connect",
   githubStatus: "/api/github/status",
   githubDisconnect: "/api/github/disconnect",
