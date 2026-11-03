@@ -1,6 +1,6 @@
 import { isElement } from "@/features/jarvis/model/markDom";
 import { Flip, type FlipState } from "@/lib/gsap/flip";
-import { resetHomeWelcomeSchedule } from "@/lib/voice/scheduleHomeWelcomeSpeak";
+import { resetWelcomeSpeakSession } from "@/lib/voice/welcomeSpeak";
 
 /** État Flip du splash (mark seul), rejoué par `Flip.from` sur /home. */
 export type SplashEnterSnapshot = FlipState;
@@ -27,7 +27,7 @@ export type HomeEnterHandoff = {
 
 /**
  * `Flip.getState` du mark persistant seul (splash = mark + wake).
- * Wordmark / greeting ne font plus partie du Flip.
+ * Wordmark hors Flip — révélé en briefing home.
  */
 export function captureSplashSnapshot(
   mark: HTMLElement | null,
@@ -63,7 +63,7 @@ export function createHomeEnterHandoff(): HomeEnterHandoff {
     begin(snapshot) {
       pending = snapshot;
       enterSettled = false;
-      resetHomeWelcomeSchedule();
+      resetWelcomeSpeakSession();
     },
     hasPending() {
       return pending !== null;

@@ -48,7 +48,7 @@ export function SplashHudChrome({
 }: SplashHudChromeProps) {
   const clock = useIntroClock();
   const mailCount = useInboxMailCount();
-  const place = useDeviceLocation();
+  const { label: place } = useDeviceLocation();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
 
   if (wakeOnly) {

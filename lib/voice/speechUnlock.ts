@@ -1,7 +1,5 @@
 import { prefetchSpeechVoices } from "@/lib/voice/prefetchVoices";
 
-export { prefetchSpeechVoices } from "@/lib/voice/prefetchVoices";
-
 const UNLOCK_KEY = "jarvis.speechUnlocked";
 
 /** Ref forte anti-GC Chrome (utterance de déblocage). */
@@ -59,9 +57,4 @@ export function unlockSpeechFromUserGesture(): void {
   } catch {
     /* ignore */
   }
-}
-
-/** @deprecated — utiliser `unlockSpeechFromUserGesture`. */
-export function primeSpeechFromGesture(): void {
-  unlockSpeechFromUserGesture();
 }

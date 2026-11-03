@@ -7,6 +7,7 @@ import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useMailFeed } from "@/features/mail/MailFeedProvider";
 import { resolveDisplayName } from "@/features/profile/model/resolveDisplayName";
 import { spokenBriefing } from "@/lib/greeting";
+import { useDeviceLocation } from "@/lib/hooks/useDeviceLocation";
 import { t } from "@/lib/i18n";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
 import {
@@ -20,17 +21,20 @@ type UseHomeVoiceGreetingArgs = {
 };
 
 const MAIL_WAIT_MS = 2000;
+const GEO_WAIT_MS = 2500;
 /** Filet : ne jamais bloquer le settle si le TTS pend. */
-const BRIEFING_MAX_MS = 12_000;
+const BRIEFING_MAX_MS = 20_000;
 
 /**
- * Briefing vocal → toujours `beginSettle` ensuite (même si TTS échoue / timeoute).
+ * Briefing vocal (HUD) → toujours `beginSettle` ensuite.
+ * Contenu : salut, date/heure, géoloc, mails total + jour, système OK.
  */
 export function useHomeVoiceGreeting({
   speakWelcome,
 }: UseHomeVoiceGreetingArgs): void {
   const { profile } = usePorts();
   const { mails, status: mailStatus } = useMailFeed();
+  const { place, status: geoStatus } = useDeviceLocation();
   const { phase, briefingReady, beginSettle } = useHomeEnter();
   const ranRef = useRef(false);
 
@@ -40,7 +44,7 @@ export function useHomeVoiceGreeting({
     }
     ranRef.current = true;
 
-    const hour = new Date().getHours();
+    const now = new Date();
     let name = t("user.displayName");
     try {
       const row = await profile.getProfile();
@@ -51,8 +55,17 @@ export function useHomeVoiceGreeting({
       /* fallback */
     }
 
-    const todayCount = countMailsToday(mails);
-    const text = spokenBriefing(hour, name, todayCount);
+    const mailReady = mailStatus === "ready";
+    const mailTotal = mailReady ? mails.length : 0;
+    const mailToday = mailReady ? countMailsToday(mails) : 0;
+
+    const text = spokenBriefing({
+      name,
+      at: now,
+      place,
+      mailTotal,
+      mailToday,
+    });
     setWelcomeSpeakText(text);
 
     try {
@@ -75,23 +88,27 @@ export function useHomeVoiceGreeting({
   });
 
   useEffect(() => {
-    // Attendre mark + JARVIS visibles avant TTS.
     if (phase !== "briefing" || !briefingReady || ranRef.current) {
       return undefined;
     }
 
-    const timeoutId = window.setTimeout(() => {
-      void runBriefing();
-    }, MAIL_WAIT_MS);
-
-    if (mailStatus !== "loading") {
-      window.clearTimeout(timeoutId);
+    const mailReady = mailStatus !== "loading";
+    const geoReady = geoStatus !== "pending";
+    if (mailReady && geoReady) {
       void runBriefing();
       return undefined;
     }
 
+    const waitMs = Math.max(
+      mailReady ? 0 : MAIL_WAIT_MS,
+      geoReady ? 0 : GEO_WAIT_MS,
+    );
+    const timeoutId = window.setTimeout(() => {
+      void runBriefing();
+    }, waitMs);
+
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [phase, briefingReady, mailStatus, mails]);
+  }, [phase, briefingReady, mailStatus, mails, geoStatus, place]);
 }

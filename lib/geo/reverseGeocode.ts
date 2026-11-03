@@ -7,8 +7,6 @@
 type BigDataCloudResponse = {
   city?: string;
   locality?: string;
-  principalSubdivisionCode?: string;
-  countryCode?: string;
 };
 
 export async function reverseGeocodePlace(
@@ -32,12 +30,7 @@ export async function reverseGeocodePlace(
   }
 
   const data = (await response.json()) as BigDataCloudResponse;
+  // Ville / localité seule — pas de région ni pays (HUD + TTS).
   const place = data.city?.trim() || data.locality?.trim();
-  if (!place) {
-    return null;
-  }
-
-  const region =
-    data.principalSubdivisionCode?.trim() || data.countryCode?.trim();
-  return region ? `${place}, ${region}` : place;
+  return place || null;
 }

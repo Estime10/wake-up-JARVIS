@@ -8,66 +8,94 @@ type ReverseResponse = {
   place: string | null;
 };
 
-/**
- * Lieu appareil (Geolocation + reverse geocode via `/api/geo/reverse`).
- * Permission refusée / indispo → placeholder.
- */
-export function useDeviceLocation(): string {
-  const [place, setPlace] = useState(t("intro.locationPending"));
+export type DeviceLocationStatus = "pending" | "ready" | "unavailable";
 
-  useEffect(() => {
-    let cancelled = false;
+export type DeviceLocationState = {
+  /** Libellé HUD (`GEOLOC · …`). */
+  label: string;
+  /** Lieu seul pour TTS — null si pending / indispo. */
+  place: string | null;
+  status: DeviceLocationStatus;
+};
 
+const PENDING: DeviceLocationState = {
+  label: t("intro.locationPending"),
+  place: null,
+  status: "pending",
+};
+
+const UNAVAILABLE: DeviceLocationState = {
+  label: t("intro.locationUnavailable"),
+  place: null,
+  status: "unavailable",
+};
+
+/** Une seule résolution géoloc par session document (HUD + TTS). */
+let shared: DeviceLocationState = PENDING;
+let sharedPromise: Promise<DeviceLocationState> | null = null;
+const listeners = new Set<(state: DeviceLocationState) => void>();
+
+function publish(next: DeviceLocationState): DeviceLocationState {
+  shared = next;
+  for (const listener of listeners) {
+    listener(next);
+  }
+  return next;
+}
+
+function reversePlace(
+  latitude: number,
+  longitude: number,
+): Promise<string | null> {
+  const url = new URL("/api/geo/reverse", window.location.origin);
+  url.searchParams.set("latitude", String(latitude));
+  url.searchParams.set("longitude", String(longitude));
+
+  return fetch(url.toString())
+    .then(async (response) => {
+      if (!response.ok) {
+        return null;
+      }
+      const data = (await response.json()) as ReverseResponse;
+      return data.place;
+    })
+    .catch(() => null);
+}
+
+function resolveDeviceLocation(): Promise<DeviceLocationState> {
+  if (shared.status !== "pending") {
+    return Promise.resolve(shared);
+  }
+  if (sharedPromise) {
+    return sharedPromise;
+  }
+
+  sharedPromise = new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      const id = window.setTimeout(() => {
-        if (!cancelled) {
-          setPlace(t("intro.locationUnavailable"));
-        }
-      }, 0);
-      return () => {
-        cancelled = true;
-        window.clearTimeout(id);
-      };
+      resolve(publish(UNAVAILABLE));
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (cancelled) {
-          return;
-        }
         const { latitude, longitude } = position.coords;
-        const url = new URL("/api/geo/reverse", window.location.origin);
-        url.searchParams.set("latitude", String(latitude));
-        url.searchParams.set("longitude", String(longitude));
-
-        void fetch(url.toString())
-          .then(async (response) => {
-            if (!response.ok) {
-              return null;
-            }
-            const data = (await response.json()) as ReverseResponse;
-            return data.place;
-          })
-          .then((resolved) => {
-            if (cancelled) {
-              return;
-            }
-            setPlace(
-              resolved
-                ? t("intro.location", { place: resolved })
-                : t("intro.locationUnavailable"),
+        void reversePlace(latitude, longitude).then((resolved) => {
+          const place = resolved?.trim();
+          if (place) {
+            resolve(
+              publish({
+                label: t("intro.location", { place }),
+                place,
+                status: "ready",
+              }),
             );
-          })
-          .catch(() => {
-            if (!cancelled) {
-              setPlace(t("intro.locationUnavailable"));
-            }
-          });
+            return;
+          }
+          resolve(publish(UNAVAILABLE));
+        });
       },
       () => {
-        if (!cancelled) {
-          setPlace(t("intro.locationUnavailable"));
-        }
+        resolve(publish(UNAVAILABLE));
       },
       {
         enableHighAccuracy: false,
@@ -75,11 +103,26 @@ export function useDeviceLocation(): string {
         maximumAge: 5 * 60_000,
       },
     );
+  });
 
+  return sharedPromise;
+}
+
+/**
+ * Lieu appareil (Geolocation + reverse geocode via `/api/geo/reverse`).
+ * Partagé entre HUD et TTS — un seul `getCurrentPosition` / reverse.
+ * Permission refusée / indispo → placeholder.
+ */
+export function useDeviceLocation(): DeviceLocationState {
+  const [state, setState] = useState<DeviceLocationState>(shared);
+
+  useEffect(() => {
+    listeners.add(setState);
+    void resolveDeviceLocation().then(setState);
     return () => {
-      cancelled = true;
+      listeners.delete(setState);
     };
   }, []);
 
-  return place;
+  return state;
 }

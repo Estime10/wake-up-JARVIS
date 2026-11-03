@@ -15,13 +15,6 @@ let active = false;
 let playedOk = false;
 /** Ref forte anti-GC Chrome. */
 let currentUtterance: SpeechSynthesisUtterance | null = null;
-const listeners = new Set<() => void>();
-
-function notify(): void {
-  for (const listener of listeners) {
-    listener();
-  }
-}
 
 function pickThomasFr(
   voices: SpeechSynthesisVoice[],
@@ -127,14 +120,6 @@ export function resetWelcomeSpeakSession(): void {
   } catch {
     /* ignore */
   }
-  notify();
-}
-
-export function subscribeWelcomeSpeaking(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
 }
 
 type StartWelcomeSpeakOptions = {
@@ -192,7 +177,6 @@ export function startWelcomeSpeak(
     }
     active = false;
     currentUtterance = null;
-    notify();
   };
 
   const bind = (utterance: SpeechSynthesisUtterance) => {
@@ -209,7 +193,6 @@ export function startWelcomeSpeak(
   };
 
   active = true;
-  notify();
   bind(buildUtterance(trimmed));
 
   // Chrome : parfois pending=false speaking=false juste après speak — relance.

@@ -29,17 +29,26 @@ export const fr = {
     clockPlaceholder: "—:— · —.—.—",
     /** Après l’anim : geste requis pour débloquer le TTS (Chrome). */
     wakeContinue: "Appuie pour réveiller",
-    wakeContinueLabel: "Réveiller JARVIS et continuer",
   },
   greeting: {
-    morning: "Bonjour, {name}",
-    evening: "Bonsoir, {name}",
-    /** Phrase TTS au landing (Thomas fr-FR). */
+    /** Phrase TTS courte (prefetch splash / seed). */
     spokenMorning: "Bonjour, {name}. Tous les systèmes sont opérationnels.",
     spokenEvening: "Bonsoir, {name}. Tous les systèmes sont opérationnels.",
-    mailLineZero: "Aucun mail aujourd'hui.",
-    mailLineOne: "Tu as un mail aujourd'hui.",
-    mailLineMany: "Tu as {count} mails aujourd'hui.",
+    /** Briefing TTS home — miroir HUD (date, heure, géoloc, mails, sys). */
+    spokenHelloMorning: "Bonjour {name}.",
+    spokenHelloEvening: "Bonsoir {name}.",
+    spokenDateTime: "Nous sommes le {date}, il est {time}.",
+    spokenTimeHourOnly: "{hour} heures",
+    spokenTimeHourMinute: "{hour} heures {minute}",
+    spokenPlace: "Vous êtes à {place}.",
+    spokenPlaceUnknown: "Votre position n'est pas disponible.",
+    spokenMailsNone: "Vous n'avez aucun mail pour le moment.",
+    spokenMailTotalOne: "Vous avez un total d'un mail,",
+    spokenMailTotalMany: "Vous avez un total de {total} mails,",
+    spokenMailTodayZero: "donc aucun reçu aujourd'hui.",
+    spokenMailTodayOne: "donc un reçu aujourd'hui.",
+    spokenMailTodayMany: "donc {today} reçus aujourd'hui.",
+    spokenSystemsOk: "Votre système est opérationnel.",
   },
   system: {
     notFoundTitle: "Page introuvable",

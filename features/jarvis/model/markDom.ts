@@ -8,7 +8,6 @@ export type MarkSlotName = "home" | "splash" | "terminal";
  */
 export const MARK_DOM = {
   wordmark: '[data-intro="wordmark"]',
-  greeting: '[data-intro="greeting"]',
   composer: '[data-home="composer"]',
   chrome: '[data-home="chrome"]',
 } as const;
@@ -20,7 +19,6 @@ export const MARK_DOM = {
 export const FLIP_ID = {
   mark: "mark",
   wordmark: "wordmark",
-  greeting: "greeting",
 } as const;
 
 export function isElement(el: HTMLElement | null): el is HTMLElement {
@@ -36,10 +34,6 @@ export function queryMarkSlot(
 
 export function queryWordmark(root: ParentNode): HTMLElement | null {
   return root.querySelector<HTMLElement>(MARK_DOM.wordmark);
-}
-
-export function queryGreeting(root: ParentNode): HTMLElement | null {
-  return root.querySelector<HTMLElement>(MARK_DOM.greeting);
 }
 
 export function queryComposer(root: ParentNode): HTMLElement | null {

@@ -8,7 +8,7 @@ import {
   setSidePanelOffscreen,
   setSidePanelOpen,
 } from "@/features/home/model/sidePanelLayout";
-import { WORDMARK_REVEAL_SECONDS } from "@/features/intro/model/revealWordmark";
+import { WORDMARK_REVEAL_SECONDS } from "@/lib/intro/timings";
 import {
   queryChrome,
   queryComposer,

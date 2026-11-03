@@ -5,8 +5,11 @@ export const INTRO_DURATION_REDUCED_MS = 300;
 
 type IntroPhaseWindow = { start: number; end: number };
 
+/** Révélation wordmark JARVIS (briefing home) — secondes. */
+export const WORDMARK_REVEAL_SECONDS = 0.45;
+
 /**
- * Fenêtres splash « full » — wake + mark, puis wordmark (revealWordmark).
+ * Fenêtres splash « full » — wake + mark (wordmark révélé en home).
  */
 export const FULL_INTRO_PHASES = {
   wake: { start: 0, end: 0.9 },

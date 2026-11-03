@@ -6,25 +6,20 @@ function assertHour(hour: number): void {
   }
 }
 
+function assertNonNegInt(value: number, label: string): void {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new RangeError(
+      `${label} must be a non-negative integer, received ${value}`,
+    );
+  }
+}
+
 function isMorning(hour: number): boolean {
   return hour >= 5 && hour < 18;
 }
 
 /**
- * Salut UI selon l'heure locale (domaine pur, sans React).
- * 05:00–17:59 → Bonjour ; sinon → Bonsoir.
- */
-export function greeting(
-  hour: number,
-  name: string = t("user.displayName"),
-): string {
-  assertHour(hour);
-  const key = isMorning(hour) ? "greeting.morning" : "greeting.evening";
-  return t(key, { name });
-}
-
-/**
- * Salut TTS — Bonjour/Bonsoir + name, puis statut systèmes.
+ * Salut TTS court — Bonjour/Bonsoir + name + systèmes (prefetch splash).
  */
 export function spokenGreeting(
   hour: number,
@@ -37,30 +32,79 @@ export function spokenGreeting(
   return t(key, { name });
 }
 
-function mailLineForCount(count: number): string {
-  if (!Number.isInteger(count) || count < 0) {
-    throw new RangeError(
-      `count must be a non-negative integer, received ${count}`,
-    );
-  }
-  if (count === 0) {
-    return t("greeting.mailLineZero");
-  }
-  if (count === 1) {
-    return t("greeting.mailLineOne");
-  }
-  return t("greeting.mailLineMany", { count });
+function formatSpokenDate(at: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(at);
 }
 
+function formatSpokenTime(at: Date): string {
+  const hour = at.getHours();
+  const minute = at.getMinutes();
+  if (minute === 0) {
+    return t("greeting.spokenTimeHourOnly", { hour });
+  }
+  return t("greeting.spokenTimeHourMinute", { hour, minute });
+}
+
+function spokenMailBlock(mailTotal: number, mailToday: number): string {
+  assertNonNegInt(mailTotal, "mailTotal");
+  assertNonNegInt(mailToday, "mailToday");
+
+  if (mailTotal === 0 && mailToday === 0) {
+    return t("greeting.spokenMailsNone");
+  }
+
+  const totalPart =
+    mailTotal === 1
+      ? t("greeting.spokenMailTotalOne")
+      : t("greeting.spokenMailTotalMany", { total: mailTotal });
+
+  const todayPart =
+    mailToday === 0
+      ? t("greeting.spokenMailTodayZero")
+      : mailToday === 1
+        ? t("greeting.spokenMailTodayOne")
+        : t("greeting.spokenMailTodayMany", { today: mailToday });
+
+  return `${totalPart} ${todayPart}`;
+}
+
+export type SpokenBriefingInput = {
+  name: string;
+  at: Date;
+  /** Lieu nu (sans préfixe GEOLOC) — null si inconnu. */
+  place: string | null;
+  mailTotal: number;
+  mailToday: number;
+};
+
 /**
- * Salut TTS briefing home — systèmes + volume mails du jour.
+ * Briefing TTS home — aligné sur les 4 points HUD :
+ * salut + date/heure + géoloc + mails (total + jour) + système OK.
  */
-export function spokenBriefing(
-  hour: number,
-  name: string,
-  mailCountToday: number,
-): string {
+export function spokenBriefing(input: SpokenBriefingInput): string {
+  const { name, at, place, mailTotal, mailToday } = input;
+  const hour = at.getHours();
   assertHour(hour);
-  const base = spokenGreeting(hour, name);
-  return `${base} ${mailLineForCount(mailCountToday)}`;
+
+  const hello = isMorning(hour)
+    ? t("greeting.spokenHelloMorning", { name })
+    : t("greeting.spokenHelloEvening", { name });
+
+  const dateTime = t("greeting.spokenDateTime", {
+    date: formatSpokenDate(at),
+    time: formatSpokenTime(at),
+  });
+
+  const placePart = place
+    ? t("greeting.spokenPlace", { place })
+    : t("greeting.spokenPlaceUnknown");
+
+  const mails = spokenMailBlock(mailTotal, mailToday);
+  const systems = t("greeting.spokenSystemsOk");
+
+  return `${hello} ${dateTime} ${placePart} ${mails} ${systems}`;
 }
