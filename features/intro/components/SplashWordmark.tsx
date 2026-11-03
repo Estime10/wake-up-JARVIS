@@ -4,11 +4,17 @@ import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 type SplashWordmarkProps = {
+  /** Visible (sinon opacity-0 — GSAP révèle). */
   settled?: boolean;
+  /** Taille : display (briefing/splash) → home (slot réduit). */
+  size?: "display" | "home";
 };
 
-/** Wordmark — opacity/y via GSAP en intro ; visible si `settled`. */
-export function SplashWordmark({ settled = false }: SplashWordmarkProps) {
+/** Wordmark JARVIS — Flip splash→home via `data-flip-id`. */
+export function SplashWordmark({
+  settled = false,
+  size = "display",
+}: SplashWordmarkProps) {
   const label = t("intro.wordmark");
 
   return (
@@ -16,7 +22,8 @@ export function SplashWordmark({ settled = false }: SplashWordmarkProps) {
       data-intro="wordmark"
       data-flip-id={FLIP_ID.wordmark}
       className={cn(
-        "t-wordmark text-center text-wordmark-display text-text will-change-transform",
+        "t-wordmark text-center text-text will-change-transform",
+        size === "display" ? "text-wordmark-display" : "text-wordmark",
         settled ? "opacity-100" : "opacity-0",
       )}
     >

@@ -11,6 +11,7 @@ import { HomeTerminalPanel } from "@/features/home/components/HomeTerminalPanel"
 import { StatusAnnouncer } from "@/features/home/components/StatusAnnouncer";
 import { TerminalBackdrop } from "@/features/home/components/TerminalBackdrop";
 import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
+import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
@@ -19,21 +20,20 @@ import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
 import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
-import { SplashGreeting } from "@/features/intro/components/SplashGreeting";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
-import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
-import { useIntroGreeting } from "@/features/intro/hooks/useIntroGreeting";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 /**
- * Home — idle / écoute / réfléchit / parole + fil conversation.
- * Terminal / GitHub : même fade du contenu sous l’overlay (blur comparable).
+ * Home — un seul arbre DOM (composer toujours monté pour GSAP).
+ * Briefing centré → settle (mark+side, input) → bulles.
  */
 export function HomeScreen() {
-  const greetingText = useIntroGreeting();
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
+  const { phase } = useHomeEnter();
+  const briefing = phase === "briefing";
+  const settled = phase === "ready";
 
   const {
     open: terminalOpen,
@@ -63,8 +63,8 @@ export function HomeScreen() {
   const memoryBlocked = memoryStatus !== "ready";
   const showIdleBrand =
     memoryStatus === "ready" && state === "idle" && messages.length <= 1;
-  /** Contenu home masqué — sinon le blur GitHub paraît plus fort (fond net). */
   const homeContentHidden = terminalOpen || repoOpen;
+  const showThread = settled && !memoryBlocked && !showIdleBrand;
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -98,10 +98,22 @@ export function HomeScreen() {
         </h1>
         <HomeStatusHeader listening={listening} />
         <StatusAnnouncer state={state} />
-        <div className="flex min-h-0 flex-1 flex-col items-center px-6 pt-10 sm:pt-12">
-          <AssistantStage state={state} />
 
-          <div className="relative flex min-h-0 w-full flex-1 flex-col">
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col items-center px-6",
+            briefing ? "justify-center" : "pt-10 sm:pt-12",
+          )}
+        >
+          <AssistantStage />
+
+          <div
+            className={cn(
+              "relative flex min-h-0 w-full flex-1 flex-col",
+              briefing &&
+                "pointer-events-none max-h-0 overflow-hidden opacity-0",
+            )}
+          >
             <div
               className={cn(
                 "flex min-h-0 w-full flex-1 flex-col items-center",
@@ -110,46 +122,47 @@ export function HomeScreen() {
               )}
               aria-hidden={homeContentHidden || undefined}
             >
-              {/* Marque + salut toujours visibles — le fil reste ancré bas. */}
-              {memoryStatus === "ready" ? (
-                <div className="mt-6 flex min-h-16 shrink-0 flex-col items-center justify-center gap-2 sm:mt-8">
-                  <SplashWordmark settled />
-                  <SplashGreeting text={greetingText} settled />
-                </div>
-              ) : null}
-
-              {memoryBlocked ? (
+              {!settled ? (
+                <div className="min-h-0 flex-1" />
+              ) : memoryBlocked ? (
                 <ConversationLoadState
                   status={memoryStatus === "error" ? "error" : "loading"}
                   onRetry={retryMemory}
                 />
-              ) : !showIdleBrand ? (
+              ) : showThread ? (
                 <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-end pt-8 sm:pt-10">
                   <ConversationThread
                     messages={messages}
                     onConfirmAction={confirmAction}
                     onCancelAction={cancelAction}
                     scrollLock={homeContentHidden}
+                    animateEntrance
                   />
                 </div>
               ) : (
                 <div className="min-h-0 flex-1" />
               )}
-
-              <div
-                data-home="composer"
-                className="mb-5 flex w-full shrink-0 justify-center sm:mb-6"
-              >
-                <HomeComposer
-                  onSubmit={submit}
-                  listening={listening}
-                  onToggleListening={toggleListen}
-                  disabled={busy || memoryBlocked}
-                  ghost={state === "speaking"}
-                  listenSeed={listenSeed}
-                />
-              </div>
             </div>
+          </div>
+
+          {/* Toujours monté — hors flux au briefing pour garder mark centré ; GSAP settle cible ce nœud. */}
+          <div
+            data-home="composer"
+            className={cn(
+              "mb-5 flex w-full shrink-0 justify-center sm:mb-6",
+              briefing &&
+                "pointer-events-none absolute inset-x-0 bottom-5 opacity-0 sm:bottom-6",
+            )}
+            aria-hidden={briefing || undefined}
+          >
+            <HomeComposer
+              onSubmit={submit}
+              listening={listening}
+              onToggleListening={toggleListen}
+              disabled={busy || memoryBlocked || !settled}
+              ghost={state === "speaking"}
+              listenSeed={listenSeed}
+            />
           </div>
         </div>
       </div>

@@ -18,8 +18,7 @@ const MARK_FADE_SECONDS = 0.35;
 const ACCENT_STAGGER_SECONDS = 0.2;
 
 /**
- * Splash minimal : wake → mark (noyau, anneau, cadran, traîne, tête).
- * Wordmark / greeting / équerres : révélés sur /home après le Flip.
+ * Splash : wake → mark. Wordmark JARVIS : une seule fois sur /home avant TTS.
  */
 export function buildFullIntroTimeline(
   targets: IntroTimelineTargets,

@@ -92,6 +92,20 @@
     @apply flex min-h-full flex-col bg-bg font-sans text-base font-normal tracking-normal text-text normal-case;
   }
 
+  /* Scrollbars invisibles, scroll toujours actif (souris / trackpad / clavier). */
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* legacy Edge */
+  }
+
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none; /* Chrome / Safari */
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;
   }

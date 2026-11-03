@@ -2,47 +2,45 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useEffect, useRef, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 
-import { playHomeDirectEnter } from "@/features/home/model/playHomeDirectEnter";
-import { playHomeEnterTransition } from "@/features/home/model/playHomeEnterTransition";
-import {
-  HOME_CHROME_DURATION,
-  MARK_ENTER_DURATION,
-} from "@/features/home/model/homeEnterTweens";
+import { playHomeBriefingHold } from "@/features/home/model/playHomeBriefingHold";
+import { playHomeSettleTransition } from "@/features/home/model/playHomeSettleTransition";
+import type { HomeEnterPhase } from "@/features/home/model/homeEnterPhase";
 import { useJarvisShell } from "@/features/jarvis/context";
-import {
-  matchReducedMotion,
-  prefersReducedMotion,
-} from "@/lib/motion/reducedMotion";
-import {
-  resetHomeWelcomeSchedule,
-  scheduleHomeWelcomeSpeak,
-} from "@/lib/voice/scheduleHomeWelcomeSpeak";
-import { unlockSpeechFromUserGesture } from "@/lib/voice/speechUnlock";
-import { wasWelcomeSpeakPlayed } from "@/lib/voice/welcomeSpeak";
+import { queryWordmark } from "@/features/jarvis/model/markDom";
+import { Flip } from "@/lib/gsap/flip";
+import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
 
 type UseHomeEnterMotionResult = {
   shellRef: RefObject<HTMLDivElement | null>;
   sideRef: RefObject<HTMLElement | null>;
+  phase: HomeEnterPhase;
+  briefingReady: boolean;
+  beginSettle: () => void;
 };
 
-function finishHomeEnter(signalEnterComplete: () => void): void {
-  scheduleHomeWelcomeSpeak();
-  signalEnterComplete();
-}
-
 /**
- * Entrée home + salut TTS après anim.
- * Le splash a déjà débloqué speechSynthesis via le geste de réveil.
+ * Entrée home :
+ * 1) briefing — mark + révélation JARVIS → briefingReady (TTS)
+ * 2) settle — Flip mark+JARVIS vers home, puis input
  */
 export function useHomeEnterMotion(): UseHomeEnterMotionResult {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const sideRef = useRef<HTMLElement | null>(null);
   const { markRef, handoff } = useJarvisShell();
-  const didResetRef = useRef(false);
+  const [phase, setPhase] = useState<HomeEnterPhase>("briefing");
+  const [briefingReady, setBriefingReady] = useState(false);
+  const settleStartedRef = useRef(false);
+  const flipSnapshotRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
   useGSAP(
     (owner) => {
@@ -54,73 +52,107 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
 
       return matchReducedMotion(owner, (reducedMotion) => {
         const snapshot = handoff.peek();
-        if (snapshot) {
-          return playHomeEnterTransition({
-            root: shell,
-            mark: markRef.current,
-            aside,
-            snapshot,
-            reducedMotion,
-            onEnd: () =>
-              owner.ignore(() => finishHomeEnter(() => handoff.end())),
-          });
-        }
+        let cleanupHold: (() => void) | undefined;
+        let rafOuter = 0;
+        let rafInner = 0;
 
-        return playHomeDirectEnter({
-          root: shell,
-          mark: markRef.current,
-          aside,
-          reducedMotion,
-          onEnd: () =>
-            owner.ignore(() =>
-              finishHomeEnter(() => handoff.notifyEnterComplete()),
-            ),
+        rafOuter = window.requestAnimationFrame(() => {
+          rafInner = window.requestAnimationFrame(() => {
+            cleanupHold = playHomeBriefingHold({
+              root: shell,
+              mark: markRef.current,
+              aside,
+              reducedMotion,
+              fromSplash: snapshot !== null,
+              onReady: () => {
+                owner.ignore(() => {
+                  setBriefingReady(true);
+                  setPhase("briefing");
+                });
+              },
+            });
+          });
         });
+
+        return () => {
+          window.cancelAnimationFrame(rafOuter);
+          window.cancelAnimationFrame(rafInner);
+          cleanupHold?.();
+        };
       });
     },
     { scope: shellRef },
   );
 
-  useEffect(() => {
-    // Une seule reset par montage home (évite cancel Strict Mode en boucle).
-    if (!didResetRef.current) {
-      didResetRef.current = true;
-      // handoff.begin a déjà reset si splash→home ; sinon entrée directe.
-      if (!handoff.hasPending()) {
-        resetHomeWelcomeSchedule();
-      }
+  const runSettle = useCallback(() => {
+    const shell = shellRef.current;
+    const aside = sideRef.current;
+    if (!shell || !aside) {
+      setPhase("ready");
+      return;
     }
 
-    const baseMs = prefersReducedMotion()
-      ? 200
-      : Math.ceil((MARK_ENTER_DURATION + HOME_CHROME_DURATION + 0.35) * 1000);
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-    const timers = [0, 800, 2000].map((extra) =>
-      window.setTimeout(() => {
-        scheduleHomeWelcomeSpeak();
-        handoff.notifyEnterComplete();
-      }, baseMs + extra),
-    );
+    playHomeSettleTransition({
+      root: shell,
+      mark: markRef.current,
+      aside,
+      reducedMotion,
+      flipSnapshot: flipSnapshotRef.current,
+      onEnd: () => {
+        flipSnapshotRef.current = null;
+        if (handoff.hasPending()) {
+          handoff.end();
+        } else {
+          handoff.notifyEnterComplete();
+        }
+        setPhase("ready");
+      },
+    });
+  }, [handoff, markRef]);
 
-    // Filet ultime : premier geste sur home si Chrome a encore bloqué.
-    const onGesture = () => {
-      if (wasWelcomeSpeakPlayed()) {
-        return;
-      }
-      unlockSpeechFromUserGesture();
-      scheduleHomeWelcomeSpeak();
-    };
-    window.addEventListener("pointerdown", onGesture, { capture: true });
-    window.addEventListener("keydown", onGesture, { capture: true });
+  const beginSettle = useCallback(() => {
+    if (settleStartedRef.current) {
+      return;
+    }
+    settleStartedRef.current = true;
 
+    // Snapshot AVANT le re-layout settling (mark grand + JARVIS display).
+    const shell = shellRef.current;
+    const mark = markRef.current;
+    const wordmark = shell ? queryWordmark(shell) : null;
+    const flipTargets: HTMLElement[] = [];
+    if (mark) {
+      flipTargets.push(mark);
+    }
+    if (wordmark) {
+      flipTargets.push(wordmark);
+    }
+    flipSnapshotRef.current =
+      flipTargets.length > 0 ? Flip.getState(flipTargets) : null;
+
+    setPhase("settling");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        runSettle();
+      });
+    });
+  }, [markRef, runSettle]);
+
+  useEffect(() => {
+    if (phase !== "briefing") {
+      return undefined;
+    }
+    const id = window.setTimeout(() => {
+      beginSettle();
+    }, 14_000);
     return () => {
-      for (const id of timers) {
-        window.clearTimeout(id);
-      }
-      window.removeEventListener("pointerdown", onGesture, { capture: true });
-      window.removeEventListener("keydown", onGesture, { capture: true });
+      window.clearTimeout(id);
     };
-  }, [handoff]);
+  }, [phase, beginSettle]);
 
-  return { shellRef, sideRef };
+  return { shellRef, sideRef, phase, briefingReady, beginSettle };
 }

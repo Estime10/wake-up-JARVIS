@@ -1,50 +1,39 @@
-import type { AssistantState } from "@/features/home/model/assistantMachine";
+"use client";
+
+import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
 import { MARK_SLOT_SIZE } from "@/features/jarvis/model/markSlotSizes";
-import { t } from "@/lib/i18n";
-
-type AssistantStageProps = {
-  state: AssistantState;
-};
+import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
+import { cn } from "@/lib/cn";
 
 /**
- * Zone centrale — MarkSlot + libellés d’état.
- * L’anneau SVG animé vit dans PersistentMark (useVoiceRingMotion).
+ * Zone mark + JARVIS (toujours monté pour Flip settle).
+ * États vocaux = anneau uniquement.
  */
-export function AssistantStage({ state }: AssistantStageProps) {
-  const showListening = state === "listening";
-  const showSpeaking = state === "speaking";
-  const showThinking = state === "thinking";
+export function AssistantStage() {
+  const { phase, briefingReady } = useHomeEnter();
+  const briefing = phase === "briefing";
+  // Après révélation GSAP : settled pour ne pas retomber sur opacity-0 CSS.
+  const wordmarkVisible = briefingReady || !briefing;
 
   return (
-    <div className="flex w-full flex-col items-center">
-      <MarkSlot name="home" className={MARK_SLOT_SIZE.home} />
+    <div className="flex w-full max-w-full flex-col items-center">
+      <MarkSlot
+        name={briefing ? "splash" : "home"}
+        className={briefing ? MARK_SLOT_SIZE.splash : MARK_SLOT_SIZE.home}
+      />
 
-      {showListening ? (
-        <div
-          className="mt-5 flex flex-col items-center gap-1"
-          aria-hidden="true"
-        >
-          <p className="t-mono text-sm text-text">{t("home.stateListening")}</p>
-          <p className="t-mono text-sm text-text-muted">
-            {t("home.listeningHint")}
-          </p>
-        </div>
-      ) : null}
-
-      {showThinking ? (
-        <div className="mt-5 flex flex-col items-center" aria-hidden="true">
-          <p className="t-mono text-sm text-text-muted">
-            {t("home.stateThinking")}
-          </p>
-        </div>
-      ) : null}
-
-      {showSpeaking ? (
-        <div className="mt-5 flex flex-col items-center" aria-hidden="true">
-          <p className="t-mono text-sm text-text">{t("home.stateSpeaking")}</p>
-        </div>
-      ) : null}
+      <div
+        className={cn(
+          "flex justify-center",
+          briefing ? "mt-6 sm:mt-8" : "mt-3 sm:mt-4",
+        )}
+      >
+        <SplashWordmark
+          settled={wordmarkVisible}
+          size={briefing ? "display" : "home"}
+        />
+      </div>
     </div>
   );
 }

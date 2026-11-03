@@ -35,6 +35,7 @@ function mapRow(row: MailItemRow): MailSummary {
     subject: row.subject,
     excerpt: row.summary?.trim() || row.snippet,
     time: formatTime(row.received_at),
+    receivedAt: new Date(row.received_at).toISOString(),
     unread: row.flagged,
     category: row.category,
     flagged: row.flagged,

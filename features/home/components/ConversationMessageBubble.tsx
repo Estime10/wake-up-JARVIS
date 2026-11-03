@@ -19,7 +19,11 @@ export function ConversationMessageBubble({
 
   if (message.action) {
     return (
-      <div className="flex w-full flex-col items-start gap-1">
+      <div
+        data-conversation-bubble
+        data-entrance-side="left"
+        className="flex w-full flex-col items-start gap-1"
+      >
         <header className="t-mono flex items-baseline gap-2 text-sm text-text-muted">
           <span>{t("app.name")}</span>
           <time>{message.time}</time>
@@ -43,6 +47,8 @@ export function ConversationMessageBubble({
 
   return (
     <article
+      data-conversation-bubble
+      data-entrance-side={isUser ? "right" : "left"}
       aria-hidden={message.streaming || undefined}
       className={cn(
         "flex w-full flex-col gap-1",

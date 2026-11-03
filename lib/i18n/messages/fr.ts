@@ -37,6 +37,9 @@ export const fr = {
     /** Phrase TTS au landing (Thomas fr-FR). */
     spokenMorning: "Bonjour, {name}. Tous les systèmes sont opérationnels.",
     spokenEvening: "Bonsoir, {name}. Tous les systèmes sont opérationnels.",
+    mailLineZero: "Aucun mail aujourd'hui.",
+    mailLineOne: "Tu as un mail aujourd'hui.",
+    mailLineMany: "Tu as {count} mails aujourd'hui.",
   },
   system: {
     notFoundTitle: "Page introuvable",

@@ -38,6 +38,8 @@ export const mailSummarySchema = z.object({
   excerpt: z.string(),
   /** Affichage HH:MM (mock / UI). */
   time: z.string().regex(/^\d{2}:\d{2}$/, "time must be HH:MM"),
+  /** Instant de réception (filtre « aujourd’hui », tris). */
+  receivedAt: z.iso.datetime({ offset: true }),
   unread: z.boolean(),
   category: z.string().optional(),
   flagged: z.boolean().optional(),

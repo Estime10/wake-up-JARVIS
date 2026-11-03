@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { prepareWakeTargets } from "@/features/intro/model/animateWakeSequence";
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 
-/** Cache mark + wake (splash minimal). */
+/** Cache mark + wake (splash). Wordmark n’est plus sur le splash. */
 export function prepareHiddenTargets(targets: IntroTimelineTargets): void {
   gsap.set(targets.mark, {
     scale: 1,

@@ -10,7 +10,7 @@ import { scheduleWakeBarsIdlePulse } from "@/features/intro/model/startWakeBarsI
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_SHORT_MS } from "@/lib/intro/timings";
 
-/** Version courte — wake + mark seulement. */
+/** Version courte — wake + mark (wordmark sur /home). */
 export function buildShortIntroTimeline(
   targets: IntroTimelineTargets,
   onComplete: () => void,

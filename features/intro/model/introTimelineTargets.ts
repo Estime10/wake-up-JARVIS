@@ -12,6 +12,8 @@ export type IntroTimelineTargets = {
   head: SVGGElement;
   /** Noyau central. */
   core: SVGGElement;
+  /** Réservé — wordmark révélé sur /home uniquement. */
+  wordmark: HTMLElement | null;
   /** Icône son (réveil). */
   wakeIcon: SVGSVGElement;
   /** Barres de l'icône son. */

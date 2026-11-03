@@ -1,10 +1,15 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { useEffect, useRef } from "react";
 
 import { ConversationMessageBubble } from "@/features/home/components/ConversationMessageBubble";
 import type { ConversationMessage } from "@/features/home/model/conversationMessage";
+import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 import { t } from "@/lib/i18n";
+
+gsap.registerPlugin(useGSAP);
 
 type ConversationThreadProps = {
   messages: ConversationMessage[];
@@ -12,21 +17,23 @@ type ConversationThreadProps = {
   onCancelAction?: ((messageId: string) => void) | undefined;
   /** Coupe le scroll auto (ex. terminal ouvert) — évite un slide vers le bas. */
   scrollLock?: boolean;
+  /** Entrée initiale : bulles une par une (user ← droite, assistant ← gauche). */
+  animateEntrance?: boolean;
 };
 
 /**
- * Fil de conversation — scroll bas auto (conteneur seul, jamais scrollIntoView).
- * `role="log"` n'annonce que des messages terminés : la bulle en streaming est
- * masquée aux lecteurs d'écran, puis remontée (clé changée) une fois finie.
+ * Fil de conversation — scroll bas auto + entrée staggered optionnelle.
  */
 export function ConversationThread({
   messages,
   onConfirmAction,
   onCancelAction,
   scrollLock = false,
+  animateEntrance = false,
 }: ConversationThreadProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const lastPinnedIdRef = useRef<string | null>(null);
+  const entranceDoneRef = useRef(false);
 
   const lastMessage = messages[messages.length - 1];
   const pinKey = lastMessage
@@ -45,10 +52,63 @@ export function ConversationThread({
     if (!list) {
       return;
     }
-    // Conteneur uniquement — `scrollIntoView` scrollait les ancêtres (home)
-    // et faisait « descendre » le fil à l’ouverture du terminal.
     list.scrollTop = list.scrollHeight;
   }, [pinKey, scrollLock]);
+
+  useGSAP(
+    (owner) => {
+      const list = listRef.current;
+      if (!list || !animateEntrance || entranceDoneRef.current) {
+        return undefined;
+      }
+
+      return matchReducedMotion(owner, (reducedMotion) => {
+        const bubbles = list.querySelectorAll<HTMLElement>(
+          "[data-conversation-bubble]",
+        );
+        if (bubbles.length === 0) {
+          entranceDoneRef.current = true;
+          return undefined;
+        }
+
+        if (reducedMotion) {
+          gsap.set(bubbles, { clearProps: "opacity,transform" });
+          entranceDoneRef.current = true;
+          return undefined;
+        }
+
+        gsap.set(bubbles, { opacity: 0 });
+        const tl = gsap.timeline({
+          onComplete: () => {
+            entranceDoneRef.current = true;
+          },
+        });
+
+        bubbles.forEach((bubble, index) => {
+          const fromRight = bubble.dataset.entranceSide === "right";
+          tl.fromTo(
+            bubble,
+            { opacity: 0, x: fromRight ? 56 : -56 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.42,
+              ease: "power2.out",
+            },
+            index * 0.14,
+          );
+        });
+
+        return () => {
+          tl.kill();
+        };
+      });
+    },
+    {
+      scope: listRef,
+      dependencies: [animateEntrance, messages.length],
+    },
+  );
 
   return (
     <div

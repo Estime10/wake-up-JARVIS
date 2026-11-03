@@ -3,12 +3,14 @@
 import type { ReactNode } from "react";
 
 import { HudAmbient } from "@/components/ui/HudAmbient";
+import { HomeEnterProvider } from "@/features/home/context/HomeEnterProvider";
 import { useHomeEnterMotion } from "@/features/home/hooks/useHomeEnterMotion";
 import { useMainFocusAfterIntro } from "@/features/home/hooks/useMainFocusAfterIntro";
 import {
   MAIN_LANDMARK_ID,
   MAIN_TITLE_ID,
 } from "@/features/home/model/landmarks";
+import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 type AppShellProps = {
@@ -18,44 +20,50 @@ type AppShellProps = {
 };
 
 /**
- * Coquille `(main)` — 75/25 dès le premier paint (slot mark stable).
- * `HudAmbient` au shell : calque visible sur toute la grille (y compris
- * la colonne side pendant le slide d’entrée, côté transparent).
- * Panneau REPO : overlay gauche au-dessus du centre (pas de push layout).
- *
- * `main` SANS z-index : sinon stacking context qui enferme backdrop/modale
- * terminal (z-55/65) sous le PersistentMark (z-60) — mask au-dessus du
- * terminal et fermeture mark hors logique. HudAmbient reste sous le contenu
- * via son propre `z-0`.
+ * Coquille `(main)` — briefing plein centre, puis grille 75/25 au settle.
  */
 export function AppShell({ children, side, repo }: AppShellProps) {
-  const { shellRef, sideRef } = useHomeEnterMotion();
+  const { shellRef, sideRef, phase, briefingReady, beginSettle } =
+    useHomeEnterMotion();
   const mainRef = useMainFocusAfterIntro();
+  const briefing = phase === "briefing";
 
   return (
-    <div
-      ref={shellRef}
-      className="relative grid h-dvh w-full overflow-hidden bg-bg text-text [grid-template-columns:minmax(0,75%)_minmax(0,25%)]"
+    <HomeEnterProvider
+      phase={phase}
+      briefingReady={briefingReady}
+      beginSettle={beginSettle}
     >
-      <HudAmbient />
-      {repo}
+      <div
+        ref={shellRef}
+        className={cn(
+          "relative grid h-dvh w-full overflow-hidden bg-bg text-text",
+          briefing
+            ? "[grid-template-columns:minmax(0,1fr)_0px]"
+            : "[grid-template-columns:minmax(0,75%)_minmax(0,25%)]",
+        )}
+      >
+        <HudAmbient />
+        {repo}
 
-      <main
-        ref={mainRef}
-        id={MAIN_LANDMARK_ID}
-        tabIndex={-1}
-        aria-labelledby={MAIN_TITLE_ID}
-        className="relative min-h-0 min-w-0 outline-none"
-      >
-        {children}
-      </main>
-      <aside
-        ref={sideRef}
-        className="relative z-10 flex min-h-0 min-w-0 flex-col will-change-transform"
-        aria-label={t("home.sidePanelLabel")}
-      >
-        {side}
-      </aside>
-    </div>
+        <main
+          ref={mainRef}
+          id={MAIN_LANDMARK_ID}
+          tabIndex={-1}
+          aria-labelledby={MAIN_TITLE_ID}
+          className="relative min-h-0 min-w-0 outline-none"
+        >
+          {children}
+        </main>
+        <aside
+          ref={sideRef}
+          className="relative z-10 flex min-h-0 min-w-0 flex-col overflow-hidden will-change-transform"
+          aria-label={t("home.sidePanelLabel")}
+          aria-hidden={briefing || undefined}
+        >
+          {side}
+        </aside>
+      </div>
+    </HomeEnterProvider>
   );
 }

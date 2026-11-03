@@ -4,7 +4,7 @@ import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineT
 import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import { INTRO_DURATION_REDUCED_MS } from "@/lib/intro/timings";
 
-/** Reduced motion : mark + wake en fondu, pas de tracé / typewriter / spin. */
+/** Reduced motion : mark + wake en fondu (wordmark sur /home). */
 export function buildReducedIntroTimeline(
   targets: IntroTimelineTargets,
   onComplete: () => void,

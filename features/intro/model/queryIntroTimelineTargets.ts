@@ -1,6 +1,6 @@
 import type { IntroTimelineTargets } from "@/features/intro/model/introTimelineTargets";
 
-/** Résout les cibles DOM splash — mark + wake uniquement. */
+/** Résout les cibles DOM splash — mark + wake. */
 export function queryIntroTimelineTargets(
   root: HTMLElement,
   /** Mark persistant (hors scope splash) — fourni par ref. */
@@ -47,6 +47,7 @@ export function queryIntroTimelineTargets(
     trail,
     head,
     core,
+    wordmark: null,
     wakeIcon,
     wakeBars,
     wakeChars,

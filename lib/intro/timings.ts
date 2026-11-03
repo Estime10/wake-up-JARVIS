@@ -6,8 +6,7 @@ export const INTRO_DURATION_REDUCED_MS = 300;
 type IntroPhaseWindow = { start: number; end: number };
 
 /**
- * Fenêtres splash « full » — wake + mark uniquement.
- * (Équerres / wordmark / greeting : révélés sur /home après le Flip.)
+ * Fenêtres splash « full » — wake + mark, puis wordmark (revealWordmark).
  */
 export const FULL_INTRO_PHASES = {
   wake: { start: 0, end: 0.9 },

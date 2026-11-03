@@ -36,3 +36,31 @@ export function spokenGreeting(
     : "greeting.spokenEvening";
   return t(key, { name });
 }
+
+function mailLineForCount(count: number): string {
+  if (!Number.isInteger(count) || count < 0) {
+    throw new RangeError(
+      `count must be a non-negative integer, received ${count}`,
+    );
+  }
+  if (count === 0) {
+    return t("greeting.mailLineZero");
+  }
+  if (count === 1) {
+    return t("greeting.mailLineOne");
+  }
+  return t("greeting.mailLineMany", { count });
+}
+
+/**
+ * Salut TTS briefing home — systèmes + volume mails du jour.
+ */
+export function spokenBriefing(
+  hour: number,
+  name: string,
+  mailCountToday: number,
+): string {
+  assertHour(hour);
+  const base = spokenGreeting(hour, name);
+  return `${base} ${mailLineForCount(mailCountToday)}`;
+}
