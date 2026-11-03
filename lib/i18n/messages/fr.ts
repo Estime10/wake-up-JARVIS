@@ -27,13 +27,16 @@ export const fr = {
     locationPending: "GEOLOC · …",
     locationUnavailable: "GEOLOC · —",
     clockPlaceholder: "—:— · —.—.—",
-    /** Bouton visible ; le nom accessible contient le texte visible (label-in-name). */
-    skip: "Passer",
-    skipLabel: "Passer l'intro",
+    /** Après l’anim : geste requis pour débloquer le TTS (Chrome). */
+    wakeContinue: "Appuie pour réveiller",
+    wakeContinueLabel: "Réveiller JARVIS et continuer",
   },
   greeting: {
     morning: "Bonjour, {name}",
     evening: "Bonsoir, {name}",
+    /** Phrase TTS au landing (Thomas fr-FR). */
+    spokenMorning: "Bonjour, {name}. Tous les systèmes sont opérationnels.",
+    spokenEvening: "Bonsoir, {name}. Tous les systèmes sont opérationnels.",
   },
   system: {
     notFoundTitle: "Page introuvable",

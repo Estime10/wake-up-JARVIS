@@ -12,7 +12,7 @@ import { t } from "@/lib/i18n";
 import { ROUTES } from "@/lib/routes";
 
 /**
- * Page gate — splash → ici si anonyme → home après session.
+ * Gate login — après succès → splash `/` (jamais home direct).
  */
 export function AuthScreen() {
   const router = useRouter();
@@ -20,12 +20,12 @@ export function AuthScreen() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace(ROUTES.home);
+      router.replace(ROUTES.splash);
     }
   }, [router, status]);
 
-  function goHome() {
-    router.replace(ROUTES.home);
+  function goSplash() {
+    router.replace(ROUTES.splash);
   }
 
   return (
@@ -38,7 +38,7 @@ export function AuthScreen() {
         {status === "loading" ? (
           <AuthSkeleton />
         ) : (
-          <AuthModal onSuccess={goHome} />
+          <AuthModal onSuccess={goSplash} />
         )}
       </div>
     </div>

@@ -53,7 +53,7 @@ export function ConversationThread({
   return (
     <div
       ref={listRef}
-      className="flex min-h-0 w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto px-6 py-4"
+      className="flex max-h-full w-full max-w-xl flex-col gap-4 overflow-y-auto px-6 py-4"
       role="log"
       aria-label={t("home.conversationLabel")}
       aria-live="polite"

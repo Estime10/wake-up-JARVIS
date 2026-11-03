@@ -7,7 +7,11 @@ export interface VoicePort {
 
   speak(
     text: string,
-    handlers: { onLevel: (level: number) => void },
+    handlers: {
+      onLevel: (level: number) => void;
+      /** Premier frame audio réel (anneau speaking). */
+      onStart?: () => void;
+    },
     signal: AbortSignal,
   ): Promise<void>;
 

@@ -43,9 +43,10 @@ export function createMockVoice(): VoicePort {
       };
     },
 
-    async speak(text, { onLevel }, signal) {
+    async speak(text, { onLevel, onStart }, signal) {
       const stopLevel = startLevelPump(onLevel);
       try {
+        onStart?.();
         // ~28 ms / caractère, borné pour les longs textes.
         const ms = Math.min(4000, Math.max(400, text.length * 28));
         await delay(ms, signal);

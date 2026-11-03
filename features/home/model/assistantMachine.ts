@@ -7,6 +7,7 @@ export type AssistantEvent =
   | { type: "SUBMIT" }
   | { type: "REPLY_START" }
   | { type: "REPLY_DONE" }
+  | { type: "SPEAK_START" }
   | { type: "SPEAK_END" }
   | { type: "INTERRUPT" }
   | { type: "FAIL" }
@@ -28,6 +29,9 @@ export function transition(
       }
       if (event.type === "SUBMIT") {
         return "thinking";
+      }
+      if (event.type === "SPEAK_START") {
+        return "speaking";
       }
       return state;
     case "listening":

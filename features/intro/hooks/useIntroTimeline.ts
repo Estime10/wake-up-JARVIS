@@ -2,17 +2,25 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useCallback, useRef, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  type RefObject,
+} from "react";
 
 import { useFinishOnce } from "@/features/intro/hooks/useFinishOnce";
-import { useSkipHotkeys } from "@/features/intro/hooks/useSkipHotkeys";
 import { createIntroTimeline } from "@/features/intro/model/createIntroTimeline";
 import { queryIntroTimelineTargets } from "@/features/intro/model/queryIntroTimelineTargets";
-import { skipIntroTimeline } from "@/features/intro/model/skipIntroTimeline";
 import { useJarvisShell } from "@/features/jarvis/context";
-import type { GsapTimeline } from "@/lib/gsap/timelineType";
 import type { IntroMode } from "@/lib/intro/modes";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
+import { prefetchSpeechVoices } from "@/lib/voice/prefetchVoices";
+import {
+  isSpeechUnlocked,
+  unlockSpeechFromUserGesture,
+} from "@/lib/voice/speechUnlock";
 
 gsap.registerPlugin(useGSAP);
 
@@ -23,21 +31,36 @@ type UseIntroTimelineArgs = {
 
 type UseIntroTimelineResult = {
   scopeRef: RefObject<HTMLDivElement | null>;
-  skip: () => void;
+  /** Anim terminée — en attente du geste de réveil (débloque le TTS). */
+  awaitingWake: boolean;
 };
 
 /**
- * Compose : finish-once + hotkeys + timeline GSAP.
- * Splash = mark + wake uniquement (pas d'attente greeting).
+ * Intro GSAP sans skip : l’anim va toujours jusqu’au bout.
+ * Ensuite seulement : geste de réveil → home (TTS Chrome).
  */
 export function useIntroTimeline({
   mode,
   onComplete,
 }: UseIntroTimelineArgs): UseIntroTimelineResult {
   const scopeRef = useRef<HTMLDivElement | null>(null);
-  const timelineRef = useRef<GsapTimeline | null>(null);
   const { finish, reset } = useFinishOnce(onComplete);
   const { markRef } = useJarvisShell();
+  const [awaitingWake, setAwaitingWake] = useState(false);
+
+  const confirmWake = useCallback(() => {
+    unlockSpeechFromUserGesture();
+    setAwaitingWake(false);
+    finish();
+  }, [finish]);
+
+  const onTimelineComplete = useCallback(() => {
+    if (isSpeechUnlocked()) {
+      finish();
+      return;
+    }
+    setAwaitingWake(true);
+  }, [finish]);
 
   useGSAP(
     (owner) => {
@@ -51,32 +74,45 @@ export function useIntroTimeline({
         return undefined;
       }
 
+      prefetchSpeechVoices();
+
       return matchReducedMotion(owner, (reducedMotion) => {
         reset();
-
-        timelineRef.current = createIntroTimeline(targets, {
-          mode,
-          reducedMotion,
-          onComplete: finish,
+        queueMicrotask(() => {
+          setAwaitingWake(false);
         });
 
-        return () => {
-          timelineRef.current = null;
-        };
+        createIntroTimeline(targets, {
+          mode,
+          reducedMotion,
+          onComplete: onTimelineComplete,
+        });
+
+        return undefined;
       });
     },
     {
       scope: scopeRef,
-      dependencies: [mode, finish, reset],
+      dependencies: [mode, onTimelineComplete, reset],
       revertOnUpdate: true,
     },
   );
 
-  const skip = useCallback(() => {
-    skipIntroTimeline(timelineRef.current, finish);
-  }, [finish]);
+  // Geste autorisé UNIQUEMENT après la fin de l’anim (pas de skip).
+  useEffect(() => {
+    if (!awaitingWake) {
+      return undefined;
+    }
+    const onGesture = () => {
+      confirmWake();
+    };
+    window.addEventListener("pointerdown", onGesture, { capture: true });
+    window.addEventListener("keydown", onGesture, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", onGesture, { capture: true });
+      window.removeEventListener("keydown", onGesture, { capture: true });
+    };
+  }, [awaitingWake, confirmWake]);
 
-  useSkipHotkeys(skip);
-
-  return { scopeRef, skip };
+  return { scopeRef, awaitingWake };
 }

@@ -11,6 +11,7 @@ import {
   authRegisterSchema,
   type AuthCredentials,
 } from "@/lib/schemas";
+import { unlockSpeechFromUserGesture } from "@/lib/voice/speechUnlock";
 
 export type AuthMode = "login" | "register";
 
@@ -39,6 +40,8 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // Sync dans le geste submit — débloque le TTS home (Chrome) pour la session.
+    unlockSpeechFromUserGesture();
     setFormError(null);
     setFieldErrors({});
 

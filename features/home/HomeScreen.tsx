@@ -12,6 +12,7 @@ import { StatusAnnouncer } from "@/features/home/components/StatusAnnouncer";
 import { TerminalBackdrop } from "@/features/home/components/TerminalBackdrop";
 import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
+import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
 import { useRepoPanel } from "@/features/home/context";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
@@ -49,11 +50,13 @@ export function HomeScreen() {
     listenSeed,
     toggleListen,
     submit,
+    speakWelcome,
     confirmAction,
     cancelAction,
   } = useAssistantSession();
 
   useVoiceRingMotion(state);
+  useHomeVoiceGreeting({ speakWelcome });
 
   const listening = state === "listening";
   const busy = state === "thinking" || state === "speaking";
@@ -107,8 +110,9 @@ export function HomeScreen() {
               )}
               aria-hidden={homeContentHidden || undefined}
             >
-              {showIdleBrand ? (
-                <div className="mt-5 flex min-h-16 flex-col items-center justify-center gap-2">
+              {/* Marque + salut toujours visibles — le fil reste ancré bas. */}
+              {memoryStatus === "ready" ? (
+                <div className="mt-6 flex min-h-16 shrink-0 flex-col items-center justify-center gap-2 sm:mt-8">
                   <SplashWordmark settled />
                   <SplashGreeting text={greetingText} settled />
                 </div>
@@ -120,19 +124,21 @@ export function HomeScreen() {
                   onRetry={retryMemory}
                 />
               ) : !showIdleBrand ? (
-                <ConversationThread
-                  messages={messages}
-                  onConfirmAction={confirmAction}
-                  onCancelAction={cancelAction}
-                  scrollLock={homeContentHidden}
-                />
+                <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-end pt-8 sm:pt-10">
+                  <ConversationThread
+                    messages={messages}
+                    onConfirmAction={confirmAction}
+                    onCancelAction={cancelAction}
+                    scrollLock={homeContentHidden}
+                  />
+                </div>
               ) : (
                 <div className="min-h-0 flex-1" />
               )}
 
               <div
                 data-home="composer"
-                className="mb-5 flex w-full justify-center sm:mb-6"
+                className="mb-5 flex w-full shrink-0 justify-center sm:mb-6"
               >
                 <HomeComposer
                   onSubmit={submit}

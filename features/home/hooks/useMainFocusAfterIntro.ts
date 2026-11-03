@@ -5,7 +5,7 @@ import { useEffect, useRef, type RefObject } from "react";
 import { useJarvisShell } from "@/features/jarvis/context";
 
 /**
- * Après l'intro (fin ou « Passer »), place le focus sur `<main>`
+ * Après l'intro, place le focus sur `<main>`
  * plutôt que de le laisser retomber sur `body`.
  */
 export function useMainFocusAfterIntro(): RefObject<HTMLElement | null> {

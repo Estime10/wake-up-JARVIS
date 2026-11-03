@@ -1,5 +1,6 @@
 import { isElement } from "@/features/jarvis/model/markDom";
 import { Flip, type FlipState } from "@/lib/gsap/flip";
+import { resetHomeWelcomeSchedule } from "@/lib/voice/scheduleHomeWelcomeSpeak";
 
 /** État Flip du splash (mark seul), rejoué par `Flip.from` sur /home. */
 export type SplashEnterSnapshot = FlipState;
@@ -11,10 +12,17 @@ export type HomeEnterHandoff = {
   hasPending: () => boolean;
   /** Lit le snapshot sans le consommer (replay possible si kill avant fin). */
   peek: () => SplashEnterSnapshot | null;
-  /** Fin réelle de la timeline — libère le pending et notifie. */
+  /** Fin réelle de la timeline Flip — libère le pending et notifie. */
   end: () => void;
-  /** Callback fin d’enter (immédiat s'il n'y a rien en attente). */
+  /** Callback fin d’enter Flip (immédiat s'il n'y a rien en attente). */
   onComplete: (fn: () => void) => () => void;
+  /**
+   * Fin de l’animation d’entrée home (Flip ou entrée directe).
+   * Immédiat si déjà terminée (subscribe tardif / Strict Mode).
+   */
+  onEnterComplete: (fn: () => void) => () => void;
+  /** Signale la fin d’entrée (idempotent). Appelé aussi par `end()`. */
+  notifyEnterComplete: () => void;
 };
 
 /**
@@ -36,10 +44,26 @@ export function captureSplashSnapshot(
 export function createHomeEnterHandoff(): HomeEnterHandoff {
   let pending: SplashEnterSnapshot | null = null;
   let listeners: Array<() => void> = [];
+  let enterSettled = false;
+  let enterListeners: Array<() => void> = [];
+
+  function notifyEnterComplete(): void {
+    if (enterSettled) {
+      return;
+    }
+    enterSettled = true;
+    const notify = enterListeners;
+    enterListeners = [];
+    for (const listener of notify) {
+      listener();
+    }
+  }
 
   return {
     begin(snapshot) {
       pending = snapshot;
+      enterSettled = false;
+      resetHomeWelcomeSchedule();
     },
     hasPending() {
       return pending !== null;
@@ -54,6 +78,7 @@ export function createHomeEnterHandoff(): HomeEnterHandoff {
       for (const listener of notify) {
         listener();
       }
+      notifyEnterComplete();
     },
     onComplete(fn) {
       if (!pending) {
@@ -65,5 +90,16 @@ export function createHomeEnterHandoff(): HomeEnterHandoff {
         listeners = listeners.filter((listener) => listener !== fn);
       };
     },
+    onEnterComplete(fn) {
+      if (enterSettled) {
+        fn();
+        return () => {};
+      }
+      enterListeners.push(fn);
+      return () => {
+        enterListeners = enterListeners.filter((listener) => listener !== fn);
+      };
+    },
+    notifyEnterComplete,
   };
 }

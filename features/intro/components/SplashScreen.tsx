@@ -2,10 +2,10 @@
 
 import { useEffect, useEffectEvent, useRef } from "react";
 
-import { SkipIntroButton } from "@/features/intro/components/SkipIntroButton";
 import { SplashBackdrop } from "@/features/intro/components/SplashBackdrop";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { SplashMarkStage } from "@/features/intro/components/SplashMarkStage";
+import { WakeContinueHint } from "@/features/intro/components/WakeContinueHint";
 import { useIntroTimeline } from "@/features/intro/hooks/useIntroTimeline";
 import { isPlayableIntroMode, type IntroModeState } from "@/lib/intro/modes";
 
@@ -22,22 +22,17 @@ function SplashScreenPlaying({
   mode: "full" | "short";
   onComplete: () => void;
 }) {
-  const { scopeRef, skip } = useIntroTimeline({
+  const { scopeRef, awaitingWake } = useIntroTimeline({
     mode,
     onComplete,
   });
 
   return (
-    <SplashBackdrop scopeRef={scopeRef} onSkip={skip}>
-      <SkipIntroButton onSkip={skip} />
+    <SplashBackdrop scopeRef={scopeRef}>
+      <WakeContinueHint visible={awaitingWake} />
       {/* Splash minimal : wake text only (pas d'équerres / méta HUD). */}
       <SplashHudChrome wakeOnly />
-      <div
-        className="relative z-10 flex flex-col items-center gap-8 px-6 sm:gap-10"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
+      <div className="relative z-10 flex flex-col items-center gap-8 px-6 sm:gap-10">
         <SplashMarkStage />
       </div>
     </SplashBackdrop>
@@ -63,7 +58,7 @@ function SplashScreenNone({ onComplete }: { onComplete: () => void }) {
 
 /**
  * Écran d'intro JARVIS — composition UI + hooks.
- * Animation = timeline GSAP (hooks + model), pas une suite d'états React.
+ * Pas de skip : la timeline va toujours jusqu’au bout.
  */
 export function SplashScreen({ mode, onComplete }: SplashScreenProps) {
   if (mode === null) {

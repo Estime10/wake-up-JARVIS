@@ -20,6 +20,10 @@ import { toConversationMessage } from "@/features/home/model/toConversationMessa
 import { useLatestRef } from "@/lib/hooks/useLatestRef";
 import { t } from "@/lib/i18n";
 import type { ActionProposal, Message } from "@/lib/schemas";
+import {
+  isWelcomeSpeaking,
+  wasWelcomeSpeakPlayed,
+} from "@/lib/voice/welcomeSpeak";
 
 function sessionReducer(
   state: AssistantState,
@@ -40,6 +44,8 @@ type UseAssistantSessionResult = {
   listenSeed: string | undefined;
   toggleListen: () => void;
   submit: (text: string) => void;
+  /** Salut vocal (landing) — idle → speaking → idle. `true` si audio joué. */
+  speakWelcome: (text: string) => Promise<boolean>;
   confirmAction: (messageId: string) => void;
   cancelAction: (messageId: string) => void;
 };
@@ -58,6 +64,8 @@ export function useAssistantSession(): UseAssistantSessionResult {
   const abortRef = useRef<AbortController | null>(null);
   const stopListenRef = useRef<(() => void) | null>(null);
   const speakIdRef = useRef<string | null>(null);
+  const welcomeSpokenRef = useRef(false);
+  const assistantRef = useLatestRef(assistant);
   const actionTimersRef = useRef<Map<string, number>>(new Map());
   const actionAbortRef = useRef<Map<string, AbortController>>(new Map());
 
@@ -82,11 +90,16 @@ export function useAssistantSession(): UseAssistantSessionResult {
     };
   }, [memory, memoryAttempt]);
 
+  const welcomeInFlightRef = useRef(false);
+
   useEffect(() => {
     const timers = actionTimersRef.current;
     const aborts = actionAbortRef.current;
     return () => {
-      abortRef.current?.abort();
+      // Ne pas abort le salut home : Strict Mode / remount couperait le TTS.
+      if (!welcomeInFlightRef.current) {
+        abortRef.current?.abort();
+      }
       stopListenRef.current?.();
       for (const id of timers.values()) {
         window.clearTimeout(id);
@@ -493,6 +506,66 @@ export function useAssistantSession(): UseAssistantSessionResult {
     void runReply(trimmed);
   }
 
+  async function speakWelcome(text: string): Promise<boolean> {
+    const trimmed = text.trim();
+    if (trimmed.length === 0 || welcomeSpokenRef.current) {
+      return false;
+    }
+    if (assistantRef.current === "speaking") {
+      return false;
+    }
+    if (assistantRef.current !== "idle") {
+      return false;
+    }
+
+    if (wasWelcomeSpeakPlayed() && !isWelcomeSpeaking()) {
+      welcomeSpokenRef.current = true;
+      return true;
+    }
+
+    stopVoiceListen();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    welcomeInFlightRef.current = true;
+
+    let ringStarted = false;
+
+    try {
+      await voice.speak(
+        trimmed,
+        {
+          onLevel: () => {},
+          // Anneau seulement si l’audio démarre vraiment (évite le flash muet).
+          onStart: () => {
+            if (ringStarted || ac.signal.aborted) {
+              return;
+            }
+            ringStarted = true;
+            dispatch({ type: "SPEAK_START" });
+          },
+        },
+        ac.signal,
+      );
+      if (ac.signal.aborted) {
+        return false;
+      }
+      // Ne marquer joué que si l’audio a vraiment démarré — sinon retry possible.
+      if (ringStarted || wasWelcomeSpeakPlayed()) {
+        welcomeSpokenRef.current = true;
+        return true;
+      }
+      return false;
+    } finally {
+      welcomeInFlightRef.current = false;
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
+      if (ringStarted) {
+        dispatch({ type: "SPEAK_END" });
+      }
+    }
+  }
+
   return {
     state: assistant,
     messages,
@@ -501,6 +574,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
     listenSeed,
     toggleListen,
     submit,
+    speakWelcome,
     confirmAction,
     cancelAction,
   };
