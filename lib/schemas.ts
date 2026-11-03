@@ -110,6 +110,8 @@ export const repoCommitSchema = z.object({
   message: z.string(),
   author: z.string().min(1),
   relativeTime: z.string().min(1),
+  /** ISO — date absolue pour le popover détail (optionnel = cache session ancien). */
+  committedAt: z.iso.datetime({ offset: true }).optional(),
 });
 
 export type RepoCommit = z.infer<typeof repoCommitSchema>;

@@ -3,6 +3,7 @@ export { RepoFileIcon } from "@/features/home/components/repo/icons/RepoFileIcon
 export { RepoLockIcon } from "@/features/home/components/repo/icons/RepoLockIcon";
 export { RepoBranchIcon } from "@/features/home/components/repo/icons/RepoBranchIcon";
 export { RepoCommitIcon } from "@/features/home/components/repo/icons/RepoCommitIcon";
+export { RepoCommitSelectIcon } from "@/features/home/components/repo/icons/RepoCommitSelectIcon";
 export { RepoPrIcon } from "@/features/home/components/repo/icons/RepoPrIcon";
 export { RepoCloseIcon } from "@/features/home/components/repo/icons/RepoCloseIcon";
 export { RepoExternalIcon } from "@/features/home/components/repo/icons/RepoExternalIcon";

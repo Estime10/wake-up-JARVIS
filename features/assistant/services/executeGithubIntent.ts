@@ -89,6 +89,10 @@ export async function executeGithubIntent(
     return formatGithubReposReply(listed.repos);
   }
 
+  if (!intent.repoQuery) {
+    return t("assistant.githubRepoRequired");
+  }
+
   const resolved = await resolveRepo(auth.token, intent.repoQuery);
   if (!resolved.ok) {
     return resolved.reply;

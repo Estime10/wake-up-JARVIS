@@ -1,3 +1,4 @@
+import { loadCustomPhraseRules } from "@/features/assistant/model/customPhraseRules";
 import { ROUTES } from "@/lib/routes";
 import type { LlmChunk, LlmPort } from "@/ports/llm-port";
 
@@ -29,7 +30,10 @@ export function createHttpLlm(): LlmPort {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input.text }),
+        body: JSON.stringify({
+          text: input.text,
+          customRules: loadCustomPhraseRules(),
+        }),
         signal,
       });
 

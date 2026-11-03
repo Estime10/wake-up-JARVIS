@@ -1,14 +1,13 @@
-import { decodeMailSnippet } from "@/features/assistant/model/decodeMailSnippet";
 import { mailSenderDisplayName } from "@/features/mail/model/mailSenderDisplayName";
 import { t } from "@/lib/i18n";
 
 export type MailLabelReplyItem = {
   from: string;
-  excerpt: string;
+  subject: string;
 };
 
 /**
- * Réponse agent — n. NOM (majuscules) + snippet en dessous.
+ * Réponse agent — n. NOM (majuscules) + sujet en dessous.
  */
 export function formatMailTitlesReply(
   label: string,
@@ -17,18 +16,16 @@ export function formatMailTitlesReply(
   const entries = items
     .map((item) => {
       const name = mailSenderDisplayName(item.from).trim();
-      const excerpt = decodeMailSnippet(item.excerpt)
-        .trim()
-        .replace(/\s+/g, " ");
+      const subject = item.subject.trim().replace(/\s+/g, " ");
       if (!name) {
         return null;
       }
       return {
         name: name.toLocaleUpperCase("fr-FR"),
-        excerpt,
+        subject,
       };
     })
-    .filter((entry): entry is { name: string; excerpt: string } =>
+    .filter((entry): entry is { name: string; subject: string } =>
       Boolean(entry),
     );
 
@@ -43,7 +40,7 @@ export function formatMailTitlesReply(
 
   const blocks = entries.map((entry, index) => {
     const head = `${index + 1}. ${entry.name}`;
-    return entry.excerpt.length > 0 ? `${head}\n${entry.excerpt}` : head;
+    return entry.subject.length > 0 ? `${head}\n${entry.subject}` : head;
   });
 
   return `${header}\n${blocks.join("\n\n")}`;

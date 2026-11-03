@@ -1,50 +1,62 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/cn";
+import { RepoCommitItem } from "@/features/home/components/repo/RepoCommitItem";
+import { RepoExternalIcon } from "@/features/home/components/repo/icons";
+import { t } from "@/lib/i18n";
 import type { RepoCommit } from "@/lib/schemas";
 
 type RepoCommitsListProps = {
   commits: RepoCommit[];
   selectedId: string | null;
+  branch: string;
+  githubCommitsUrl: string;
   onSelect: (id: string) => void;
 };
 
-/** Liste commits — sélection bordure (état 1). */
+/**
+ * Liste commits — timeline + lien GitHub (détail = 2ᵉ tiroir).
+ */
 export function RepoCommitsList({
   commits,
   selectedId,
+  branch,
+  githubCommitsUrl,
   onSelect,
 }: RepoCommitsListProps) {
   return (
-    <ul className="flex flex-col gap-2 px-1">
-      {commits.map((commit) => {
-        const selected = commit.id === selectedId;
-        return (
-          <li key={commit.id}>
-            <Button
-              variant="ghost"
-              size="bare"
-              aria-pressed={selected}
-              className={cn(
-                "flex w-full flex-col items-start gap-1 rounded-md border px-3 py-2.5 text-left font-normal tracking-normal normal-case",
-                selected
-                  ? "border-line bg-surface-2"
-                  : "border-transparent hover:border-line-subtle hover:bg-surface-2/50",
-              )}
-              onClick={() => onSelect(commit.id)}
-            >
-              <span className="t-mono text-dial text-text-muted sm:text-sm">
-                {commit.sha}
-              </span>
-              <span className="t-mono text-sm text-text">{commit.message}</span>
-              <span className="t-mono text-dial text-text-muted sm:text-sm">
-                {commit.author} · {commit.relativeTime}
-              </span>
-            </Button>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <p className="t-mono shrink-0 px-1 text-dial text-text-muted uppercase sm:text-sm">
+        {t("home.repoCommitsCount", { count: commits.length })}
+      </p>
+
+      <ul
+        data-scroll-lock-allow="true"
+        className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-y-contain px-1"
+      >
+        {commits.map((commit, index) => (
+          <RepoCommitItem
+            key={commit.id}
+            commit={commit}
+            branch={branch}
+            selected={commit.id === selectedId}
+            isLast={index === commits.length - 1}
+            onSelect={() => onSelect(commit.id)}
+          />
+        ))}
+      </ul>
+
+      <div className="shrink-0 border-t border-line-subtle px-1 pt-3">
+        <a
+          href={githubCommitsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t("home.repoCommitsOnGithubLabel")}
+          className="t-mono inline-flex items-center gap-2 text-sm tracking-wide text-text-muted uppercase outline-hidden transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid"
+        >
+          {t("home.repoCommitsOnGithub")}
+          <RepoExternalIcon className="size-3.5 shrink-0" />
+        </a>
+      </div>
+    </div>
   );
 }

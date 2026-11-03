@@ -18,4 +18,6 @@ export interface MailPort {
    * (« ce que j’ai répondu »), jamais le feed UI.
    */
   listSentByLabel(label: string, limit: number): Promise<MailSummary[]>;
+  /** Tous les envois récents (SENT) — agent only. */
+  listSent(limit: number): Promise<MailSummary[]>;
 }

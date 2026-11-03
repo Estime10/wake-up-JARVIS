@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useState, useRef } from "react";
 
+import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalogModal";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
@@ -43,6 +44,12 @@ export function HomeScreen() {
     close: closeTerminal,
   } = useTerminalSession();
   const { open: repoOpen, toggle: toggleRepo } = useRepoPanel();
+  const [phraseCatalogOpen, setPhraseCatalogOpen] = useState(false);
+  const [phraseCatalogSeed, setPhraseCatalogSeed] = useState("");
+  const openPhraseCatalog = useCallback((phrase: string) => {
+    setPhraseCatalogSeed(phrase);
+    setPhraseCatalogOpen(true);
+  }, []);
   const {
     state,
     messages,
@@ -55,7 +62,7 @@ export function HomeScreen() {
     speakAlert,
     confirmAction,
     cancelAction,
-  } = useAssistantSession();
+  } = useAssistantSession({ onUnrecognized: openPhraseCatalog });
 
   useVoiceRingMotion(state);
   useHomeVoiceGreeting({ speakWelcome });
@@ -98,6 +105,14 @@ export function HomeScreen() {
 
       <TerminalBackdrop open={terminalOpen} onClose={closeTerminal} />
       <HomeTerminalPanel open={terminalOpen} />
+      {phraseCatalogOpen ? (
+        <PhraseCatalogModal
+          key={phraseCatalogSeed || "catalog"}
+          open
+          seedPhrase={phraseCatalogSeed}
+          onClose={() => setPhraseCatalogOpen(false)}
+        />
+      ) : null}
 
       <div className="relative z-10 flex h-full flex-col">
         <h1 id={MAIN_TITLE_ID} className="sr-only">

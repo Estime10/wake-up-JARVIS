@@ -8,6 +8,8 @@ type ConversationMessageBubbleProps = {
   message: ConversationMessage;
   onConfirmAction?: ((messageId: string) => void) | undefined;
   onCancelAction?: ((messageId: string) => void) | undefined;
+  /** Index pour stagger CSS d’entrée (undefined = pas d’anim). */
+  entranceIndex?: number;
 };
 
 /** Bulle fil — assistant à gauche, utilisateur à droite (+ carte d'action). */
@@ -15,15 +17,23 @@ export function ConversationMessageBubble({
   message,
   onConfirmAction,
   onCancelAction,
+  entranceIndex,
 }: ConversationMessageBubbleProps) {
   const isUser = message.role === "user";
+  const entranceClass =
+    entranceIndex === undefined ? undefined : "conversation-bubble-enter";
+  const entranceStyle =
+    entranceIndex === undefined
+      ? undefined
+      : { animationDelay: `${entranceIndex * 140}ms` };
 
   if (message.action) {
     return (
       <div
         data-conversation-bubble
         data-entrance-side="left"
-        className="flex w-full flex-col items-start gap-1"
+        className={cn("flex w-full flex-col items-start gap-1", entranceClass)}
+        style={entranceStyle}
       >
         <header className="t-mono flex items-baseline gap-2 text-sm text-text-muted">
           <span>{t("app.name")}</span>
@@ -54,7 +64,9 @@ export function ConversationMessageBubble({
       className={cn(
         "flex w-full flex-col gap-1",
         isUser ? "items-end" : "items-start",
+        entranceClass,
       )}
+      style={entranceStyle}
     >
       <header className="t-mono flex items-baseline gap-2 text-sm text-text-muted">
         <span>{isUser ? t("home.you") : t("app.name")}</span>

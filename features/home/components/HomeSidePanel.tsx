@@ -214,6 +214,7 @@ export function HomeSidePanel() {
 
       <div
         id={panelId}
+        data-scroll-lock-target
         className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-4"
         role="tabpanel"
         aria-labelledby={

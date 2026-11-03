@@ -2,6 +2,7 @@ import { delay, isAbortError } from "@/adapters/mock/delay";
 import { createMockVoice } from "@/adapters/mock/createMockVoice";
 import { prefetchSpeechVoices } from "@/lib/voice/prefetchVoices";
 import {
+  cancelBrowserSpeech,
   startWelcomeSpeak,
   waitForSpeechVoices,
   waitWelcomeSpeakEnd,
@@ -54,15 +55,28 @@ export function createBrowserVoice(): VoicePort {
       }
 
       const stopLevel = startLevelPump(onLevel);
+      const onAbort = () => {
+        cancelBrowserSpeech();
+      };
+
       try {
+        if (signal.aborted) {
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+
         await waitForSpeechVoices();
         if (signal.aborted) {
           return;
         }
 
-        startWelcomeSpeak(text, onStart !== undefined ? { onStart } : {});
+        startWelcomeSpeak(text, {
+          recordWelcomePlayed: false,
+          ...(onStart !== undefined ? { onStart } : {}),
+        });
         await waitWelcomeSpeakEnd();
       } finally {
+        signal.removeEventListener("abort", onAbort);
         stopLevel();
         onLevel(0);
       }

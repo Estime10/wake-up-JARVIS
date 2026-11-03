@@ -129,5 +129,8 @@ export function createSupabaseMail(client: SupabaseClient): MailPort {
     async listSentByLabel(label, limit) {
       return listByLabelInMailbox(label, limit, "sent");
     },
+    async listSent(limit) {
+      return listInWindow(limit, { mailbox: "sent" });
+    },
   };
 }

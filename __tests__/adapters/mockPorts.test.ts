@@ -24,6 +24,7 @@ describe("createMockPorts", () => {
     expect(await mail.listFlagged(3)).toHaveLength(0);
     expect(await mail.listByLabel("DEV", 3)).toHaveLength(0);
     expect(await mail.listSentByLabel("DEV", 3)).toHaveLength(0);
+    expect(await mail.listSent(3)).toHaveLength(0);
   });
 
   it("LlmPort mail-aware répond pour un label (liste vide en mock)", async () => {

@@ -10,6 +10,8 @@ export type SelectOption = {
   label: string;
 };
 
+export type SelectPlacement = "up" | "down";
+
 export type SelectProps = {
   value: string;
   options: readonly SelectOption[];
@@ -17,6 +19,8 @@ export type SelectProps = {
   id?: string;
   "aria-label"?: string;
   className?: string;
+  /** Ouverture de la listbox : bas (défaut) ou haut. */
+  placement?: SelectPlacement;
 };
 
 /**
@@ -30,6 +34,7 @@ export function Select({
   id: idProp,
   "aria-label": ariaLabel,
   className,
+  placement = "down",
 }: SelectProps) {
   const reactId = useId();
   const listboxId = `${reactId}-listbox`;
@@ -152,7 +157,13 @@ export function Select({
           aria-labelledby={triggerId}
           tabIndex={-1}
           onKeyDown={onListKeyDown}
-          className="absolute top-[calc(100%+0.35rem)] right-0 left-0 z-40 max-h-60 overflow-y-auto rounded-md border border-line bg-surface shadow-glass outline-none"
+          data-scroll-lock-allow="true"
+          className={cn(
+            "absolute right-0 left-0 z-40 max-h-60 overflow-y-auto rounded-md border border-line bg-surface shadow-glass outline-none",
+            placement === "up"
+              ? "bottom-[calc(100%+0.35rem)]"
+              : "top-[calc(100%+0.35rem)]",
+          )}
         >
           {options.map((option) => {
             const isSelected = option.value === value;

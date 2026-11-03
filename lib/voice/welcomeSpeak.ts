@@ -109,6 +109,11 @@ export function wasWelcomeSpeakPlayed(): boolean {
   return playedOk;
 }
 
+/** Marque le salut landing comme joué (hors `recordWelcomePlayed` TTS). */
+export function markWelcomeSpeakPlayed(): void {
+  playedOk = true;
+}
+
 /** Nouvelle entrée home — autorise un nouveau salut à chaque lancement. */
 export function resetWelcomeSpeakSession(): void {
   playedOk = false;
@@ -124,10 +129,24 @@ export function resetWelcomeSpeakSession(): void {
 
 type StartWelcomeSpeakOptions = {
   onStart?: () => void;
+  /** `true` = salut landing (one-shot). `false` = conversation / alertes. */
+  recordWelcomePlayed?: boolean;
 };
 
+/** Stoppe l’utterance en cours sans reset du flag welcome. */
+export function cancelBrowserSpeech(): void {
+  generation += 1;
+  active = false;
+  currentUtterance = null;
+  try {
+    window.speechSynthesis?.cancel();
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
- * Démarre le salut (idempotent si déjà en cours).
+ * Démarre un TTS navigateur (remplace l’utterance précédente).
  * @returns true si `speak()` a été appelé.
  */
 export function startWelcomeSpeak(
@@ -144,11 +163,11 @@ export function startWelcomeSpeak(
   }
 
   const synth = window.speechSynthesis;
-  const { onStart } = options;
+  const { onStart, recordWelcomePlayed = true } = options;
 
-  if (active) {
-    onStart?.();
-    return true;
+  // Nouvelle phrase = annule la précédente (conversation / alertes).
+  if (active || synth.speaking || synth.pending) {
+    cancelBrowserSpeech();
   }
 
   const myGen = ++generation;
@@ -172,7 +191,7 @@ export function startWelcomeSpeak(
       return;
     }
     settled = true;
-    if (ok) {
+    if (ok && recordWelcomePlayed) {
       playedOk = true;
     }
     active = false;

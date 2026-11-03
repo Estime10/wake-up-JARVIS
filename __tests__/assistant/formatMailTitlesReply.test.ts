@@ -3,23 +3,22 @@ import { describe, expect, it } from "vitest";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
 
 describe("formatMailTitlesReply", () => {
-  it("affiche seulement nom uppercase + snippet", () => {
+  it("affiche nom uppercase + subject (pas le snippet)", () => {
     const text = formatMailTitlesReply("DEV", [
       {
         from: "Camille Royer <camille@example.com>",
-        excerpt: "Peux-tu checker la PR ?",
+        subject: "PR review",
       },
       {
         from: "ops@example.com",
-        excerpt: "Deploy terminé.",
+        subject: "Deploy terminé",
       },
     ]);
     expect(text).toContain("1. CAMILLE ROYER");
-    expect(text).toContain("Peux-tu checker la PR ?");
+    expect(text).toContain("PR review");
     expect(text).toContain("2. OPS@EXAMPLE.COM");
-    expect(text).toContain("Deploy terminé.");
-    expect(text).not.toContain("PR review");
-    expect(text).not.toContain("DEV/GitHub");
+    expect(text).toContain("Deploy terminé");
+    expect(text).not.toContain("Peux-tu checker");
   });
 
   it("signale l’absence de mails", () => {

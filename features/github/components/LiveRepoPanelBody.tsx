@@ -145,7 +145,8 @@ export function LiveRepoPanelBody({
   disconnecting,
 }: LiveRepoPanelBodyProps) {
   const { repo: repoPort } = usePorts();
-  const { setPreview, closePreview, registerRetry } = useLiveRepoPreview();
+  const { setPreview, setCommitPreview, closePreview, registerRetry } =
+    useLiveRepoPreview();
   const idPrefix = useId();
 
   const bootList = initialListState();
@@ -345,12 +346,37 @@ export function LiveRepoPanelBody({
     }
     event.preventDefault();
     setTab(nextTab);
+    if (nextTab === "files") {
+      setCommitPreview(null);
+    } else if (nextTab === "commits") {
+      setPreview(null);
+    } else {
+      closePreview();
+    }
   }
 
   function selectBranch(name: string): void {
     hydrateDetail(repoId, name);
     setBranch(name);
     setTab("files");
+    closePreview();
+  }
+
+  function openCommit(commitId: string): void {
+    if (!selected) {
+      return;
+    }
+    const commit = commits.find((item) => item.id === commitId);
+    if (!commit) {
+      return;
+    }
+    const ref = activeRef || selected.defaultBranch;
+    setSelectedCommitId(commitId);
+    setCommitPreview({
+      commit,
+      branch: ref,
+      githubUrl: `https://github.com/${encodeURIComponent(selected.owner)}/${encodeURIComponent(selected.name)}/commit/${encodeURIComponent(commit.id)}`,
+    });
   }
 
   async function openFile(path: string): Promise<void> {
@@ -497,7 +523,16 @@ export function LiveRepoPanelBody({
                 aria-selected={tab === value}
                 aria-controls={panelId}
                 tabIndex={tab === value ? 0 : -1}
-                onClick={() => setTab(value)}
+                onClick={() => {
+                  setTab(value);
+                  if (value === "files") {
+                    setCommitPreview(null);
+                  } else if (value === "commits") {
+                    setPreview(null);
+                  } else {
+                    closePreview();
+                  }
+                }}
               >
                 {t(REPO_TAB_LABEL_KEY[value])}
               </Button>
@@ -509,100 +544,108 @@ export function LiveRepoPanelBody({
             role="tabpanel"
             aria-labelledby={tabId(tab)}
             tabIndex={0}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-3"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-3"
           >
             {tab === "branches" ? (
-              branches.length === 0 ? (
-                <p className="t-mono px-1 text-sm text-text-muted">
-                  {t("home.repoBranchesEmpty")}
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-1 px-1">
-                  {branches.map((item) => {
-                    const selectedBranch = item.name === activeRef;
-                    return (
-                      <li key={item.name}>
-                        <Button
-                          variant="ghost"
-                          size="bare"
-                          aria-pressed={selectedBranch}
-                          className={cn(
-                            "t-mono flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-sm font-normal tracking-normal normal-case",
-                            selectedBranch
-                              ? "border-line bg-surface-2 text-accent"
-                              : "border-transparent text-text hover:border-line-subtle hover:bg-surface-2/50",
-                          )}
-                          onClick={() => selectBranch(item.name)}
-                        >
-                          <span className="min-w-0 truncate uppercase">
-                            {item.name}
-                          </span>
-                          <span className="shrink-0 text-dial text-text-muted sm:text-sm">
-                            {item.isDefault
-                              ? t("home.repoBranchDefault")
-                              : item.protected
-                                ? t("home.repoBranchProtected")
-                                : ""}
-                          </span>
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+                {branches.length === 0 ? (
+                  <p className="t-mono px-1 text-sm text-text-muted">
+                    {t("home.repoBranchesEmpty")}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-1 px-1">
+                    {branches.map((item) => {
+                      const selectedBranch = item.name === activeRef;
+                      return (
+                        <li key={item.name}>
+                          <Button
+                            variant="ghost"
+                            size="bare"
+                            aria-pressed={selectedBranch}
+                            className={cn(
+                              "t-mono flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-sm font-normal tracking-normal normal-case",
+                              selectedBranch
+                                ? "border-line bg-surface-2 text-accent"
+                                : "border-transparent text-text hover:border-line-subtle hover:bg-surface-2/50",
+                            )}
+                            onClick={() => selectBranch(item.name)}
+                          >
+                            <span className="min-w-0 truncate uppercase">
+                              {item.name}
+                            </span>
+                            <span className="shrink-0 text-dial text-text-muted sm:text-sm">
+                              {item.isDefault
+                                ? t("home.repoBranchDefault")
+                                : item.protected
+                                  ? t("home.repoBranchProtected")
+                                  : ""}
+                            </span>
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
             ) : null}
 
             {tab === "files" ? (
-              tree.length === 0 ? (
-                <p className="t-mono px-1 text-sm text-text-muted">
-                  {t("home.repoEmpty")}
-                </p>
-              ) : (
-                <RepoFileTree
-                  nodes={tree}
-                  selectedPath={selectedPath}
-                  onSelectFile={(path) => {
-                    void openFile(path);
-                  }}
-                />
-              )
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+                {tree.length === 0 ? (
+                  <p className="t-mono px-1 text-sm text-text-muted">
+                    {t("home.repoEmpty")}
+                  </p>
+                ) : (
+                  <RepoFileTree
+                    nodes={tree}
+                    selectedPath={selectedPath}
+                    onSelectFile={(path) => {
+                      void openFile(path);
+                    }}
+                  />
+                )}
+              </div>
             ) : null}
 
             {tab === "commits" ? (
               commits.length === 0 ? (
                 <RepoPanelEmptyCommits />
-              ) : (
+              ) : selected ? (
                 <RepoCommitsList
                   commits={commits}
                   selectedId={selectedCommitId}
-                  onSelect={setSelectedCommitId}
+                  branch={activeRef || selected.defaultBranch}
+                  githubCommitsUrl={`https://github.com/${encodeURIComponent(selected.owner)}/${encodeURIComponent(selected.name)}/commits/${encodeURIComponent(activeRef || selected.defaultBranch)}`}
+                  onSelect={openCommit}
                 />
-              )
+              ) : null
             ) : null}
 
             {tab === "pr" ? (
-              pulls.length === 0 ? (
-                <p className="t-mono px-1 text-sm text-text-muted">
-                  {t("home.repoPrEmpty")}
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-2 px-1">
-                  {pulls.map((pull) => (
-                    <li
-                      key={pull.id}
-                      className="rounded-md border border-line-subtle px-3 py-2.5"
-                    >
-                      <p className="t-mono text-dial text-text-muted sm:text-sm">
-                        #{pull.number}
-                      </p>
-                      <p className="t-mono text-sm text-text">{pull.title}</p>
-                      <p className="t-mono text-dial text-text-muted sm:text-sm">
-                        {pull.author} · {pull.relativeTime}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+                {pulls.length === 0 ? (
+                  <p className="t-mono px-1 text-sm text-text-muted">
+                    {t("home.repoPrEmpty")}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2 px-1">
+                    {pulls.map((pull) => (
+                      <li
+                        key={pull.id}
+                        className="rounded-md border border-line-subtle px-3 py-2.5"
+                      >
+                        <p className="t-mono text-dial text-text-muted sm:text-sm">
+                          #{pull.number}
+                        </p>
+                        <p className="t-mono text-sm text-text">{pull.title}</p>
+                        <p className="t-mono text-dial text-text-muted sm:text-sm">
+                          {pull.author} · {pull.relativeTime}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             ) : null}
           </div>
         </>

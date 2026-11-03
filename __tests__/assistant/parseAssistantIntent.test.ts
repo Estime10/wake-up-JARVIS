@@ -2,22 +2,125 @@ import { describe, expect, it } from "vitest";
 
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 
-describe("parseAssistantIntent", () => {
-  it("priorise help puis github puis mail", () => {
+describe("parseAssistantIntent — registre phrases", () => {
+  it("help / chat / refus", () => {
     expect(parseAssistantIntent("aide")).toEqual({ kind: "help" });
-    expect(parseAssistantIntent("liste mes repos")).toEqual({
-      kind: "github.list_repos",
+    expect(parseAssistantIntent("what can you do")).toEqual({ kind: "help" });
+    expect(parseAssistantIntent("bonjour jarvis")).toEqual({
+      kind: "chat.greeting",
     });
-    expect(parseAssistantIntent("mails label DEV")).toEqual({
-      kind: "mail.list_by_label",
-      label: "DEV",
+    expect(parseAssistantIntent("comment tu vas")).toEqual({
+      kind: "chat.how_are_you",
+    });
+    expect(parseAssistantIntent("ça va")).toEqual({
+      kind: "chat.how_are_you",
+    });
+    expect(parseAssistantIntent("how are you")).toEqual({
+      kind: "chat.how_are_you",
+    });
+    expect(parseAssistantIntent("merci beaucoup")).toEqual({
+      kind: "chat.thanks",
+    });
+    expect(parseAssistantIntent("supprime tous mes mails")).toEqual({
+      kind: "refuse.write",
+    });
+    expect(parseAssistantIntent("force push")).toEqual({
+      kind: "refuse.write",
     });
   });
 
-  it("ne confond pas liste PR et liste repos", () => {
-    expect(parseAssistantIntent("liste les PR sur foo")).toEqual({
+  it("mails", () => {
+    expect(parseAssistantIntent("mes derniers mails")).toEqual({
+      kind: "mail.list_recent",
+    });
+    expect(parseAssistantIntent("montre moi tout")).toEqual({
+      kind: "mail.overview",
+    });
+    expect(parseAssistantIntent("combien de mails")).toEqual({
+      kind: "mail.count",
+    });
+    expect(parseAssistantIntent("combien de mails dans DEV")).toEqual({
+      kind: "mail.count",
+      label: "dev",
+    });
+    expect(parseAssistantIntent("mails du label DEV")).toEqual({
+      kind: "mail.list_by_label",
+      label: "dev",
+    });
+    expect(parseAssistantIntent("donne moi les mails label DEV")).toEqual({
+      kind: "mail.list_by_label",
+      label: "dev",
+    });
+    expect(parseAssistantIntent("mes mails envoyés")).toEqual({
+      kind: "mail.list_sent",
+    });
+    expect(parseAssistantIntent("ce que j'ai répondu en DEV")).toEqual({
+      kind: "mail.list_sent_by_label",
+      label: "dev",
+    });
+    expect(parseAssistantIntent("mails importants")).toEqual({
+      kind: "mail.list_flagged",
+    });
+  });
+
+  it("github", () => {
+    expect(parseAssistantIntent("statut github")).toEqual({
+      kind: "github.status",
+    });
+    expect(parseAssistantIntent("liste mes repos")).toEqual({
+      kind: "github.list_repos",
+    });
+    expect(parseAssistantIntent("pr ouvertes sur wake-up-JARVIS")).toEqual({
       kind: "github.list_pulls",
-      repoQuery: "foo",
+      repoQuery: "wake-up-jarvis",
+    });
+    expect(parseAssistantIntent("commits sur foo/bar")).toEqual({
+      kind: "github.list_commits",
+      repoQuery: "foo/bar",
+    });
+    expect(parseAssistantIntent("branches de mon-repo")).toEqual({
+      kind: "github.list_branches",
+      repoQuery: "mon-repo",
+    });
+    expect(parseAssistantIntent("mes pr")).toEqual({
+      kind: "github.list_pulls",
+    });
+  });
+
+  it("terminal / fichiers lecture seule", () => {
+    expect(parseAssistantIntent("ouvre un terminal")).toEqual({
+      kind: "terminal.open",
+    });
+    expect(parseAssistantIntent("ouvre un terminal dans Desktop")).toEqual({
+      kind: "terminal.open",
+      folder: "desktop",
+    });
+    expect(parseAssistantIntent("va dans le dossier Documents")).toEqual({
+      kind: "files.goto",
+      folder: "documents",
+    });
+    expect(parseAssistantIntent("trouve le fichier notes.txt")).toEqual({
+      kind: "files.find",
+      query: "notes.txt",
+    });
+    expect(parseAssistantIntent("ouvre le fichier facture.pdf")).toEqual({
+      kind: "files.open",
+      query: "facture.pdf",
+    });
+    expect(
+      parseAssistantIntent("montre le fichier notes.pdf dans le finder"),
+    ).toEqual({
+      kind: "files.open",
+      query: "notes.pdf",
+      revealInFinder: true,
+    });
+    expect(parseAssistantIntent("ouvre le premier")).toEqual({
+      kind: "files.open",
+    });
+    // goto reste prioritaire sur « ouvre {file} »
+    expect(parseAssistantIntent("ouvre le dossier Documents")).toEqual({
+      kind: "files.goto",
+      folder: "documents",
     });
   });
 });

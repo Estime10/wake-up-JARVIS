@@ -1,16 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { parseHelpIntent } from "@/features/assistant/model/parseHelpIntent";
+import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 
-describe("parseHelpIntent", () => {
+describe("help phrases", () => {
   it("reconnaît l’aide", () => {
-    expect(parseHelpIntent("aide")).toEqual({ kind: "help" });
-    expect(parseHelpIntent("Que peux-tu faire ?")).toEqual({ kind: "help" });
-    expect(parseHelpIntent("what can you do")).toEqual({ kind: "help" });
-    expect(parseHelpIntent("menu")).toEqual({ kind: "help" });
+    expect(parseAssistantIntent("aide")).toEqual({ kind: "help" });
+    expect(parseAssistantIntent("Que peux-tu faire ?")).toEqual({
+      kind: "help",
+    });
+    expect(parseAssistantIntent("what can you do")).toEqual({ kind: "help" });
   });
 
   it("ignore le hors-sujet", () => {
-    expect(parseHelpIntent("mails label DEV")).toBeNull();
+    expect(parseAssistantIntent("mails label DEV")?.kind).toBe(
+      "mail.list_by_label",
+    );
   });
 });

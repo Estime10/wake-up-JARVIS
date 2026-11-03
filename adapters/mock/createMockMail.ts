@@ -18,5 +18,8 @@ export function createMockMail(): MailPort {
     async listSentByLabel() {
       return [];
     },
+    async listSent() {
+      return [];
+    },
   };
 }

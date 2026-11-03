@@ -2,19 +2,15 @@
 
 import { useState } from "react";
 
-import type { RepoFilePreviewModel } from "@/features/home/components/repo/RepoFilePreview";
-
 /**
  * Conserve le dernier aperçu pendant l’outro (DOM monté, preview null).
  * Sync d’état pendant le render — pas de ref lue au render.
  */
-export function usePreviewSnapshot(
-  preview: RepoFilePreviewModel | null,
+export function usePreviewSnapshot<T>(
+  preview: T | null,
   mounted: boolean,
-): RepoFilePreviewModel | null {
-  const [snapshot, setSnapshot] = useState<RepoFilePreviewModel | null>(
-    preview,
-  );
+): T | null {
+  const [snapshot, setSnapshot] = useState<T | null>(preview);
 
   if (preview !== null && preview !== snapshot) {
     setSnapshot(preview);

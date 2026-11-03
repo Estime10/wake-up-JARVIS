@@ -83,6 +83,7 @@ export async function listGithubCommits(
         message,
         author,
         relativeTime: formatRelativeTime(date),
+        committedAt: date,
       }),
     );
   }

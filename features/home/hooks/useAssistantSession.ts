@@ -20,8 +20,11 @@ import { toConversationMessage } from "@/features/home/model/toConversationMessa
 import { useLatestRef } from "@/lib/hooks/useLatestRef";
 import { t } from "@/lib/i18n";
 import type { ActionProposal, Message } from "@/lib/schemas";
+import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
+import { prepareConversationSpeakText } from "@/features/home/model/prepareConversationSpeakText";
 import {
   isWelcomeSpeaking,
+  markWelcomeSpeakPlayed,
   wasWelcomeSpeakPlayed,
 } from "@/lib/voice/welcomeSpeak";
 
@@ -52,10 +55,18 @@ type UseAssistantSessionResult = {
   cancelAction: (messageId: string) => void;
 };
 
+type UseAssistantSessionArgs = {
+  /** Phrase non reconnue → ouvrir le catalogue. */
+  onUnrecognized?: (phrase: string) => void;
+};
+
 /**
  * Session assistant home — machine + ports (LLM / mémoire / voix / actions).
  */
-export function useAssistantSession(): UseAssistantSessionResult {
+export function useAssistantSession(
+  args: UseAssistantSessionArgs = {},
+): UseAssistantSessionResult {
+  const { onUnrecognized } = args;
   const { llm, memory, voice, action } = usePorts();
   const [assistant, dispatch] = useReducer(sessionReducer, "idle");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -436,6 +447,21 @@ export function useAssistantSession(): UseAssistantSessionResult {
           text: fullText,
           createdAt: new Date().toISOString(),
         });
+
+        const toSpeak = prepareConversationSpeakText(fullText);
+        if (toSpeak.length > 0 && !ac.signal.aborted) {
+          try {
+            await voice.speak(
+              toSpeak,
+              {
+                onLevel: () => {},
+              },
+              ac.signal,
+            );
+          } catch {
+            /* TTS non bloquant */
+          }
+        }
       }
 
       if (proposal) {
@@ -460,7 +486,9 @@ export function useAssistantSession(): UseAssistantSessionResult {
       }
 
       speakIdRef.current = null;
-      dispatch({ type: "SPEAK_END" });
+      if (!ac.signal.aborted) {
+        dispatch({ type: "SPEAK_END" });
+      }
     } catch {
       if (ac.signal.aborted) {
         return;
@@ -484,6 +512,17 @@ export function useAssistantSession(): UseAssistantSessionResult {
     }
     stopVoiceListen();
     abortRef.current?.abort();
+    // Coupe stream/TTS en cours — sinon SPEAK_END manqué et SUBMIT ignoré en speaking.
+    if (
+      assistantRef.current === "speaking" ||
+      assistantRef.current === "thinking"
+    ) {
+      dispatch({ type: "INTERRUPT" });
+    }
+
+    if (!parseAssistantIntent(trimmed)) {
+      onUnrecognized?.(trimmed);
+    }
 
     const userMessage: Message = {
       id: createMessageId(),
@@ -551,6 +590,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
       if (ringStarted) {
         if (opts.markWelcomePlayed) {
           welcomeSpokenRef.current = true;
+          markWelcomeSpeakPlayed();
         }
         return true;
       }

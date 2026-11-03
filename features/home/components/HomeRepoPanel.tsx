@@ -4,6 +4,7 @@ import {
   LiveRepoPreviewProvider,
   useLiveRepoPreview,
 } from "@/features/github/context/liveRepoPreviewContext";
+import { RepoPanelCommitDrawer } from "@/features/home/components/repo/RepoPanelCommitDrawer";
 import { RepoPanelFilesDrawer } from "@/features/home/components/repo/RepoPanelFilesDrawer";
 import { RepoPanelHitLayer } from "@/features/home/components/repo/RepoPanelHitLayer";
 import { RepoPanelMask } from "@/features/home/components/repo/RepoPanelMask";
@@ -37,13 +38,20 @@ function HomeRepoPanelView({
   close: () => void;
 }) {
   const livePreview = useLiveRepoPreview();
-  const previewActive = Boolean(livePreview.preview);
+  const fileActive = Boolean(livePreview.preview);
+  const commitActive = Boolean(livePreview.commitPreview);
+  const previewActive = fileActive || commitActive;
 
   const panelMotion = usePresenceMotion(open, REPO_MOTION_MS);
-  const previewMotion = usePresenceMotion(previewActive, REPO_MOTION_MS);
-  const previewSnapshot = usePreviewSnapshot(
+  const fileMotion = usePresenceMotion(fileActive, REPO_MOTION_MS);
+  const commitMotion = usePresenceMotion(commitActive, REPO_MOTION_MS);
+  const fileSnapshot = usePreviewSnapshot(
     livePreview.preview,
-    previewMotion.mounted,
+    fileMotion.mounted,
+  );
+  const commitSnapshot = usePreviewSnapshot(
+    livePreview.commitPreview,
+    commitMotion.mounted,
   );
 
   function dismissPanel(): void {
@@ -73,12 +81,19 @@ function HomeRepoPanelView({
           onDismiss={dismissPanel}
         />
       ) : null}
-      {previewMotion.mounted && previewSnapshot ? (
+      {fileMotion.mounted && fileSnapshot ? (
         <RepoPanelPreviewDrawer
-          visible={previewMotion.visible}
-          model={previewSnapshot}
+          visible={fileMotion.visible}
+          model={fileSnapshot}
           onClose={livePreview.closePreview}
           onRetry={livePreview.retryPreview}
+        />
+      ) : null}
+      {commitMotion.mounted && commitSnapshot ? (
+        <RepoPanelCommitDrawer
+          visible={commitMotion.visible}
+          model={commitSnapshot}
+          onClose={livePreview.closePreview}
         />
       ) : null}
     </>
