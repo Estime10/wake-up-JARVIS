@@ -8,4 +8,14 @@ export interface MailPort {
    * Défaut mock : sous-ensemble de listRecent si pas d’adapter réel.
    */
   listFlagged(limit: number): Promise<MailSummary[]>;
+  /**
+   * Mails reçus dont la catégorie matche le label (égalité, préfixe, racine).
+   * Fenêtre = listRecent (J-2…). Hors SENT.
+   */
+  listByLabel(label: string, limit: number): Promise<MailSummary[]>;
+  /**
+   * Mails envoyés (SENT) dont la catégorie matche le label — pour l’agent
+   * (« ce que j’ai répondu »), jamais le feed UI.
+   */
+  listSentByLabel(label: string, limit: number): Promise<MailSummary[]>;
 }

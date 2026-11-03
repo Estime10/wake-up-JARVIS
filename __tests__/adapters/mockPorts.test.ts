@@ -13,17 +13,32 @@ describe("createMockPorts", () => {
     expect(ports.profile).toBeDefined();
   });
 
-  it("MemoryPort liste le seed greeting", async () => {
+  it("MemoryPort démarre sans seed mock", async () => {
     const { memory } = createMockPorts();
-    const messages = await memory.listMessages();
-    expect(messages).toHaveLength(1);
-    expect(messages[0]?.role).toBe("assistant");
+    expect(await memory.listMessages()).toHaveLength(0);
   });
 
   it("MailPort mock est vide (données = Gmail live)", async () => {
     const { mail } = createMockPorts();
     expect(await mail.listRecent(3)).toHaveLength(0);
     expect(await mail.listFlagged(3)).toHaveLength(0);
+    expect(await mail.listByLabel("DEV", 3)).toHaveLength(0);
+    expect(await mail.listSentByLabel("DEV", 3)).toHaveLength(0);
+  });
+
+  it("LlmPort mail-aware répond pour un label (liste vide en mock)", async () => {
+    const { llm } = createMockPorts();
+    const ac = new AbortController();
+    const chunks: string[] = [];
+    for await (const chunk of llm.reply(
+      { text: "donne-moi les mails label DEV" },
+      ac.signal,
+    )) {
+      if (chunk.type === "text") {
+        chunks.push(chunk.text);
+      }
+    }
+    expect(chunks.join("")).toMatch(/Aucun mail/i);
   });
 
   it("LlmPort streame une réponse texte puis done", async () => {

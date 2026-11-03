@@ -1,41 +1,90 @@
-type LogLevel = "info" | "warn" | "error";
+type LogLevel = "debug" | "info" | "warn" | "error";
 
-type LogFields = Record<string, string | number | boolean | null | undefined>;
+export type LogFields = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
-function formatLine(
+const isDev = process.env.NODE_ENV !== "production";
+
+function formatJson(
   level: LogLevel,
   scope: string,
   message: string,
   fields?: LogFields,
 ): string {
-  const payload = {
+  return JSON.stringify({
     ts: new Date().toISOString(),
     level,
     scope,
     message,
     ...(fields ? { fields } : {}),
-  };
-  return JSON.stringify(payload);
+  });
 }
 
-function write(level: LogLevel, line: string): void {
-  const stream = level === "error" ? process.stderr : process.stdout;
-  stream.write(`${line}\n`);
+function formatDev(
+  level: LogLevel,
+  scope: string,
+  message: string,
+  fields?: LogFields,
+): string {
+  const tag =
+    level === "error"
+      ? "ERR"
+      : level === "warn"
+        ? "WRN"
+        : level === "debug"
+          ? "DBG"
+          : "INF";
+  const extra =
+    fields && Object.keys(fields).length > 0
+      ? ` ${JSON.stringify(fields)}`
+      : "";
+  return `[${tag}] ${scope} — ${message}${extra}`;
+}
+
+function write(
+  level: LogLevel,
+  scope: string,
+  message: string,
+  fields?: LogFields,
+): void {
+  // Dev : ligne lisible. Prod : JSON structuré.
+  const line = isDev
+    ? formatDev(level, scope, message, fields)
+    : formatJson(level, scope, message, fields);
+
+  if (level === "error") {
+    console.error(line);
+    return;
+  }
+  if (level === "warn") {
+    console.warn(line);
+    return;
+  }
+  if (level === "debug" && !isDev) {
+    return;
+  }
+  console.log(line);
 }
 
 /**
- * Logger serveur structuré (stdout/stderr) — jamais de secrets / tokens / PII.
+ * Logger serveur — jamais de secrets / tokens / PII.
+ * En dev : format lisible console ; en prod : JSON.
  */
 export function createLogger(scope: string) {
   return {
+    debug(message: string, fields?: LogFields): void {
+      write("debug", scope, message, fields);
+    },
     info(message: string, fields?: LogFields): void {
-      write("info", formatLine("info", scope, message, fields));
+      write("info", scope, message, fields);
     },
     warn(message: string, fields?: LogFields): void {
-      write("warn", formatLine("warn", scope, message, fields));
+      write("warn", scope, message, fields);
     },
     error(message: string, fields?: LogFields): void {
-      write("error", formatLine("error", scope, message, fields));
+      write("error", scope, message, fields);
     },
   };
 }

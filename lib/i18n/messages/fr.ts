@@ -21,7 +21,12 @@ export const fr = {
     wordmark: "JARVIS",
     wakeDetected: "Réveil détecté : « {phrase} »",
     wakePhrase: "Wake up, JARVIS",
+    /** HUD SYS — états Compute Pressure (CPU système). */
     sysNominal: "sys nominal",
+    sysFair: "sys fair",
+    sysSerious: "sys serious",
+    sysCritical: "sys critical",
+    sysUnknown: "sys —",
     /** Lieu issu du reverse geocode (HUD). */
     location: "GEOLOC · {place}",
     locationPending: "GEOLOC · …",
@@ -49,6 +54,14 @@ export const fr = {
     spokenMailTodayOne: "donc un reçu aujourd'hui.",
     spokenMailTodayMany: "donc {today} reçus aujourd'hui.",
     spokenSystemsOk: "Votre système est opérationnel.",
+    /** Alertes proactives mask (sans clic). */
+    spokenMailNewOne: "Nouveau mail de {name}.",
+    spokenMailNewGeneric: "Nouveau mail reçu.",
+    spokenMailNewMany: "Vous avez {count} nouveaux mails.",
+    spokenSysNominal: "Charge processeur nominale.",
+    spokenSysFair: "Charge processeur modérée.",
+    spokenSysSerious: "Attention : charge processeur élevée.",
+    spokenSysCritical: "Alerte : charge processeur critique.",
   },
   system: {
     notFoundTitle: "Page introuvable",
@@ -86,6 +99,36 @@ export const fr = {
     errorMissingConfig:
       "La connexion n’est pas configurée sur cet environnement.",
     dialogLabel: "Connexion JARVIS",
+  },
+  assistant: {
+    help: "Commandes reconnues (rapide, sans IA) :\n• Mails : « mails label DEV », « montre mes mails FACTURES », « mails signalés », « derniers mails », « combien de mails », « ce que j'ai répondu en DEV »\n• GitHub : « liste mes repos », « statut github », « PRs sur mon-repo », « commits sur mon-repo », « branches de mon-repo »\n• « aide » pour ce menu.",
+    fallbackCapability:
+      "Je n'ai pas reconnu cette phrase. Dis « aide » pour la liste des commandes, ou essaie « mails label DEV » / « liste mes repos ».",
+    mailLabelEmpty: "Aucun mail avec le label {label} dans la fenêtre récente.",
+    mailLabelOne: "Voici le mail avec le label {label} :",
+    mailLabelMany: "Voici les {count} mails avec le label {label} :",
+    mailFlaggedLabel: "signalés",
+    mailRecentLabel: "récents",
+    mailCount: "Tu as {count} mails dans la fenêtre récente (reçus).",
+    githubNeedsLive:
+      "Les commandes GitHub passent par le serveur (session connectée). Réessaie depuis l'app home.",
+    githubNotConnected:
+      "GitHub n'est pas connecté. Ouvre le panneau GitHub pour coller un PAT.",
+    githubNeedsReauth:
+      "La connexion GitHub a expiré. Reconnecte ton PAT dans le panneau GitHub.",
+    githubUnavailable:
+      "Impossible d'interroger GitHub pour le moment. Réessaie plus tard.",
+    githubStatusOk: "GitHub connecté en tant que {login}.",
+    githubReposEmpty: "Aucun dépôt visible avec ton PAT.",
+    githubReposOne: "Voici ton dépôt :",
+    githubReposMany: "Voici tes {count} dépôts :",
+    githubRepoNotFound: "Je ne trouve pas le dépôt « {repo} » parmi tes repos.",
+    githubPullsEmpty: "Aucune PR ouverte sur {repo}.",
+    githubPullsMany: "Voici {count} PR ouvertes sur {repo} :",
+    githubCommitsEmpty: "Aucun commit récent sur {repo}.",
+    githubCommitsMany: "Voici {count} commits récents sur {repo} :",
+    githubBranchesEmpty: "Aucune branche sur {repo}.",
+    githubBranchesMany: "Voici {count} branches sur {repo} :",
   },
   home: {
     /** Titre de page sr-only (h1 unique) — nom accessible de `main`. */

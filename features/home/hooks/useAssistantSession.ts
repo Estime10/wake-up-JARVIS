@@ -46,6 +46,8 @@ type UseAssistantSessionResult = {
   submit: (text: string) => void;
   /** Salut vocal (landing) — idle → speaking → idle. `true` si audio joué. */
   speakWelcome: (text: string) => Promise<boolean>;
+  /** Alerte proactive (mails / CPU) — idle → speaking → idle, réutilisable. */
+  speakAlert: (text: string) => Promise<boolean>;
   confirmAction: (messageId: string) => void;
   cancelAction: (messageId: string) => void;
 };
@@ -506,21 +508,19 @@ export function useAssistantSession(): UseAssistantSessionResult {
     void runReply(trimmed);
   }
 
-  async function speakWelcome(text: string): Promise<boolean> {
+  async function speakRing(
+    text: string,
+    opts: { markWelcomePlayed: boolean },
+  ): Promise<boolean> {
     const trimmed = text.trim();
-    if (trimmed.length === 0 || welcomeSpokenRef.current) {
-      return false;
-    }
-    if (assistantRef.current === "speaking") {
+    if (trimmed.length === 0) {
       return false;
     }
     if (assistantRef.current !== "idle") {
       return false;
     }
-
-    if (wasWelcomeSpeakPlayed() && !isWelcomeSpeaking()) {
-      welcomeSpokenRef.current = true;
-      return true;
+    if (welcomeInFlightRef.current) {
+      return false;
     }
 
     stopVoiceListen();
@@ -535,7 +535,6 @@ export function useAssistantSession(): UseAssistantSessionResult {
         trimmed,
         {
           onLevel: () => {},
-          // Anneau seulement si l’audio démarre vraiment (évite le flash muet).
           onStart: () => {
             if (ringStarted || ac.signal.aborted) {
               return;
@@ -549,9 +548,10 @@ export function useAssistantSession(): UseAssistantSessionResult {
       if (ac.signal.aborted) {
         return false;
       }
-      // Ne marquer joué que si l’audio a vraiment démarré — sinon retry possible.
-      if (ringStarted || wasWelcomeSpeakPlayed()) {
-        welcomeSpokenRef.current = true;
+      if (ringStarted) {
+        if (opts.markWelcomePlayed) {
+          welcomeSpokenRef.current = true;
+        }
         return true;
       }
       return false;
@@ -566,6 +566,21 @@ export function useAssistantSession(): UseAssistantSessionResult {
     }
   }
 
+  async function speakWelcome(text: string): Promise<boolean> {
+    if (welcomeSpokenRef.current) {
+      return false;
+    }
+    if (wasWelcomeSpeakPlayed() && !isWelcomeSpeaking()) {
+      welcomeSpokenRef.current = true;
+      return true;
+    }
+    return speakRing(text, { markWelcomePlayed: true });
+  }
+
+  async function speakAlert(text: string): Promise<boolean> {
+    return speakRing(text, { markWelcomePlayed: false });
+  }
+
   return {
     state: assistant,
     messages,
@@ -575,6 +590,7 @@ export function useAssistantSession(): UseAssistantSessionResult {
     toggleListen,
     submit,
     speakWelcome,
+    speakAlert,
     confirmAction,
     cancelAction,
   };

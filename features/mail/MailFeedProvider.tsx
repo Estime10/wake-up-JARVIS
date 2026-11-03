@@ -51,7 +51,8 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
         if (cancelled) {
           return;
         }
-        setMails(list);
+        // UI = reçus uniquement (SENT réservés à l’agent).
+        setMails(list.filter((item) => item.isSent !== true));
         setStatus("ready");
       })
       .catch(() => {

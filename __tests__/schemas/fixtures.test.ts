@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { MOCK_JOURNAL } from "@/fixtures/journal";
-import { MOCK_SEED_MESSAGES } from "@/fixtures/messages";
 import {
   journalEntrySchema,
   mailSummarySchema,
@@ -21,10 +20,6 @@ describe("fixtures Zod", () => {
       unread: true,
     });
     expect(result.success).toBe(false);
-  });
-
-  it("valide les messages seed", () => {
-    expect(z.array(messageSchema).parse(MOCK_SEED_MESSAGES)).toHaveLength(1);
   });
 
   it("rejette un message sans createdAt ISO", () => {

@@ -14,6 +14,7 @@ import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
 import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
+import { useProactiveMarkAlerts } from "@/features/home/hooks/useProactiveMarkAlerts";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
 import { useRepoPanel } from "@/features/home/context";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
@@ -51,18 +52,24 @@ export function HomeScreen() {
     toggleListen,
     submit,
     speakWelcome,
+    speakAlert,
     confirmAction,
     cancelAction,
   } = useAssistantSession();
 
   useVoiceRingMotion(state);
   useHomeVoiceGreeting({ speakWelcome });
+  useProactiveMarkAlerts({
+    enabled: settled,
+    assistantState: state,
+    speakAlert,
+  });
 
   const listening = state === "listening";
   const busy = state === "thinking" || state === "speaking";
   const memoryBlocked = memoryStatus !== "ready";
   const showIdleBrand =
-    memoryStatus === "ready" && state === "idle" && messages.length <= 1;
+    memoryStatus === "ready" && state === "idle" && messages.length === 0;
   const homeContentHidden = terminalOpen || repoOpen;
   const showThread = settled && !memoryBlocked && !showIdleBrand;
 

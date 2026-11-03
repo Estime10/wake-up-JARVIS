@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/Button";
 import { HudCornerBracket } from "@/components/ui/HudCornerBracket";
 import { useInboxMailCount } from "@/features/intro/hooks/useInboxMailCount";
 import { useIntroClock } from "@/features/intro/hooks/useIntroClock";
+import {
+  sysPressureLabelKey,
+  sysPressureToneClass,
+} from "@/features/intro/model/sysPressureState";
 import { cn } from "@/lib/cn";
 import { useDeviceLocation } from "@/lib/hooks/useDeviceLocation";
+import { useSysPressure } from "@/lib/hooks/useSysPressure";
 import { t } from "@/lib/i18n";
 
 type SplashHudChromeProps = {
@@ -49,6 +54,7 @@ export function SplashHudChrome({
   const clock = useIntroClock();
   const mailCount = useInboxMailCount();
   const { label: place } = useDeviceLocation();
+  const sysPressure = useSysPressure();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
 
   if (wakeOnly) {
@@ -130,8 +136,14 @@ export function SplashHudChrome({
           </div>
 
           <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8">
-            <p className="t-mono text-dial text-success uppercase sm:text-sm">
-              {t("intro.sysNominal")}
+            <p
+              className={cn(
+                "t-mono text-dial uppercase motion-safe:transition-colors motion-safe:duration-500 sm:text-sm",
+                sysPressureToneClass(sysPressure),
+              )}
+              suppressHydrationWarning
+            >
+              {t(sysPressureLabelKey(sysPressure))}
             </p>
           </div>
         </div>

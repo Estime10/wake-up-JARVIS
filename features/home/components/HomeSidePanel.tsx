@@ -94,7 +94,10 @@ export function HomeSidePanel() {
   }, [accounts, mailStatus, mails]);
 
   const activeMails = useMemo(
-    () => mails.filter((mail) => mail.accountId === selectedAccountId),
+    () =>
+      mails.filter(
+        (mail) => mail.accountId === selectedAccountId && mail.isSent !== true,
+      ),
     [mails, selectedAccountId],
   );
 

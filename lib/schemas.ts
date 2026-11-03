@@ -42,6 +42,8 @@ export const mailSummarySchema = z.object({
   receivedAt: z.iso.datetime({ offset: true }),
   unread: z.boolean(),
   category: z.string().optional(),
+  /** true = envoi (Gmail SENT) — hors feed UI, dispo agent. */
+  isSent: z.boolean().optional(),
   flagged: z.boolean().optional(),
   flagReason: z.string().nullable().optional(),
   summary: z.string().nullable().optional(),

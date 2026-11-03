@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { MOCK_SEED_MESSAGES } from "@/fixtures/messages";
 import { messageSchema, type Message } from "@/lib/schemas";
 import type { MemoryPort } from "@/ports/memory-port";
 
@@ -13,7 +12,7 @@ type MessageRow = {
 
 /**
  * MemoryPort → table `public.messages` (RLS par user_id).
- * Sans session : seed local (comportement V0), pas d'écriture distante.
+ * Fil vide si pas de session / aucun message — plus de seed mock.
  */
 export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
   return {
@@ -23,7 +22,7 @@ export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
       } = await client.auth.getUser();
 
       if (!user) {
-        return MOCK_SEED_MESSAGES.map((m) => messageSchema.parse(m));
+        return [];
       }
 
       const { data, error } = await client
@@ -37,10 +36,6 @@ export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
       }
 
       const rows = (data ?? []) as MessageRow[];
-      if (rows.length === 0) {
-        return MOCK_SEED_MESSAGES.map((m) => messageSchema.parse(m));
-      }
-
       return rows.map((row) =>
         messageSchema.parse({
           id: row.id,

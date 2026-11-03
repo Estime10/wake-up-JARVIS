@@ -28,6 +28,7 @@ const eslintConfig = defineConfig([
   {
     files: [
       "app/providers.tsx",
+      "app/api/**",
       "adapters/**",
       "__tests__/**",
       "**/*.test.ts",
@@ -36,7 +37,7 @@ const eslintConfig = defineConfig([
     rules: { "no-restricted-imports": "off" },
   },
   {
-    files: ["scripts/**"],
+    files: ["scripts/**", "lib/logger.ts"],
     rules: { "no-console": "off" },
   },
   eslintConfigPrettier,

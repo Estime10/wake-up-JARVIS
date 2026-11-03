@@ -12,5 +12,11 @@ export function createMockMail(): MailPort {
     async listFlagged() {
       return [];
     },
+    async listByLabel() {
+      return [];
+    },
+    async listSentByLabel() {
+      return [];
+    },
   };
 }

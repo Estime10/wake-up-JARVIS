@@ -3,6 +3,7 @@ import "server-only";
 import { classifyMail } from "@/features/mail/model/classifyMail";
 import { flagUnusual } from "@/features/mail/model/flagUnusual";
 import type { MailRule } from "@/features/mail/model/mailRule";
+import { isGmailSentMessage } from "@/features/mail/model/isGmailSentMessage";
 import { pickPrimaryUserLabel } from "@/features/mail/model/mailLabelColors";
 import {
   gmailAfterDateQuery,
@@ -102,6 +103,7 @@ async function persistMessages(
       p_category: category,
       p_flagged: Boolean(flag),
       p_flag_reason: flag?.reason ?? null,
+      p_is_sent: isGmailSentMessage(message.labelIds),
     });
 
     if (error) {

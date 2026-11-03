@@ -1,4 +1,5 @@
 import { ActionCard } from "@/features/actions/components/ActionCard";
+import { AssistantMessageBody } from "@/features/home/components/AssistantMessageBody";
 import type { ConversationMessage } from "@/features/home/model/conversationMessage";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -64,19 +65,28 @@ export function ConversationMessageBubble({
       </header>
       <div
         className={cn(
-          "t-body max-w-[min(100%,28rem)] rounded-md px-3 py-2.5 text-sm leading-relaxed",
+          "t-body max-w-[min(100%,36rem)] whitespace-pre-wrap rounded-md px-3.5 py-3 text-lg leading-relaxed",
           isUser
             ? "bg-surface-2 text-text"
             : "border border-line/60 bg-surface/50 text-text",
           message.streaming && "border-accent/40",
         )}
       >
-        {message.text}
-        {message.streaming ? (
-          <span className="greeting-cursor ml-0.5 text-accent" aria-hidden>
-            |
-          </span>
-        ) : null}
+        {isUser ? (
+          <>
+            {message.text}
+            {message.streaming ? (
+              <span className="greeting-cursor ml-0.5 text-accent" aria-hidden>
+                |
+              </span>
+            ) : null}
+          </>
+        ) : (
+          <AssistantMessageBody
+            text={message.text}
+            streaming={Boolean(message.streaming)}
+          />
+        )}
       </div>
     </article>
   );

@@ -57,7 +57,8 @@ const SYSTEM_LABELS = new Set([
   "CATEGORY_FORUMS",
 ]);
 
-function normalizeKey(value: string): string {
+/** Clé comparable (sans accents, majuscules) — match label / catégorie. */
+export function normalizeMailLabelKey(value: string): string {
   return value
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
@@ -105,13 +106,13 @@ export function pickPrimaryUserLabel(
 }
 
 function colorForTopFolder(top: string): string | null {
-  const key = normalizeKey(top);
+  const key = normalizeMailLabelKey(top);
   const direct = TOP_FOLDER_COLORS[key];
   if (direct) {
     return direct;
   }
   for (const [folder, color] of Object.entries(TOP_FOLDER_COLORS)) {
-    if (normalizeKey(folder) === key) {
+    if (normalizeMailLabelKey(folder) === key) {
       return color;
     }
   }
