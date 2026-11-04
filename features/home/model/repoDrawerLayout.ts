@@ -1,6 +1,9 @@
 /**
- * Largeurs tiroir fichiers / offset aperçu — une seule source.
+ * Tiroirs GitHub dans la colonne gauche (1/3 de la grille home) :
+ * - 1er tiroir (fichiers) = 1re moitié
+ * - 2e tiroir (aperçu) = 2e moitié
  */
-export const REPO_FILES_DRAWER_WIDTH_CLASS = "w-[min(22rem,28%)]";
-
-export const REPO_PREVIEW_INSET_CLASS = "left-[min(22rem,28%)] right-[25%]";
+export {
+  HOME_LEFT_HALF_WIDTH_CLASS as REPO_FILES_DRAWER_WIDTH_CLASS,
+  HOME_LEFT_HALF_INSET_CLASS as REPO_PREVIEW_INSET_CLASS,
+} from "@/features/home/model/homeColumnLayout";

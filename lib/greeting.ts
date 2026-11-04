@@ -64,17 +64,15 @@ function spokenMailBlock(mailToday: number): string {
 export type SpokenBriefingInput = {
   name: string;
   at: Date;
-  /** Lieu nu (sans préfixe GEOLOC) — null si inconnu. */
-  place: string | null;
   /** Mails reçus aujourd’hui uniquement. */
   mailToday: number;
 };
 
 /**
- * Briefing TTS home — salut + date/heure + géoloc + mails du jour + système OK.
+ * Briefing TTS home — salut + date/heure + mails du jour + système OK.
  */
 export function spokenBriefing(input: SpokenBriefingInput): string {
-  const { name, at, place, mailToday } = input;
+  const { name, at, mailToday } = input;
   const hour = at.getHours();
   assertHour(hour);
 
@@ -87,12 +85,8 @@ export function spokenBriefing(input: SpokenBriefingInput): string {
     time: formatSpokenTime(at),
   });
 
-  const placePart = place
-    ? t("greeting.spokenPlace", { place })
-    : t("greeting.spokenPlaceUnknown");
-
   const mails = spokenMailBlock(mailToday);
   const systems = t("greeting.spokenSystemsOk");
 
-  return `${hello} ${dateTime} ${placePart} ${mails} ${systems}`;
+  return `${hello} ${dateTime} ${mails} ${systems}`;
 }

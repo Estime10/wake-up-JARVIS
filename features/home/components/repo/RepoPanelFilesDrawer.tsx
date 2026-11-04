@@ -32,6 +32,7 @@ export function RepoPanelFilesDrawer({
         REPO_LAYER_CLASS.panel,
         visible ? REPO_SLIDE_IN : REPO_SLIDE_OUT,
       )}
+      data-scroll-lock-allow="true"
       aria-label={t("home.repoPanelLabel")}
       aria-hidden={!visible || undefined}
       inert={!visible ? true : undefined}

@@ -31,6 +31,7 @@ export function RepoPanelCommitDrawer({
         REPO_PREVIEW_INSET_CLASS,
         REPO_LAYER_CLASS.preview,
       )}
+      data-scroll-lock-allow="true"
     >
       <aside
         className={cn(

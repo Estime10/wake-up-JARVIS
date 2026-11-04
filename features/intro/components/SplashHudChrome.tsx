@@ -1,18 +1,7 @@
 "use client";
 
-import type { Ref } from "react";
-
-import { Button } from "@/components/ui/Button";
 import { HudCornerBracket } from "@/components/ui/HudCornerBracket";
-import { useInboxMailCount } from "@/features/intro/hooks/useInboxMailCount";
-import { useIntroClock } from "@/features/intro/hooks/useIntroClock";
-import {
-  sysPressureLabelKey,
-  sysPressureToneClass,
-} from "@/features/intro/model/sysPressureState";
 import { cn } from "@/lib/cn";
-import { useDeviceLocation } from "@/lib/hooks/useDeviceLocation";
-import { useSysPressure } from "@/lib/hooks/useSysPressure";
 import { t } from "@/lib/i18n";
 
 type SplashHudChromeProps = {
@@ -20,177 +9,47 @@ type SplashHudChromeProps = {
   settled?: boolean;
   /** Ligne « Réveil détecté » — désactivée sur home actuel. */
   showWake?: boolean;
-  /** Terminal ouvert — CTA « Fermer ». */
-  terminalOpen?: boolean;
-  /** Désactivé tant que le panneau REPO est ouvert. */
-  terminalDisabled?: boolean;
-  terminalTriggerRef?: Ref<HTMLButtonElement | null>;
-  onTerminalClick?: () => void;
-  /** Panneau REPO mock ouvert. */
-  githubOpen?: boolean;
-  /** Désactivé tant que le terminal est ouvert. */
-  githubDisabled?: boolean;
-  onGithubClick?: () => void;
 };
 
-/** Méta HUD home — équerres, télémétrie, CTAs. */
+/**
+ * Chrome home — équerres uniquement.
+ * CTAs (terminal, e-mail, github, supabase) → `HomeLeftCtaStack`.
+ */
 export function SplashHudChrome({
   settled = false,
   showWake = false,
-  terminalOpen = false,
-  terminalDisabled = false,
-  terminalTriggerRef,
-  onTerminalClick,
-  githubOpen = false,
-  githubDisabled = false,
-  onGithubClick,
 }: SplashHudChromeProps) {
-  const clock = useIntroClock();
-  const mailCount = useInboxMailCount();
-  const { label: place } = useDeviceLocation();
-  const sysPressure = useSysPressure();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
 
   return (
-    <>
+    <div
+      className="pointer-events-none absolute inset-0 z-10 text-text-muted"
+      aria-hidden
+    >
       <div
-        className="pointer-events-none absolute inset-0 z-10 text-text-muted"
-        aria-hidden
+        data-intro="hud-brackets"
+        className={cn("absolute inset-0", !settled && "opacity-0")}
       >
-        <div
-          data-intro="hud-brackets"
-          className={cn("absolute inset-0", !settled && "opacity-0")}
-        >
-          <HudCornerBracket
-            corner="tl"
-            className="top-3 left-3 sm:top-4 sm:left-4"
-          />
-          <HudCornerBracket
-            corner="tr"
-            className="top-3 right-3 sm:top-4 sm:right-4"
-          />
-          <HudCornerBracket
-            corner="bl"
-            className="bottom-3 left-3 sm:bottom-4 sm:left-4"
-          />
-          <HudCornerBracket
-            corner="br"
-            className="right-3 bottom-3 sm:right-4 sm:bottom-4"
-          />
-        </div>
-
-        <div
-          data-intro="hud-corners"
-          className={cn("absolute inset-0", !settled && "opacity-0")}
-        >
-          <div className="absolute top-6 left-6 flex flex-col gap-1 sm:top-8 sm:left-8">
-            <p
-              className="t-mono text-dial uppercase sm:text-sm"
-              suppressHydrationWarning
-            >
-              {place}
-            </p>
-            {/* Emplacement réservé — CTA GitHub hors aria-hidden */}
-            <span
-              className="invisible t-mono text-dial uppercase sm:text-sm"
-              aria-hidden
-            >
-              {t("home.github")}
-            </span>
-          </div>
-
-          <div className="absolute top-6 right-6 flex flex-col items-end gap-1 sm:top-8 sm:right-8">
-            <p className="t-mono text-dial uppercase sm:text-sm">
-              {t("intro.mailTotal", { count: mailCount })}
-            </p>
-            {/* Emplacement réservé — CTA Terminal hors aria-hidden */}
-            <span
-              className="invisible t-mono text-dial uppercase sm:text-sm"
-              aria-hidden
-            >
-              {terminalOpen ? t("home.terminalClose") : t("home.terminal")}
-            </span>
-          </div>
-
-          <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8">
-            <p className="t-mono text-dial sm:text-sm" suppressHydrationWarning>
-              {clock}
-            </p>
-          </div>
-
-          <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8">
-            <p
-              className={cn(
-                "t-mono text-dial uppercase motion-safe:transition-colors motion-safe:duration-500 sm:text-sm",
-                sysPressureToneClass(sysPressure),
-              )}
-              suppressHydrationWarning
-            >
-              {t(sysPressureLabelKey(sysPressure))}
-            </p>
-          </div>
-        </div>
-
-        {showWake ? <WakeLine settled={settled} wakeText={wakeText} /> : null}
+        <HudCornerBracket
+          corner="tl"
+          className="top-3 left-3 sm:top-4 sm:left-4"
+        />
+        <HudCornerBracket
+          corner="tr"
+          className="top-3 right-3 sm:top-4 sm:right-4"
+        />
+        <HudCornerBracket
+          corner="bl"
+          className="bottom-3 left-3 sm:bottom-4 sm:left-4"
+        />
+        <HudCornerBracket
+          corner="br"
+          className="right-3 bottom-3 sm:right-4 sm:bottom-4"
+        />
       </div>
 
-      <div
-        className={cn(
-          "absolute top-6 left-6 z-20 flex flex-col items-start gap-1 sm:top-8 sm:left-8",
-          !settled && "opacity-0",
-        )}
-      >
-        <span
-          className="invisible t-mono text-dial uppercase sm:text-sm"
-          aria-hidden
-          suppressHydrationWarning
-        >
-          {place}
-        </span>
-        <Button
-          variant="hud"
-          size="bare"
-          disabled={githubDisabled}
-          aria-expanded={githubOpen}
-          aria-label={
-            githubOpen ? t("home.githubCloseLabel") : t("home.githubLabel")
-          }
-          onClick={onGithubClick}
-        >
-          {t("home.github")}
-        </Button>
-      </div>
-
-      <div
-        className={cn(
-          "absolute top-6 right-6 z-20 flex flex-col items-end gap-1 sm:top-8 sm:right-8",
-          !settled && "opacity-0",
-        )}
-      >
-        {/* Spacer aligné sur le compteur mails (décor) */}
-        <span
-          className="invisible t-mono text-dial uppercase sm:text-sm"
-          aria-hidden
-        >
-          {t("intro.mailTotal", { count: mailCount })}
-        </span>
-        <Button
-          ref={terminalTriggerRef}
-          variant="hud"
-          size="bare"
-          disabled={terminalDisabled}
-          aria-expanded={terminalOpen}
-          aria-label={
-            terminalOpen
-              ? t("home.terminalCloseLabel")
-              : t("home.terminalLabel")
-          }
-          onClick={onTerminalClick}
-        >
-          {terminalOpen ? t("home.terminalClose") : t("home.terminal")}
-        </Button>
-      </div>
-    </>
+      {showWake ? <WakeLine settled={settled} wakeText={wakeText} /> : null}
+    </div>
   );
 }
 

@@ -5,7 +5,7 @@
 export const REPO_MOTION_MS = 400;
 
 export const REPO_MOTION_CLASS =
-  "duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
+  "transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
 
 /** Tiroir fichiers / mask — état ouvert. */
 export const REPO_SLIDE_IN = "translate-x-0";

@@ -11,25 +11,23 @@ import { cn } from "@/lib/cn";
 
 /**
  * Zone mark (+ wordmark uniquement en briefing centré legacy).
- * Home : pad sous le slot = chrome boot/réticules, puis 10px avant les messages.
+ * Refonte-ui : taille splash permanente, mark reste centré (pas de scale-down).
  */
 export function AssistantStage() {
   const { phase, briefingReady, skipCenteredBriefing } = useHomeEnter();
   const briefing = phase === "briefing" && !skipCenteredBriefing;
 
   return (
-    <div className="flex w-full max-w-full shrink-0 flex-col items-center">
+    <div className="relative flex w-full max-w-full shrink-0 flex-col items-center">
       <MarkSlot
         name={briefing ? "splash" : "home"}
-        className={briefing ? MARK_SLOT_SIZE.splash : MARK_SLOT_SIZE.home}
+        className={MARK_SLOT_SIZE.splash}
       />
-      {/* Espace layout pour le débordement SVG (mark fixed overflow visible). */}
-      {!briefing ? (
-        <div
-          className={cn("w-full shrink-0", MARK_HOME_CHROME_BELOW)}
-          aria-hidden
-        />
-      ) : null}
+      {/* Réserve chrome SVG — toujours présente pour stabiliser le centre. */}
+      <div
+        className={cn("w-full shrink-0", MARK_HOME_CHROME_BELOW)}
+        aria-hidden
+      />
 
       {briefing ? (
         <div className="mt-6 flex justify-center sm:mt-8">

@@ -40,15 +40,15 @@ export function HomeComposer({
     listenSeed,
   });
 
-  const caption = listening
-    ? t("home.composerMicActive")
-    : ghost
-      ? t("home.composerVoiceOver")
-      : null;
+  const caption = listening ? t("home.composerMicActive") : null;
 
   return (
     <form
-      className={cn("w-full max-w-xl px-6", ghost && "opacity-45")}
+      className={cn(
+        // Étape 2 refonte-ui : largeur main plein viewport (ex-max-w-xl colonne 75%).
+        "w-full max-w-3xl px-2 sm:px-4",
+        ghost && "opacity-45",
+      )}
       onSubmit={handleSubmit}
       aria-label={t("home.composerLabel")}
     >

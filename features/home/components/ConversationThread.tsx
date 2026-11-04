@@ -47,10 +47,25 @@ export function ConversationThread({
   const lastPinnedIdRef = useRef<string | null>(null);
   const scrollAnchorRef = useRef<{ height: number; top: number } | null>(null);
   const loadingOlderRef = useRef(false);
+  const scrollLockRef = useRef(scrollLock);
+  const hasMoreOlderRef = useRef(hasMoreOlder);
+  const onLoadOlderRef = useRef(onLoadOlder);
 
   useEffect(() => {
     loadingOlderRef.current = loadingOlder;
   }, [loadingOlder]);
+
+  useEffect(() => {
+    scrollLockRef.current = scrollLock;
+  }, [scrollLock]);
+
+  useEffect(() => {
+    hasMoreOlderRef.current = hasMoreOlder;
+  }, [hasMoreOlder]);
+
+  useEffect(() => {
+    onLoadOlderRef.current = onLoadOlder;
+  }, [onLoadOlder]);
 
   /** Lot initial figé au mount (pas de setState dans un effect). */
   const [entranceIds] = useState(() =>
@@ -106,9 +121,28 @@ export function ConversationThread({
     scrollAnchorRef.current = null;
   }, [messages]);
 
+  function requestOlder(): void {
+    if (
+      scrollLockRef.current ||
+      !hasMoreOlderRef.current ||
+      loadingOlderRef.current ||
+      !onLoadOlderRef.current
+    ) {
+      return;
+    }
+    const list = listRef.current;
+    if (list) {
+      scrollAnchorRef.current = {
+        height: list.scrollHeight,
+        top: list.scrollTop,
+      };
+    }
+    void onLoadOlderRef.current();
+  }
+
   useEffect(() => {
     const list = listRef.current;
-    if (!list || !onLoadOlder) {
+    if (!list) {
       return undefined;
     }
 
@@ -119,17 +153,10 @@ export function ConversationThread({
       }
       frame = window.requestAnimationFrame(() => {
         frame = 0;
-        if (scrollLock || !hasMoreOlder || loadingOlderRef.current) {
-          return;
-        }
         if (list.scrollTop > LOAD_OLDER_THRESHOLD_PX) {
           return;
         }
-        scrollAnchorRef.current = {
-          height: list.scrollHeight,
-          top: list.scrollTop,
-        };
-        void onLoadOlder();
+        requestOlder();
       });
     };
 
@@ -140,14 +167,30 @@ export function ConversationThread({
         window.cancelAnimationFrame(frame);
       }
     };
-  }, [hasMoreOlder, onLoadOlder, scrollLock]);
+  }, []);
+
+  // Contenu trop court pour scroller → charger l’historique jusqu’à remplir / épuiser.
+  useEffect(() => {
+    if (scrollLock || !hasMoreOlder || loadingOlder) {
+      return;
+    }
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+    if (list.scrollHeight > list.clientHeight + LOAD_OLDER_THRESHOLD_PX) {
+      return;
+    }
+    requestOlder();
+  }, [hasMoreOlder, loadingOlder, messages.length, scrollLock]);
 
   return (
     <div
       ref={listRef}
       data-scroll-lock-target
       className={cn(
-        "flex max-h-full w-full max-w-xl flex-col gap-4 overflow-y-auto px-6 py-4",
+        // Pleine largeur section (ex. 70 % gauche) + padding pour ne pas coller aux bords.
+        "flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-5",
       )}
       role="log"
       aria-label={t("home.conversationLabel")}
@@ -166,14 +209,7 @@ export function ConversationThread({
               type="button"
               className="text-text-muted underline-offset-2 hover:text-text hover:underline"
               onClick={() => {
-                const list = listRef.current;
-                if (list) {
-                  scrollAnchorRef.current = {
-                    height: list.scrollHeight,
-                    top: list.scrollTop,
-                  };
-                }
-                void onLoadOlder?.();
+                requestOlder();
               }}
             >
               {t("home.conversationLoadOlder")}

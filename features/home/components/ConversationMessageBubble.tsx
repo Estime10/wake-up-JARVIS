@@ -78,10 +78,7 @@ export function ConversationMessageBubble({
       <div
         className={cn(
           "t-body max-w-[min(100%,36rem)] whitespace-pre-wrap rounded-md px-3.5 py-3 text-lg leading-relaxed",
-          isUser
-            ? "bg-surface-2 text-text"
-            : "border border-line/60 bg-surface/50 text-text",
-          message.streaming && "border-accent/40",
+          isUser ? "bg-surface-2 text-text" : "bg-surface/50 text-text",
         )}
       >
         {isUser ? (

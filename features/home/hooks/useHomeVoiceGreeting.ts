@@ -7,7 +7,6 @@ import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useMailFeed } from "@/features/mail/MailFeedProvider";
 import { resolveDisplayName } from "@/features/profile/model/resolveDisplayName";
 import { spokenBriefing } from "@/lib/greeting";
-import { useDeviceLocation } from "@/lib/hooks/useDeviceLocation";
 import { t } from "@/lib/i18n";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
 import {
@@ -31,7 +30,6 @@ type UseHomeVoiceGreetingResult = {
 };
 
 const MAIL_WAIT_MS = 600;
-const GEO_WAIT_MS = 800;
 /** Filet : ne jamais bloquer indéfiniment sur le TTS. */
 const BRIEFING_MAX_MS = 20_000;
 /** Court : le splash / login a déjà dû unlock — on ne bloque pas le speak. */
@@ -47,14 +45,35 @@ export function useHomeVoiceGreeting({
 }: UseHomeVoiceGreetingArgs): UseHomeVoiceGreetingResult {
   const { profile } = usePorts();
   const { mails, status: mailStatus } = useMailFeed();
-  const { place, status: geoStatus } = useDeviceLocation();
-  const { phase, briefingReady, beginSettle } = useHomeEnter();
+  const {
+    phase,
+    briefingReady,
+    beginSettle,
+    skipCenteredBriefing,
+    bootPlaying,
+  } = useHomeEnter();
   const ranRef = useRef(false);
+  const settleStartedRef = useRef(false);
   const [greetingDone, setGreetingDone] = useState(false);
 
   useEffect(() => {
     return installOpportunisticAudioUnlock();
   }, []);
+
+  // Après boot (scan+nom) : settle UI tout de suite — sans attendre mail/TTS.
+  useEffect(() => {
+    if (
+      bootPlaying ||
+      !skipCenteredBriefing ||
+      phase !== "briefing" ||
+      !briefingReady ||
+      settleStartedRef.current
+    ) {
+      return;
+    }
+    settleStartedRef.current = true;
+    beginSettle();
+  }, [bootPlaying, skipCenteredBriefing, phase, briefingReady, beginSettle]);
 
   const runBriefing = useEffectEvent(async () => {
     if (ranRef.current) {
@@ -79,13 +98,15 @@ export function useHomeVoiceGreeting({
     const text = spokenBriefing({
       name,
       at: now,
-      place,
       mailToday,
     });
     setWelcomeSpeakText(text);
 
-    // UI home d’abord — ne pas attendre le TTS pour les messages.
-    beginSettle();
+    // Legacy : settle après data. Splash v1 déjà settlé au mount.
+    if (!settleStartedRef.current) {
+      settleStartedRef.current = true;
+      beginSettle();
+    }
 
     resumeUnlockedAudio();
 
@@ -116,24 +137,19 @@ export function useHomeVoiceGreeting({
     }
 
     const mailReady = mailStatus !== "loading";
-    const geoReady = geoStatus !== "pending";
-    if (mailReady && geoReady) {
+    if (mailReady) {
       void runBriefing();
       return undefined;
     }
 
-    const waitMs = Math.max(
-      mailReady ? 0 : MAIL_WAIT_MS,
-      geoReady ? 0 : GEO_WAIT_MS,
-    );
     const timeoutId = window.setTimeout(() => {
       void runBriefing();
-    }, waitMs);
+    }, MAIL_WAIT_MS);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [phase, briefingReady, mailStatus, mails, geoStatus, place]);
+  }, [phase, briefingReady, mailStatus, mails]);
 
   return { greetingDone };
 }

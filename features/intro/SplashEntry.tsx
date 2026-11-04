@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
-import { captureSplashMarkHandoff } from "@/features/intro/model/captureSplashMarkHandoff";
+import { playSplashExitHandoff } from "@/features/intro/model/playSplashExitHandoff";
 import { useJarvisShell } from "@/features/jarvis/context";
 import { markSplashV1Done } from "@/lib/intro/splashV1Session";
 import { SPLASH_HOLD_AT_END } from "@/lib/intro/timings";
@@ -20,9 +20,8 @@ import {
 import { resetWelcomeSpeakSession } from "@/lib/voice/welcomeSpeak";
 
 /**
- * Splash post-auth — UI v1, muet, puis handoff Flip du même mark vers `/home`.
- * Si l’audio n’est pas prêt (refresh / session déjà ouverte), un geste
- * débloque puis navigue — le greeting home part ensuite seul.
+ * Splash post-auth — un seul JarvisMark jusqu’à `/home`.
+ * Sortie : nom JARVIS part → mark reste → navigation → input entre (home).
  */
 export function SplashEntry() {
   const router = useRouter();
@@ -68,15 +67,17 @@ export function SplashEntry() {
     gestureWaitCleanupRef.current?.();
     gestureWaitCleanupRef.current = null;
 
-    const snapshot = captureSplashMarkHandoff(markRef.current);
-    if (snapshot) {
-      handoff.begin(snapshot);
-    } else {
-      resetWelcomeSpeakSession();
-    }
-    markSplashV1Done();
-    mainFocus.request();
-    router.replace(ROUTES.home);
+    void (async () => {
+      const snapshot = await playSplashExitHandoff(markRef.current);
+      if (snapshot) {
+        handoff.begin(snapshot);
+      } else {
+        resetWelcomeSpeakSession();
+      }
+      markSplashV1Done();
+      mainFocus.request();
+      router.replace(ROUTES.home);
+    })();
   }, [handoff, mainFocus, markRef, router]);
 
   const onComplete = useCallback(() => {

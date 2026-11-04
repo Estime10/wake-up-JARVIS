@@ -17,8 +17,9 @@ type PresenceMotion = {
 /**
  * Monte → anime l’entrée ; à la fermeture anime la sortie puis démonte.
  *
- * Close : bascule `visible` après paint (double rAF), puis démonte après
- * `durationMs` — sinon fermeture sèche (pas de frame « ouvert » à interpoler).
+ * Open : sync render → `rendered` + `visible=false`, puis rAF → `visible=true`.
+ * Close : render `active=false` peint encore `visible=true`, puis rAF →
+ * `visible=false` (SLIDE_OUT) et unmount après `durationMs`.
  */
 export function usePresenceMotion(
   active: boolean,
@@ -64,20 +65,17 @@ export function usePresenceMotion(
       return () => window.clearTimeout(id);
     }
 
-    let innerId = 0;
+    // Un frame déjà peint avec visible=true → bascule SLIDE_OUT puis unmount.
     let unmountId = 0;
-    const outerId = window.requestAnimationFrame(() => {
-      innerId = window.requestAnimationFrame(() => {
-        setVisible(false);
-        unmountId = window.setTimeout(() => {
-          setRendered(false);
-        }, durationMs);
-      });
+    const frameId = window.requestAnimationFrame(() => {
+      setVisible(false);
+      unmountId = window.setTimeout(() => {
+        setRendered(false);
+      }, durationMs);
     });
 
     return () => {
-      window.cancelAnimationFrame(outerId);
-      window.cancelAnimationFrame(innerId);
+      window.cancelAnimationFrame(frameId);
       window.clearTimeout(unmountId);
     };
   }, [active, durationMs]);

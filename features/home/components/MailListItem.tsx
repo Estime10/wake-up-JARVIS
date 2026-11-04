@@ -1,23 +1,41 @@
+"use client";
+
 import { resolveMailLabelColor } from "@/features/mail/model/mailLabelColors";
 import { cn } from "@/lib/cn";
+import { t } from "@/lib/i18n";
 import type { MailSummary } from "@/lib/schemas";
 
 type MailListItemProps = {
   mail: MailSummary;
+  selected?: boolean;
+  onSelect?: (mail: MailSummary) => void;
 };
 
 /** Ligne mail — texte uniquement (jamais de HTML mail). */
-export function MailListItem({ mail }: MailListItemProps) {
+export function MailListItem({
+  mail,
+  selected = false,
+  onSelect,
+}: MailListItemProps) {
   const labelText = mail.category?.trim() || mail.flagReason?.trim() || null;
   const labelColor = resolveMailLabelColor(
     mail.category ?? mail.flagReason ?? undefined,
   );
 
   return (
-    <article
+    <button
+      type="button"
+      aria-pressed={selected}
+      aria-label={t("home.mailOpenLabel", {
+        subject: mail.subject || t("home.mailNoSubject"),
+      })}
+      onClick={() => onSelect?.(mail)}
       className={cn(
-        "rounded-md border border-line-subtle/80 bg-surface-2/30 px-3 py-3",
+        "w-full rounded-md border border-line-subtle/80 bg-surface-2/30 px-3 py-3 text-left transition-colors",
+        "hover:border-line-subtle hover:bg-surface-2/45",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50",
         mail.unread && "border-accent/35 bg-surface-2/55",
+        selected && "border-accent/60 bg-surface-2/70",
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
@@ -39,7 +57,7 @@ export function MailListItem({ mail }: MailListItemProps) {
           mail.unread ? "text-text" : "text-text-muted",
         )}
       >
-        {mail.subject}
+        {mail.subject || t("home.mailNoSubject")}
       </p>
       {labelText ? (
         <p
@@ -58,6 +76,6 @@ export function MailListItem({ mail }: MailListItemProps) {
       <p className="t-mono mt-1 line-clamp-2 text-sm text-text-muted">
         {mail.excerpt}
       </p>
-    </article>
+    </button>
   );
 }

@@ -16,7 +16,6 @@ import type { HomeEnterPhase } from "@/features/home/model/homeEnterPhase";
 import { useJarvisShell } from "@/features/jarvis/context";
 import { queryWordmark } from "@/features/jarvis/model/markDom";
 import { Flip } from "@/lib/gsap/flip";
-import { consumeSplashV1Done } from "@/lib/intro/splashV1Session";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
@@ -31,28 +30,34 @@ type UseHomeEnterMotionResult = {
 };
 
 /**
- * Entrée home :
- * 1) briefing — mark + révélation JARVIS → briefingReady (TTS)
- * 2) settle — Flip mark+JARVIS vers home, puis input
- * Après splash SVG v1 : pas de 2e briefing mark géant.
+ * Entrée home après splash overlay (même page) :
+ * mark déjà posé → fade input seulement (`preserveMarkPose`).
+ * Tant que `splashDone` est false, aucune timeline home.
  */
-export function useHomeEnterMotion(): UseHomeEnterMotionResult {
+export function useHomeEnterMotion(
+  splashDone: boolean,
+): UseHomeEnterMotionResult {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const sideRef = useRef<HTMLElement | null>(null);
   const { markRef, handoff } = useJarvisShell();
   const [phase, setPhase] = useState<HomeEnterPhase>("briefing");
   const [briefingReady, setBriefingReady] = useState(false);
-  const [skipCenteredBriefing] = useState(() => consumeSplashV1Done());
+  /** Boot = overlay scan+nom sur home — jamais de briefing mark géant legacy. */
+  const skipCenteredBriefing = true;
   const settleStartedRef = useRef(false);
   const flipSnapshotRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
   useGSAP(
     (owner) => {
-      const shell = shellRef.current;
-      const aside = sideRef.current;
-      if (!shell || !aside) {
+      if (!splashDone) {
         return undefined;
       }
+
+      const shell = shellRef.current;
+      if (!shell) {
+        return undefined;
+      }
+      const aside = sideRef.current;
 
       return matchReducedMotion(owner, (reducedMotion) => {
         const snapshot = handoff.peek();
@@ -69,7 +74,7 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
               reducedMotion,
               fromSplash: snapshot !== null,
               flipSnapshot: snapshot,
-              skipCenteredBriefing,
+              skipCenteredBriefing: true,
               onReady: () => {
                 owner.ignore(() => {
                   setBriefingReady(true);
@@ -87,16 +92,16 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
         };
       });
     },
-    { scope: shellRef, dependencies: [skipCenteredBriefing] },
+    { scope: shellRef, dependencies: [splashDone] },
   );
 
   const runSettle = useCallback(() => {
     const shell = shellRef.current;
-    const aside = sideRef.current;
-    if (!shell || !aside) {
+    if (!shell) {
       setPhase("ready");
       return;
     }
+    const aside = sideRef.current;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -126,17 +131,21 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
     }
     settleStartedRef.current = true;
 
-    // Splash v1 : mark déjà au slot home — settle chrome/composer seulement.
+    // Post-splash home : pose mark figée — fade composer seulement.
     if (skipCenteredBriefing) {
       const shell = shellRef.current;
-      const aside = sideRef.current;
-      if (shell && aside) {
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      setPhase("settling");
+      if (shell) {
         playHomeSettleTransition({
           root: shell,
           mark: markRef.current,
-          aside,
-          reducedMotion: true,
+          aside: sideRef.current,
+          reducedMotion,
           flipSnapshot: null,
+          preserveMarkPose: true,
           onEnd: () => {
             if (handoff.hasPending()) {
               handoff.end();
@@ -157,7 +166,6 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
       return;
     }
 
-    // Snapshot AVANT le re-layout settling (mark grand + JARVIS display).
     const shell = shellRef.current;
     const mark = markRef.current;
     const wordmark = shell ? queryWordmark(shell) : null;
@@ -180,17 +188,16 @@ export function useHomeEnterMotion(): UseHomeEnterMotionResult {
   }, [handoff, markRef, runSettle, skipCenteredBriefing]);
 
   useEffect(() => {
-    if (phase !== "briefing") {
+    if (!splashDone || phase !== "briefing") {
       return undefined;
     }
-    // Filet si greeting / settle ne partent jamais.
     const id = window.setTimeout(() => {
       beginSettle();
     }, 50_000);
     return () => {
       window.clearTimeout(id);
     };
-  }, [phase, beginSettle]);
+  }, [splashDone, phase, beginSettle]);
 
   return {
     shellRef,

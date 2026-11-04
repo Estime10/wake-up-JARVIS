@@ -35,7 +35,7 @@ export function buildSplashV1Timeline(
     onComplete,
   });
 
-  // #layer-rig : volontairement hors fade — PersistentMark prend le relais au handoff.
+  // #layer-rig : animé ici (scan/sweep/anneaux). PersistentMark reprend à la fin.
   const core = q(root, "#splash-core");
   const coreHalo = q(root, "#splash-core-halo");
   const sweep = q(root, "#splash-sweep") ?? q(root, "#layer-sweep");

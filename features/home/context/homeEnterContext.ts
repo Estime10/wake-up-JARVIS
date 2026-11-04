@@ -8,10 +8,12 @@ export type HomeEnterContextValue = {
   phase: HomeEnterPhase;
   /** Mark + JARVIS en place — le TTS peut démarrer. */
   briefingReady: boolean;
-  /** Après le TTS briefing — lance shrink mark + Flip JARVIS + reveal UI. */
+  /** Après le TTS briefing — lance settle UI (input / chrome). */
   beginSettle: () => void;
-  /** Splash SVG v1 déjà vu — pas de mark géant centré (2e splash). */
+  /** Pas de briefing mark géant legacy (boot = overlay scan+nom sur home). */
   skipCenteredBriefing: boolean;
+  /** Boot scan+nom en cours — home visible, HUD/input encore cachés. */
+  bootPlaying: boolean;
 };
 
 const HomeEnterContext = createContext<HomeEnterContextValue | null>(null);

@@ -61,12 +61,13 @@ export function PersistentMark() {
     });
 
     if (home && handoff.hasPending()) {
-      // Déjà posé au capture splash — Flip géré par playHomeBriefingHold.
+      // Pose capture splash : ne pas re-placer au slot home (saut visible).
       phaseRef.current = "home";
       showMark(mark);
       mark.style.visibility = "";
       return handoff.onComplete(() => {
-        placeMarkOnSlot(mark, "home", { visible: true });
+        // Repasse sous le HUD une fois l’overlay démonté.
+        mark.style.zIndex = "30";
       });
     }
 

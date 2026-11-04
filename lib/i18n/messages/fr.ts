@@ -30,24 +30,18 @@ export const fr = {
     sysSerious: "sys serious",
     sysCritical: "sys critical",
     sysUnknown: "sys —",
-    /** Lieu issu du reverse geocode (HUD). */
-    location: "GEOLOC · {place}",
-    locationPending: "GEOLOC · …",
-    locationUnavailable: "GEOLOC · —",
     clockPlaceholder: "—:— · —.—.—",
   },
   greeting: {
     /** Phrase TTS courte (prefetch splash / seed). */
     spokenMorning: "Bonjour, {name}. Tous les systèmes sont opérationnels.",
     spokenEvening: "Bonsoir, {name}. Tous les systèmes sont opérationnels.",
-    /** Briefing TTS home — miroir HUD (date, heure, géoloc, mails, sys). */
+    /** Briefing TTS home — date, heure, mails, sys. */
     spokenHelloMorning: "Bonjour {name}.",
     spokenHelloEvening: "Bonsoir {name}.",
     spokenDateTime: "Nous sommes le {date}, il est {time}.",
     spokenTimeHourOnly: "{hour} heures",
     spokenTimeHourMinute: "{hour} heures {minute}",
-    spokenPlace: "Vous êtes à {place}.",
-    spokenPlaceUnknown: "Votre position n'est pas disponible.",
     spokenMailsNone: "Vous n'avez aucun mail reçu aujourd'hui.",
     spokenMailTodayOne: "Vous avez un mail reçu aujourd'hui.",
     spokenMailTodayMany: "Vous avez {today} mails reçus aujourd'hui.",
@@ -201,10 +195,24 @@ export const fr = {
     terminalCommandNotFound: "zsh: command not found: {command}",
     /** En-tête Terminal.app / zsh — anglais volontaire (fidélité shell). */
     terminalLastLogin: "Last login: {stamp} on {tty}",
+    /** CTA HUD — tiroir mails (section gauche). */
+    email: "E-mail",
+    emailLabel: "Ouvrir les mails",
+    emailCloseLabel: "Fermer les mails",
+    mailPanelLabel: "Mails",
+    mailClose: "Fermer",
+    mailCloseLabel: "Fermer le tiroir mails",
+    mailNoSubject: "(sans objet)",
+    mailOpenLabel: "Ouvrir le mail {subject}",
+    mailPreviewLabel: "Aperçu — {subject}",
+    mailPreviewCloseLabel: "Fermer l’aperçu du mail",
     /** CTA HUD — panneau REPO mock. */
     github: "GitHub",
     githubLabel: "Ouvrir le panneau dépôts",
     githubCloseLabel: "Fermer le panneau dépôts",
+    /** CTA HUD — projet Supabase. */
+    supabase: "Supabase",
+    supabaseLabel: "Ouvrir Supabase",
     repoPanelLabel: "Dépôts",
     repoTitle: "Repo",
     repoClose: "Fermer",
@@ -341,8 +349,6 @@ export const fr = {
     /** Annonce unique de l'écoute (header, role="status"). */
     micActive: "Micro actif",
     composerMicActive: "Micro actif · clique à nouveau pour arrêter l'écoute",
-    composerVoiceOver:
-      "La réponse est toujours écrite ; la voix s'ajoute par-dessus",
     composerSend: "Envoyer",
     conversationLabel: "Conversation",
     conversationLoadingOlder: "Chargement…",

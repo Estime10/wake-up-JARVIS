@@ -2,8 +2,11 @@
 
 export const MARK_SLOT_SIZE = {
   splash: "size-[min(72vw,22rem)] sm:size-[min(52vw,28rem)]",
-  /** Home : ring viewBox 248 ; le chrome (réticules) déborde — voir `MARK_HOME_CHROME_BELOW`. */
-  home: "size-[min(46vw,14.5rem)] sm:size-[min(32vw,15.5rem)]",
+  /**
+   * Home = splash (refonte-ui) : pas de scale-down après splash ;
+   * le mark reste plein centre à la même taille.
+   */
+  home: "size-[min(72vw,22rem)] sm:size-[min(52vw,28rem)]",
 } as const;
 
 /**

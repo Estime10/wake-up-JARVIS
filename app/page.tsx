@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 
-import { SplashEntry } from "@/features/intro/SplashEntry";
 import { ROUTES } from "@/lib/routes";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
- * Entrée `/` — auth d’abord, puis splash (évite de casser l’intro).
+ * `/` — plus de page splash séparée : auth → `/home` (splash en overlay).
  */
-export default async function Home() {
+export default async function RootPage() {
   if (hasSupabasePublicEnv()) {
     const supabase = await createSupabaseServerClient();
     const {
@@ -19,5 +18,5 @@ export default async function Home() {
     }
   }
 
-  return <SplashEntry />;
+  redirect(ROUTES.home);
 }

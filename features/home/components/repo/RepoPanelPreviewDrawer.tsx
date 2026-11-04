@@ -34,6 +34,7 @@ export function RepoPanelPreviewDrawer({
         REPO_PREVIEW_INSET_CLASS,
         REPO_LAYER_CLASS.preview,
       )}
+      data-scroll-lock-allow="true"
     >
       <aside
         className={cn(

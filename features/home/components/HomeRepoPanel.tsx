@@ -1,13 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
+
 import {
   LiveRepoPreviewProvider,
   useLiveRepoPreview,
 } from "@/features/github/context/liveRepoPreviewContext";
 import { RepoPanelCommitDrawer } from "@/features/home/components/repo/RepoPanelCommitDrawer";
 import { RepoPanelFilesDrawer } from "@/features/home/components/repo/RepoPanelFilesDrawer";
-import { RepoPanelHitLayer } from "@/features/home/components/repo/RepoPanelHitLayer";
-import { RepoPanelMask } from "@/features/home/components/repo/RepoPanelMask";
 import { RepoPanelPreviewDrawer } from "@/features/home/components/repo/RepoPanelPreviewDrawer";
 import { useRepoPanel } from "@/features/home/context";
 import {
@@ -18,7 +18,7 @@ import { usePreviewSnapshot } from "@/features/home/hooks/usePreviewSnapshot";
 
 /**
  * Orchestrateur panneau REPO — live GitHub + chrome animé.
- * Aperçu rendu en frère du tiroir fichiers (hors transform).
+ * Pas d’overlay / hit-layer : tiroirs seuls dans la colonne gauche.
  */
 export function HomeRepoPanel() {
   const { open, close } = useRepoPanel();
@@ -38,9 +38,9 @@ function HomeRepoPanelView({
   close: () => void;
 }) {
   const livePreview = useLiveRepoPreview();
-  const fileActive = Boolean(livePreview.preview);
-  const commitActive = Boolean(livePreview.commitPreview);
-  const previewActive = fileActive || commitActive;
+  // Lié à `open` pour outro synchronisée liste + aperçu.
+  const fileActive = open && Boolean(livePreview.preview);
+  const commitActive = open && Boolean(livePreview.commitPreview);
 
   const panelMotion = usePresenceMotion(open, REPO_MOTION_MS);
   const fileMotion = usePresenceMotion(fileActive, REPO_MOTION_MS);
@@ -54,27 +54,24 @@ function HomeRepoPanelView({
     commitMotion.mounted,
   );
 
-  function dismissPanel(): void {
-    livePreview.closePreview();
-    close();
-  }
+  const closePreview = livePreview.closePreview;
 
-  function onBackdropClick(): void {
-    if (previewActive) {
-      livePreview.closePreview();
-      return;
+  useEffect(() => {
+    if (open) {
+      return undefined;
     }
-    dismissPanel();
+    const id = window.setTimeout(() => {
+      closePreview();
+    }, REPO_MOTION_MS);
+    return () => window.clearTimeout(id);
+  }, [open, closePreview]);
+
+  function dismissPanel(): void {
+    close();
   }
 
   return (
     <>
-      <RepoPanelMask visible={open} />
-      <RepoPanelHitLayer
-        visible={open}
-        previewActive={previewActive}
-        onClick={onBackdropClick}
-      />
       {panelMotion.mounted ? (
         <RepoPanelFilesDrawer
           visible={panelMotion.visible}

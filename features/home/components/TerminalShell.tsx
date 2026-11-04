@@ -31,6 +31,7 @@ export function TerminalShell({ active }: TerminalShellProps) {
     >
       <div
         ref={scrollerRef}
+        data-scroll-lock-allow="true"
         className="t-mono min-h-0 flex-1 overflow-y-auto overflow-x-hidden text-left text-xs leading-relaxed text-text sm:text-sm"
       >
         {lines.map((line, index) => (

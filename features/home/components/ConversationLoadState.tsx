@@ -20,7 +20,7 @@ export function ConversationLoadState({
 
   return (
     <div
-      className="flex min-h-0 w-full max-w-xl flex-1 flex-col items-center justify-center gap-4 px-6 py-4"
+      className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 px-4 py-4 sm:px-5"
       role="alert"
     >
       <p className="t-body text-sm text-danger">

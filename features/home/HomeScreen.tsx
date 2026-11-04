@@ -7,44 +7,54 @@ import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
+import { HomeLeftCtaStack } from "@/features/home/components/HomeLeftCtaStack";
 import { HomeStatusHeader } from "@/features/home/components/HomeStatusHeader";
 import { HomeTerminalPanel } from "@/features/home/components/HomeTerminalPanel";
 import { StatusAnnouncer } from "@/features/home/components/StatusAnnouncer";
-import { TerminalBackdrop } from "@/features/home/components/TerminalBackdrop";
 import { useAssistantSession } from "@/features/home/hooks/useAssistantSession";
 import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
 import { useProactiveMarkAlerts } from "@/features/home/hooks/useProactiveMarkAlerts";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
-import { useRepoPanel } from "@/features/home/context";
+import { useMailPanel, useRepoPanel } from "@/features/home/context";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
-import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
 import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { cn } from "@/lib/cn";
+import { useScrollLock } from "@/lib/hooks/useScrollLock";
 import { t } from "@/lib/i18n";
+
+/** Aligné sur `REPO_MOTION_MS` (400) — fade contenu sous les tiroirs. */
+const PANEL_CONTENT_MOTION_CLASS =
+  "transition-opacity duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
 
 /**
  * Home — un seul arbre DOM (composer toujours monté pour GSAP).
- * Briefing centré → settle (mark+side, input) → bulles.
+ * Grille 3 cols : messages dans le 70 % bas de la colonne gauche.
  */
 export function HomeScreen() {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
-  const { phase, skipCenteredBriefing } = useHomeEnter();
-  // Après splash v1 : layout home tout de suite (pas de mark géant centré).
+  const { phase, skipCenteredBriefing, bootPlaying } = useHomeEnter();
+  // Boot = home + scan/nom ; pas de briefing mark géant.
   const briefing = phase === "briefing" && !skipCenteredBriefing;
   const settled = phase === "ready";
+  /** Input après boot + settle GSAP. */
+  const composerPending =
+    bootPlaying || briefing || (skipCenteredBriefing && phase === "briefing");
+  /** Équerres pendant boot ; CTAs gauche après boot. */
+  const showChrome = bootPlaying || settled || phase === "settling";
+  const showLeftCtas = !bootPlaying && (settled || phase === "settling");
 
   const {
     open: terminalOpen,
     triggerRef,
     toggle: toggleTerminal,
-    close: closeTerminal,
   } = useTerminalSession();
   const { open: repoOpen, toggle: toggleRepo } = useRepoPanel();
+  const { open: mailOpen, toggle: toggleMail } = useMailPanel();
   const [phraseCatalogOpen, setPhraseCatalogOpen] = useState(false);
   const [phraseCatalogSeed, setPhraseCatalogSeed] = useState("");
   const openPhraseCatalog = useCallback((phrase: string) => {
@@ -82,11 +92,17 @@ export function HomeScreen() {
   const memoryBlocked = memoryStatus !== "ready";
   const showIdleBrand =
     memoryStatus === "ready" && state === "idle" && messages.length === 0;
-  const homeContentHidden = terminalOpen || repoOpen;
+  const homeContentHidden = terminalOpen || repoOpen || mailOpen;
   const showThread = settled && !memoryBlocked && !showIdleBrand;
 
+  // Terminal / GitHub / mails / catalogue : rien en dessous n’est scrollable.
+  useScrollLock(terminalOpen || repoOpen || mailOpen || phraseCatalogOpen);
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      className="relative h-full w-full overflow-hidden"
+      data-scroll-lock-target={homeContentHidden ? "true" : undefined}
+    >
       <div
         ref={chromeRef}
         data-home="chrome"
@@ -94,26 +110,13 @@ export function HomeScreen() {
           // Opacity pilotée par GSAP / phase — pas de `opacity-0` Tailwind
           // (sinon clearProps au settle ramène le HUD invisible).
           "pointer-events-none absolute inset-0",
-          skipCenteredBriefing || phase === "ready"
-            ? "opacity-100"
-            : "opacity-0",
+          showChrome ? "opacity-100" : "opacity-0",
           terminalOpen && TERMINAL_LAYER_CLASS.chrome,
         )}
       >
-        <SplashHudChrome
-          settled
-          showWake={false}
-          terminalOpen={terminalOpen}
-          terminalDisabled={repoOpen}
-          terminalTriggerRef={triggerRef}
-          onTerminalClick={toggleTerminal}
-          githubOpen={repoOpen}
-          githubDisabled={terminalOpen}
-          onGithubClick={toggleRepo}
-        />
+        <SplashHudChrome settled showWake={false} />
       </div>
 
-      <TerminalBackdrop open={terminalOpen} onClose={closeTerminal} />
       <HomeTerminalPanel open={terminalOpen} />
       {phraseCatalogOpen ? (
         <PhraseCatalogModal
@@ -124,84 +127,95 @@ export function HomeScreen() {
         />
       ) : null}
 
-      <div className="relative z-10 flex h-full flex-col">
-        <h1 id={MAIN_TITLE_ID} className="sr-only">
-          {t("home.title")}
-        </h1>
-        <HomeStatusHeader listening={listening} />
-        <StatusAnnouncer state={state} />
-
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col items-center px-6",
-            briefing ? "justify-center" : "pt-16 sm:pt-20",
-          )}
-        >
-          <AssistantStage />
-
-          {/* Messages : flex-1 jusqu’au composer ; 10px sous le pad chrome du mark. */}
-          <div
-            className={cn(
-              "relative z-20 flex min-h-0 w-full flex-1 flex-col",
-              !briefing && "mt-2.5",
-              briefing &&
-                "pointer-events-none max-h-0 overflow-hidden opacity-0",
-            )}
-          >
-            <div
-              className={cn(
-                "flex min-h-0 w-full flex-1 flex-col items-center",
-                HUD_OVERLAY_MOTION_CLASS,
-                homeContentHidden && "pointer-events-none opacity-0",
-              )}
-              aria-hidden={homeContentHidden || undefined}
-            >
-              {!settled ? (
-                <div className="min-h-0 flex-1" />
-              ) : memoryBlocked ? (
-                <ConversationLoadState
-                  status={memoryStatus === "error" ? "error" : "loading"}
-                  onRetry={retryMemory}
-                />
-              ) : showThread ? (
-                <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-end">
-                  <ConversationThread
-                    messages={messages}
-                    onConfirmAction={confirmAction}
-                    onCancelAction={cancelAction}
-                    scrollLock={homeContentHidden}
-                    animateEntrance
-                    hasMoreOlder={hasMoreOlder}
-                    loadingOlder={loadingOlder}
-                    onLoadOlder={loadOlderMessages}
-                  />
-                </div>
-              ) : (
-                <div className="min-h-0 flex-1" />
-              )}
-            </div>
-          </div>
-
-          {/* Toujours monté — hors flux au briefing pour garder mark centré ; GSAP settle cible ce nœud. */}
-          <div
-            data-home="composer"
-            className={cn(
-              "mb-5 flex w-full shrink-0 justify-center sm:mb-6",
-              briefing &&
-                "pointer-events-none absolute inset-x-0 bottom-5 opacity-0 sm:bottom-6",
-            )}
-            aria-hidden={briefing || undefined}
-          >
-            <HomeComposer
-              onSubmit={submit}
-              listening={listening}
-              onToggleListening={toggleListen}
-              disabled={busy || memoryBlocked || !settled}
-              ghost={state === "speaking"}
-              listenSeed={listenSeed}
+      {/* Grille 3 colonnes égales — gauche 30/70 · centre · droite. */}
+      <div className="relative z-10 grid h-full min-h-0 w-full grid-cols-3">
+        <div className="grid min-h-0 grid-rows-[30%_70%]">
+          <div className="relative z-20 min-h-0 min-w-0">
+            <HomeLeftCtaStack
+              visible={showLeftCtas}
+              terminalOpen={terminalOpen}
+              terminalDisabled={repoOpen || mailOpen}
+              terminalTriggerRef={triggerRef}
+              onTerminalClick={toggleTerminal}
+              emailOpen={mailOpen}
+              emailDisabled={terminalOpen || repoOpen}
+              onEmailClick={toggleMail}
+              githubOpen={repoOpen}
+              githubDisabled={terminalOpen || mailOpen}
+              onGithubClick={toggleRepo}
             />
           </div>
+
+          <div
+            className={cn(
+              "relative flex min-h-0 min-w-0 flex-col",
+              PANEL_CONTENT_MOTION_CLASS,
+              homeContentHidden && "pointer-events-none opacity-0",
+            )}
+            aria-hidden={homeContentHidden || undefined}
+          >
+            {!settled ? null : memoryBlocked ? (
+              <ConversationLoadState
+                status={memoryStatus === "error" ? "error" : "loading"}
+                onRetry={retryMemory}
+              />
+            ) : showThread ? (
+              <div className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-end">
+                <ConversationThread
+                  messages={messages}
+                  onConfirmAction={confirmAction}
+                  onCancelAction={cancelAction}
+                  scrollLock={homeContentHidden}
+                  animateEntrance
+                  hasMoreOlder={hasMoreOlder}
+                  loadingOlder={loadingOlder}
+                  onLoadOlder={loadOlderMessages}
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
+
+        <div className="relative flex min-h-0 min-w-0 flex-col">
+          <h1 id={MAIN_TITLE_ID} className="sr-only">
+            {t("home.title")}
+          </h1>
+          <HomeStatusHeader listening={listening} />
+          <StatusAnnouncer state={state} />
+
+          <div
+            className={cn(
+              "relative flex min-h-0 w-full flex-1 flex-col items-center justify-center px-2",
+              PANEL_CONTENT_MOTION_CLASS,
+              homeContentHidden && "pointer-events-none opacity-0",
+            )}
+            aria-hidden={homeContentHidden || undefined}
+          >
+            <AssistantStage />
+
+            <div
+              data-home="composer"
+              className={cn(
+                "absolute inset-x-0 bottom-5 z-20 mb-0 flex w-full justify-center px-2 sm:bottom-6",
+                composerPending && "pointer-events-none opacity-0",
+              )}
+              aria-hidden={composerPending || undefined}
+            >
+              <div className="flex w-full justify-center">
+                <HomeComposer
+                  onSubmit={submit}
+                  listening={listening}
+                  onToggleListening={toggleListen}
+                  disabled={busy || memoryBlocked || !settled}
+                  ghost={state === "speaking"}
+                  listenSeed={listenSeed}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="min-h-0 min-w-0" />
       </div>
     </div>
   );

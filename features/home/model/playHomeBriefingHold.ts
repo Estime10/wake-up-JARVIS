@@ -22,7 +22,7 @@ import { WORDMARK_REVEAL_SECONDS } from "@/lib/intro/timings";
 type PlayHomeBriefingHoldArgs = {
   root: HTMLElement;
   mark: HTMLElement | null;
-  aside: HTMLElement;
+  aside: HTMLElement | null;
   reducedMotion: boolean;
   fromSplash: boolean;
   flipSnapshot?: SplashEnterSnapshot | null;
@@ -31,7 +31,9 @@ type PlayHomeBriefingHoldArgs = {
 };
 
 /**
- * Briefing home : Flip du même JarvisMark (dessin splash) → slot home.
+ * Briefing home.
+ * Splash v1 (`skipCenteredBriefing`) : conserve la pose capture — pas de Flip
+ * (évite saut + double animation avant le settle composer).
  */
 export function playHomeBriefingHold({
   root,
@@ -121,33 +123,17 @@ export function playHomeBriefingHold({
     }
   };
 
-  // Splash v1 : même JarvisMark Flip → slot home.
-  if (
-    skipCenteredBriefing &&
-    mark &&
-    homeSlot &&
-    fromSplash &&
-    flipSnapshot &&
-    !reducedMotion
-  ) {
-    placeOnRect(mark, homeSlot.getBoundingClientRect());
-    showMark(mark);
-    mark.style.visibility = "";
-    const flip = Flip.from(flipSnapshot, {
-      targets: [mark],
-      scale: true,
-      duration: 0.65,
-      ease: "power2.inOut",
-      onComplete: revealWordmarkThenReady,
-    });
-    return () => {
-      flip.kill();
-      cleanup();
-    };
-  }
-
+  // Post-splash (overlay home) : pose capture figée, ou slot home si refresh session.
   if (skipCenteredBriefing) {
-    placeOnTargetSlot();
+    if (mark) {
+      if (fromSplash) {
+        showMark(mark);
+        mark.style.visibility = "";
+        gsap.set(mark, { opacity: 1 });
+      } else {
+        placeOnTargetSlot();
+      }
+    }
     revealWordmarkThenReady();
     return cleanup;
   }

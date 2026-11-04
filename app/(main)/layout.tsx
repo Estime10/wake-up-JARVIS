@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import { AppShell } from "@/features/home/components/AppShell";
+import { HomeMailDrawer } from "@/features/home/components/HomeMailDrawer";
 import { HomeRepoPanel } from "@/features/home/components/HomeRepoPanel";
-import { HomeSidePanel } from "@/features/home/components/HomeSidePanel";
-import { RepoPanelProvider } from "@/features/home/context";
+import { MailPanelProvider, RepoPanelProvider } from "@/features/home/context";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
@@ -26,16 +26,15 @@ export default async function MainLayout({
 
   return (
     <RepoPanelProvider>
-      <AppShell
-        side={
-          <Suspense fallback={null}>
-            <HomeSidePanel />
-          </Suspense>
-        }
-        repo={<HomeRepoPanel />}
-      >
-        {children}
-      </AppShell>
+      <MailPanelProvider>
+        <AppShell
+          side={null}
+          repo={<HomeRepoPanel />}
+          mail={<HomeMailDrawer />}
+        >
+          {children}
+        </AppShell>
+      </MailPanelProvider>
     </RepoPanelProvider>
   );
 }

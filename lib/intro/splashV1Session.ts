@@ -3,7 +3,7 @@ const KEY = "jarvis.splashV1Done";
 /** Survive Strict Mode remount (useState init 2× ne doit pas perdre le flag). */
 let memoryDone = false;
 
-/** Marque la fin du splash SVG v1 — home ne rejoue pas l’ancien briefing mark. */
+/** Marque la fin du splash (session) — home ne rejoue pas l’overlay. */
 export function markSplashV1Done(): void {
   memoryDone = true;
   if (typeof window === "undefined") {
@@ -16,28 +16,29 @@ export function markSplashV1Done(): void {
   }
 }
 
-export function consumeSplashV1Done(): boolean {
+/** Splash déjà joué cette session ? (sans consommer le flag). */
+export function hasSplashV1PlayedThisSession(): boolean {
   if (memoryDone) {
-    if (typeof window !== "undefined") {
-      try {
-        window.sessionStorage.removeItem(KEY);
-      } catch {
-        /* private mode */
-      }
-    }
     return true;
   }
   if (typeof window === "undefined") {
     return false;
   }
   try {
-    if (window.sessionStorage.getItem(KEY) !== "1") {
-      return false;
-    }
-    window.sessionStorage.removeItem(KEY);
-    memoryDone = true;
-    return true;
+    return window.sessionStorage.getItem(KEY) === "1";
   } catch {
     return false;
   }
+}
+
+/**
+ * @deprecated Préférer `hasSplashV1PlayedThisSession` + `markSplashV1Done`.
+ * Conservé pour compat lecture one-shot.
+ */
+export function consumeSplashV1Done(): boolean {
+  if (!hasSplashV1PlayedThisSession()) {
+    return false;
+  }
+  memoryDone = true;
+  return true;
 }

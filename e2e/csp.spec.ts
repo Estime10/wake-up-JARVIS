@@ -25,7 +25,7 @@ test.describe("CSP", () => {
     expect(csp).toBeTruthy();
     expect(csp).toContain("script-src");
     expect(csp).toContain("nonce-");
-    expect(csp).toContain("https://api.bigdatacloud.net");
+    expect(csp).toContain("https://*.supabase.co");
 
     await page.waitForTimeout(500);
     expect(cspViolations).toEqual([]);

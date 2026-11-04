@@ -17,6 +17,7 @@ import { SidePanelMessage } from "@/features/home/components/SidePanelMessage";
 import { useRecentMails } from "@/features/home/hooks/useRecentMails";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { MailAccountsBar } from "@/features/mail/components/MailAccountsBar";
+import { useMailPreview } from "@/features/mail/context/mailPreviewContext";
 import { useMailAccounts } from "@/features/mail/hooks/useMailAccounts";
 import { runMailPoll } from "@/features/mail/model/mailPollSchedule";
 import { t } from "@/lib/i18n";
@@ -34,8 +35,8 @@ const OAUTH_FLASH = {
 } as const;
 
 /**
- * Panneau droit — boîtes Gmail + mails relevés (live uniquement).
- * Poll Gmail auto : MailFeedProvider (10 min). Actualiser : manuel ici.
+ * Corps tiroir mails — boîtes Gmail + mails relevés (live).
+ * Shell / ouverture : `HomeMailDrawer` (section gauche).
  */
 export function HomeSidePanel() {
   const searchParams = useSearchParams();
@@ -47,6 +48,7 @@ export function HomeSidePanel() {
     disconnect,
   } = useMailAccounts();
   const { mails, status: mailStatus, retry: retryMails } = useRecentMails();
+  const { selected, select, clear } = useMailPreview();
   const idPrefix = useId();
   const tabRefs = useRef<Partial<Record<string, HTMLButtonElement>>>({});
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -101,6 +103,19 @@ export function HomeSidePanel() {
     [mails, selectedAccountId],
   );
 
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
+    if (selected.accountId !== selectedAccountId) {
+      clear();
+      return;
+    }
+    if (!activeMails.some((mail) => mail.id === selected.id)) {
+      clear();
+    }
+  }, [activeMails, clear, selected, selectedAccountId]);
+
   const tabId = (id: string) => `${idPrefix}-tab-${id}`;
   const panelId = `${idPrefix}-panel`;
   const canConnect = live && accounts.length < 3 && accountsStatus === "ready";
@@ -138,7 +153,7 @@ export function HomeSidePanel() {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col border-l border-line-subtle">
+    <div className="relative flex h-full min-h-0 flex-col">
       {live ? (
         <MailAccountsBar
           accounts={accounts}
@@ -214,8 +229,8 @@ export function HomeSidePanel() {
 
       <div
         id={panelId}
-        data-scroll-lock-target
-        className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-4"
+        data-scroll-lock-allow="true"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 pt-3 pb-4"
         role="tabpanel"
         aria-labelledby={
           selectedAccountId ? tabId(selectedAccountId) : undefined
@@ -253,7 +268,11 @@ export function HomeSidePanel() {
           <ul className="flex flex-col gap-2">
             {activeMails.map((mail) => (
               <li key={mail.id}>
-                <MailListItem mail={mail} />
+                <MailListItem
+                  mail={mail}
+                  selected={selected?.id === mail.id}
+                  onSelect={select}
+                />
               </li>
             ))}
           </ul>
