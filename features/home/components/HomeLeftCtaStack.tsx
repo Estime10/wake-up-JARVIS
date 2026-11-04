@@ -19,6 +19,9 @@ type HomeLeftCtaStackProps = {
   githubOpen?: boolean;
   githubDisabled?: boolean;
   onGithubClick?: () => void;
+  supabaseOpen?: boolean;
+  supabaseDisabled?: boolean;
+  onSupabaseClick?: () => void;
 };
 
 /**
@@ -37,6 +40,9 @@ export function HomeLeftCtaStack({
   githubOpen = false,
   githubDisabled = false,
   onGithubClick,
+  supabaseOpen = false,
+  supabaseDisabled = false,
+  onSupabaseClick,
 }: HomeLeftCtaStackProps) {
   const { time, date } = useIntroClockParts();
 
@@ -106,18 +112,13 @@ export function HomeLeftCtaStack({
         type="button"
         variant="hud"
         size="bare"
-        aria-label={t("home.supabaseLabel")}
+        disabled={supabaseDisabled}
+        aria-expanded={supabaseOpen}
+        aria-label={
+          supabaseOpen ? t("home.supabaseCloseLabel") : t("home.supabaseLabel")
+        }
+        onClick={onSupabaseClick}
         className="w-fit"
-        onClick={() => {
-          const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          window.open(
-            projectUrl && projectUrl.length > 0
-              ? projectUrl
-              : "https://supabase.com/dashboard",
-            "_blank",
-            "noopener,noreferrer",
-          );
-        }}
       >
         {t("home.supabase")}
       </Button>

@@ -23,4 +23,12 @@ export const ROUTES = {
     `/api/github/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls`,
   githubRepoContents: (owner: string, repo: string) =>
     `/api/github/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents`,
+  supabasePlatformConnect: "/api/supabase/platform/connect",
+  supabasePlatformStatus: "/api/supabase/platform/status",
+  supabasePlatformDisconnect: "/api/supabase/platform/disconnect",
+  supabasePlatformProjects: "/api/supabase/platform/projects",
+  supabasePlatformSelectProject: "/api/supabase/platform/select-project",
+  supabasePlatformSetActive: "/api/supabase/platform/set-active",
+  supabasePlatformDockerEnsure: "/api/supabase/platform/docker/ensure",
+  supabasePlatformStudioStart: "/api/supabase/platform/studio/start",
 } as const;

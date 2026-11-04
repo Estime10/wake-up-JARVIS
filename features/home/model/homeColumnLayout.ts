@@ -3,6 +3,9 @@
  */
 export const HOME_LEFT_SECTION_WIDTH_CLASS = "w-1/3";
 
+/** Section droite (Supabase Studio) — même largeur qu’une colonne grille. */
+export const HOME_RIGHT_SECTION_WIDTH_CLASS = "w-1/3";
+
 /** 1re moitié de la section gauche (liste mails / fichiers repo). */
 export const HOME_LEFT_HALF_WIDTH_CLASS = "w-1/6";
 

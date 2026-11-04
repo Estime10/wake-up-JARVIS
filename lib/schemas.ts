@@ -68,6 +68,41 @@ export const githubConnectionSchema = z.object({
 
 export type GithubConnection = z.infer<typeof githubConnectionSchema>;
 
+export const supabasePlatformConnectionStatusSchema = z.enum([
+  "active",
+  "needs_reauth",
+]);
+
+export type SupabasePlatformConnectionStatus = z.infer<
+  typeof supabasePlatformConnectionStatusSchema
+>;
+
+/** Connexion platform Supabase UI — sans access token / vault_secret_id. */
+export const supabasePlatformConnectionSchema = z.object({
+  id: z.string().min(1),
+  accountLabel: z.string().min(1),
+  status: supabasePlatformConnectionStatusSchema,
+  selectedProjectRef: z.string().nullable(),
+  selectedProjectName: z.string().nullable(),
+  isActive: z.boolean(),
+  connectedAt: z.iso.datetime({ offset: true }),
+});
+
+export type SupabasePlatformConnection = z.infer<
+  typeof supabasePlatformConnectionSchema
+>;
+
+export const supabasePlatformProjectSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  ref: z.string().min(1),
+  region: z.string().optional(),
+});
+
+export type SupabasePlatformProjectSummary = z.infer<
+  typeof supabasePlatformProjectSchema
+>;
+
 /** Dépôt GitHub (liste) — id = full_name `owner/repo`. */
 export const repoSummarySchema = z.object({
   id: z.string().min(1),

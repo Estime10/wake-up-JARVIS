@@ -13,6 +13,9 @@ export const REPO_SLIDE_IN = "translate-x-0";
 /** Tiroir fichiers — hors viewport à gauche. */
 export const REPO_SLIDE_OUT = "-translate-x-full";
 
+/** Tiroir droite (Supabase) — hors viewport à droite. */
+export const RIGHT_SLIDE_OUT = "translate-x-full";
+
 /** Mask — opacités. */
 export const REPO_FADE_IN = "opacity-100";
 export const REPO_FADE_OUT = "opacity-0";

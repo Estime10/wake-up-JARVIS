@@ -17,7 +17,11 @@ import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
 import { useProactiveMarkAlerts } from "@/features/home/hooks/useProactiveMarkAlerts";
 import { useTerminalSession } from "@/features/home/hooks/useTerminalSession";
-import { useMailPanel, useRepoPanel } from "@/features/home/context";
+import {
+  useMailPanel,
+  useRepoPanel,
+  useSupabasePanel,
+} from "@/features/home/context";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
@@ -55,6 +59,7 @@ export function HomeScreen() {
   } = useTerminalSession();
   const { open: repoOpen, toggle: toggleRepo } = useRepoPanel();
   const { open: mailOpen, toggle: toggleMail } = useMailPanel();
+  const { open: supabaseOpen, toggle: toggleSupabase } = useSupabasePanel();
   const [phraseCatalogOpen, setPhraseCatalogOpen] = useState(false);
   const [phraseCatalogSeed, setPhraseCatalogSeed] = useState("");
   const openPhraseCatalog = useCallback((phrase: string) => {
@@ -95,8 +100,10 @@ export function HomeScreen() {
   const homeContentHidden = terminalOpen || repoOpen || mailOpen;
   const showThread = settled && !memoryBlocked && !showIdleBrand;
 
-  // Terminal / GitHub / mails / catalogue : rien en dessous n’est scrollable.
-  useScrollLock(terminalOpen || repoOpen || mailOpen || phraseCatalogOpen);
+  // Terminal / GitHub / mails / Supabase / catalogue : rien en dessous n’est scrollable.
+  useScrollLock(
+    terminalOpen || repoOpen || mailOpen || supabaseOpen || phraseCatalogOpen,
+  );
 
   return (
     <div
@@ -134,15 +141,18 @@ export function HomeScreen() {
             <HomeLeftCtaStack
               visible={showLeftCtas}
               terminalOpen={terminalOpen}
-              terminalDisabled={repoOpen || mailOpen}
+              terminalDisabled={repoOpen || mailOpen || supabaseOpen}
               terminalTriggerRef={triggerRef}
               onTerminalClick={toggleTerminal}
               emailOpen={mailOpen}
-              emailDisabled={terminalOpen || repoOpen}
+              emailDisabled={terminalOpen || repoOpen || supabaseOpen}
               onEmailClick={toggleMail}
               githubOpen={repoOpen}
-              githubDisabled={terminalOpen || mailOpen}
+              githubDisabled={terminalOpen || mailOpen || supabaseOpen}
               onGithubClick={toggleRepo}
+              supabaseOpen={supabaseOpen}
+              supabaseDisabled={terminalOpen || repoOpen || mailOpen}
+              onSupabaseClick={toggleSupabase}
             />
           </div>
 
