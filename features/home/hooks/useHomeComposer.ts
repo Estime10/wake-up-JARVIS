@@ -11,6 +11,7 @@ import {
 
 import {
   canSubmitComposerDraft,
+  COMPOSER_DRAFT_MAX_CHARS,
   normalizeComposerDraft,
 } from "@/features/home/model/normalizeComposerDraft";
 
@@ -47,9 +48,13 @@ export function useHomeComposer({
   disabled = false,
   listenSeed,
 }: UseHomeComposerArgs): UseHomeComposerResult {
-  const [draft, setDraft] = useState("");
+  const [draft, setDraftState] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const canSubmit = !disabled && canSubmitComposerDraft(draft);
+
+  function setDraft(value: string): void {
+    setDraftState(value.slice(0, COMPOSER_DRAFT_MAX_CHARS));
+  }
 
   // Transcription VoicePort : peut arriver après le passage en écoute.
   // Pattern React « prev props » (pas d'effet) pour injecter le brouillon.

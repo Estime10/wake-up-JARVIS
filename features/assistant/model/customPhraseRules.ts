@@ -1,5 +1,6 @@
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import type { IntentKind } from "@/features/assistant/model/intentKindOptions";
+import { countPhraseSlots } from "@/features/assistant/model/matchPhraseCatalog";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 
 const STORAGE_KEY = "jarvis.customIntentPhrases.v1";
@@ -61,6 +62,9 @@ function parseRules(raw: unknown): CustomPhraseRule[] {
     if (typeof row.kind !== "string" || !isIntentKind(row.kind)) {
       continue;
     }
+    if (countPhraseSlots(row.phrase) > 2) {
+      continue;
+    }
     const rule: CustomPhraseRule = {
       id: row.id,
       phrase: row.phrase,
@@ -111,7 +115,7 @@ export function addCustomPhraseRule(
   input: Omit<CustomPhraseRule, "id">,
 ): CustomPhraseRule[] {
   const phrase = input.phrase.trim();
-  if (phrase.length === 0) {
+  if (phrase.length === 0 || countPhraseSlots(phrase) > 2) {
     return loadCustomPhraseRules();
   }
   const next: CustomPhraseRule = {

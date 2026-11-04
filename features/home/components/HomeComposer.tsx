@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { MicIcon } from "@/features/home/components/MicIcon";
 import { useHomeComposer } from "@/features/home/hooks/useHomeComposer";
+import { COMPOSER_DRAFT_MAX_CHARS } from "@/features/home/model/normalizeComposerDraft";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
@@ -83,6 +84,7 @@ export function HomeComposer({
           name="composer"
           rows={1}
           value={draft}
+          maxLength={COMPOSER_DRAFT_MAX_CHARS}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={

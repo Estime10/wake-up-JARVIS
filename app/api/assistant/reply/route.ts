@@ -14,12 +14,7 @@ const log = createLogger("assistant.reply.route");
 
 const customRuleSchema = z.object({
   id: z.string().min(1).max(80),
-  phrase: z
-    .string()
-    .trim()
-    .min(1)
-    .max(200)
-    .refine((phrase) => countPhraseSlots(phrase) <= 2, "too_many_slots"),
+  phrase: z.string().trim().min(1).max(200),
   kind: z.string().min(1).max(64),
   label: z.string().trim().min(1).max(80).optional(),
   repoQuery: z.string().trim().min(1).max(120).optional(),
@@ -29,7 +24,14 @@ const customRuleSchema = z.object({
 
 const bodySchema = z.object({
   text: z.string().trim().min(1).max(300),
-  customRules: z.array(customRuleSchema).max(200).optional(),
+  // DEV-4 : une règle > 2 slots est écartée, pas un 400 global.
+  customRules: z
+    .array(customRuleSchema)
+    .max(200)
+    .optional()
+    .transform((rules) =>
+      (rules ?? []).filter((rule) => countPhraseSlots(rule.phrase) <= 2),
+    ),
 });
 
 /**

@@ -19,8 +19,8 @@ export async function proxy(request: NextRequest) {
     "font-src 'self'",
     // Supabase : Auth + Data API.
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-    // Studio local via reverse-proxy CSP-strip (:54332) dans le tiroir.
-    "frame-src 'self' http://127.0.0.1:54332",
+    // Studio embed (:54332) — uniquement en dev (DEV-12).
+    isDev ? "frame-src 'self' http://127.0.0.1:54332" : "frame-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
