@@ -6,6 +6,7 @@ import {
   repoFileContentSchema,
   repoPullSchema,
   repoSummarySchema,
+  repoTreeNodeSchema,
   type RepoBranch,
   type RepoCommit,
   type RepoFileContent,
@@ -87,12 +88,12 @@ export function createHttpRepo(): RepoPort {
       }
       const json = (await readJson(response)) as {
         ok?: boolean;
-        tree?: RepoTreeNode[];
+        tree?: unknown;
       };
       if (!json.ok || !Array.isArray(json.tree)) {
         throw new Error("tree_failed");
       }
-      return json.tree;
+      return repoTreeNodeSchema.array().parse(json.tree);
     },
 
     async listCommits(repoId, ref): Promise<RepoCommit[]> {

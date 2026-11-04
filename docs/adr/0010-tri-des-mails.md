@@ -75,7 +75,7 @@ Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-
 | CA1  | Boîte connectée → seul `gmail.readonly` demandé ; aucun libellé, état lu ou mail modifié dans Gmail.                     |
 | CA2  | Expéditeur matche une règle → cette catégorie ; sinon règle objet ; sinon « DIVERS/À trier ». Même mail → même résultat. |
 | CA3  | Mail d’un des 8 types inhabituels → signalé avec motif.                                                                  |
-| CA4  | Réponse **non** au résumé → rien récupéré ni envoyé à l’IA ; non journalisé.                                             |
+| CA4  | Réponse **non** au résumé → rien récupéré ni envoyé à l’IA ; **oui et non** journalisés dans `mail_reads`.               |
 | CA5  | Réponse **oui** → contenu récupéré, résumé stocké seul, contenu jeté ; oui journalisé.                                   |
 | CA6  | Aucune colonne avec corps complet ni jeton en clair.                                                                     |
 | CA7  | `DELETE` sur `mail_items` / `mail_reads` / `mail_accounts` échoue, même authentifié.                                     |

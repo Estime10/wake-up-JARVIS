@@ -92,8 +92,8 @@ export type RepoBranch = z.infer<typeof repoBranchSchema>;
 export type RepoTreeFile = {
   kind: "file";
   name: string;
-  sizeLabel?: string;
-  protected?: boolean;
+  sizeLabel?: string | undefined;
+  protected?: boolean | undefined;
 };
 
 export type RepoTreeDir = {
@@ -103,6 +103,22 @@ export type RepoTreeDir = {
 };
 
 export type RepoTreeNode = RepoTreeFile | RepoTreeDir;
+
+export const repoTreeNodeSchema: z.ZodType<RepoTreeNode> = z.lazy(() =>
+  z.union([
+    z.object({
+      kind: z.literal("file"),
+      name: z.string().min(1),
+      sizeLabel: z.string().optional(),
+      protected: z.boolean().optional(),
+    }),
+    z.object({
+      kind: z.literal("dir"),
+      name: z.string().min(1),
+      children: z.array(repoTreeNodeSchema),
+    }),
+  ]),
+);
 
 export const repoCommitSchema = z.object({
   id: z.string().min(1),

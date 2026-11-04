@@ -1,11 +1,17 @@
 import "server-only";
 
+import { z } from "zod";
+
 import {
   getGoogleClientId,
   getGoogleClientSecret,
   getGoogleRedirectUri,
 } from "@/lib/google/env";
 import { GMAIL_OAUTH_SCOPE_STRING } from "@/lib/google/scopes";
+
+const googleErrorBodySchema = z.object({
+  error: z.string().optional(),
+});
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -59,10 +65,17 @@ export async function exchangeGoogleCode(
   });
 
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(
-      `google_token_exchange_${response.status}${body ? `:${body.slice(0, 120)}` : ""}`,
-    );
+    const raw = await response.text().catch(() => "");
+    let errorCode = "unknown";
+    try {
+      const parsed = googleErrorBodySchema.safeParse(JSON.parse(raw));
+      if (parsed.success && parsed.data.error) {
+        errorCode = parsed.data.error;
+      }
+    } catch {
+      /* corps non-JSON — ne pas logger le brut */
+    }
+    throw new Error(`google_token_exchange_${response.status}:${errorCode}`);
   }
 
   return (await response.json()) as GoogleTokenResponse;

@@ -17,6 +17,28 @@ export type GithubHttpError =
     }
   | { ok: true; response: Response };
 
+function isSafeGithubApiPath(pathname: string, requestedPath: string): boolean {
+  const normalized = pathname.replace(/\/+/g, "/");
+  if (normalized.includes("/../") || normalized.endsWith("/..")) {
+    return false;
+  }
+  if (!requestedPath.startsWith("/repos/")) {
+    return normalized.startsWith("/") && !normalized.includes("..");
+  }
+  const parts = requestedPath.split("/").filter(Boolean);
+  // /repos/{owner}/{repo}/...
+  if (parts.length < 3) {
+    return false;
+  }
+  const owner = parts[1];
+  const repo = parts[2];
+  if (!owner || !repo) {
+    return false;
+  }
+  const expected = `/repos/${owner}/${repo}`;
+  return normalized === expected || normalized.startsWith(`${expected}/`);
+}
+
 /**
  * GET GitHub API — token jamais loggé.
  */
@@ -26,6 +48,10 @@ export async function githubGet(
   query?: Record<string, string | undefined>,
 ): Promise<GithubHttpError> {
   const url = new URL(`${GITHUB_API_BASE}${path}`);
+  if (!isSafeGithubApiPath(url.pathname, path)) {
+    log.error("path_escape", { path });
+    return { ok: false, reason: "not_found", status: 400 };
+  }
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value.length > 0) {
