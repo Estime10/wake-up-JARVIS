@@ -1,11 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
-import { createLocalSummary } from "@/features/mail/services/createLocalSummary";
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { hasGoogleOAuthEnv } from "@/lib/google/env";
-import { fetchGmailMessagePlainText } from "@/lib/google/gmail";
-import { refreshGoogleAccessToken } from "@/lib/google/refreshAccessToken";
-import { createLogger } from "@/lib/logger";
 import {
   createSupabaseAdminClient,
   hasSupabaseServiceRole,
@@ -13,8 +11,6 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-
-const log = createLogger("mail.summary");
 
 const bodySchema = z.object({
   consent: z.literal(true),
@@ -25,126 +21,83 @@ type RouteContext = {
 };
 
 /**
- * Résumé sur consentement explicite — fetch corps → SummaryPort → jette le corps.
+ * Résumé sur consentement — 501 tant qu’aucun vrai SummaryPort n’est branché.
+ * Journalise le oui avant 501 ; refuse boîte inactive (gardes M6 pour plus tard).
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   if (!hasGoogleOAuthEnv() || !hasSupabaseServiceRole()) {
     return NextResponse.json({ error: "config" }, { status: 503 });
   }
 
-  const { id: mailItemId } = await context.params;
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
+  }
+
+  const { id: mailItemIdRaw } = await context.params;
+  const idResult = z.string().uuid().safeParse(mailItemIdRaw);
+  if (!idResult.success) {
+    return NextResponse.json({ error: "invalid_id" }, { status: 400 });
+  }
+
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "consent_required" }, { status: 400 });
   }
 
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   const { data: item, error: itemError } = await supabase
     .from("mail_items")
-    .select("id, account_id, gmail_message_id, subject, summary")
-    .eq("id", mailItemId)
+    .select("id, account_id")
+    .eq("id", idResult.data)
     .maybeSingle();
 
   if (itemError || !item) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  await supabase.from("mail_reads").insert({
-    user_id: user.id,
-    mail_item_id: mailItemId,
+  const { error: journalError } = await supabase.from("mail_reads").insert({
+    user_id: access.user.id,
+    mail_item_id: idResult.data,
     action: "summary_yes",
   });
 
-  if (item.summary) {
-    return NextResponse.json({ summary: item.summary });
+  if (journalError) {
+    return NextResponse.json({ error: "journal" }, { status: 500 });
   }
 
   const admin = createSupabaseAdminClient();
   const { data: account } = await admin
     .from("mail_accounts")
-    .select("id, vault_secret_id, status")
+    .select("id, status")
     .eq("id", item.account_id)
-    .eq("user_id", user.id)
+    .eq("user_id", access.user.id)
     .maybeSingle();
 
-  if (!account || account.status === "needs_reauth") {
+  if (!account || account.status !== "active") {
     return NextResponse.json({ error: "account" }, { status: 409 });
   }
 
-  const { data: token } = await admin.rpc("admin_mail_account_read_token", {
-    p_secret_id: account.vault_secret_id,
-  });
-
-  if (typeof token !== "string" || !token) {
-    return NextResponse.json({ error: "token" }, { status: 500 });
-  }
-
-  const access = await refreshGoogleAccessToken(token);
-  if (!access.ok) {
-    if (access.reason === "invalid_grant") {
-      await admin.rpc("admin_mail_account_set_status", {
-        p_account_id: account.id,
-        p_status: "needs_reauth",
-      });
-    }
-    return NextResponse.json({ error: "google" }, { status: 502 });
-  }
-
-  const bodyText = await fetchGmailMessagePlainText(
-    access.accessToken,
-    item.gmail_message_id,
-  );
-  if (!bodyText) {
-    return NextResponse.json({ error: "empty_body" }, { status: 422 });
-  }
-
-  const summaryPort = createLocalSummary();
-  const summary = await summaryPort.summarize({
-    subject: item.subject ?? "",
-    bodyText,
-  });
-  // bodyText sort du scope — non persisté.
-
-  const { data: stored, error: storeError } = await admin.rpc(
-    "admin_mail_item_store_summary",
-    {
-      p_user_id: user.id,
-      p_mail_item_id: mailItemId,
-      p_summary: summary,
-    },
-  );
-
-  if (storeError) {
-    log.error("store_summary_failed", { message: storeError.message });
-    return NextResponse.json({ error: "store" }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    summary: (stored as { summary?: string } | null)?.summary ?? summary,
-  });
+  return NextResponse.json({ error: "not_implemented" }, { status: 501 });
 }
 
 /** Refuse le résumé — journalise seulement, aucun fetch Gmail. */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
-  const { id: mailItemId } = await context.params;
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
+  const { id: mailItemIdRaw } = await context.params;
+  const idResult = z.string().uuid().safeParse(mailItemIdRaw);
+  if (!idResult.success) {
+    return NextResponse.json({ error: "invalid_id" }, { status: 400 });
+  }
+
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("mail_reads").insert({
-    user_id: user.id,
-    mail_item_id: mailItemId,
+    user_id: access.user.id,
+    mail_item_id: idResult.data,
     action: "summary_no",
   });
 

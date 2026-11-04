@@ -10,7 +10,6 @@ type MailItemRow = {
   account_id: string;
   from_raw: string;
   subject: string;
-  snippet: string;
   received_at: string;
   category: string;
   is_sent: boolean;
@@ -26,9 +25,12 @@ function formatTime(iso: string): string {
   if (Number.isNaN(date.getTime())) {
     return "00:00";
   }
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
+  return new Intl.DateTimeFormat("fr-BE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Brussels",
+  }).format(date);
 }
 
 function mapRow(row: MailItemRow): MailSummary {
@@ -37,10 +39,10 @@ function mapRow(row: MailItemRow): MailSummary {
     accountId: row.account_id,
     from: row.from_raw,
     subject: row.subject,
-    excerpt: row.summary?.trim() || row.snippet,
+    excerpt: row.summary?.trim() || "",
     time: formatTime(row.received_at),
     receivedAt: new Date(row.received_at).toISOString(),
-    unread: row.flagged,
+    unread: false,
     category: row.category,
     isSent: row.is_sent,
     flagged: row.flagged,
@@ -52,7 +54,7 @@ function mapRow(row: MailItemRow): MailSummary {
 const WINDOW_FETCH_CAP = 500;
 
 const SELECT_COLS =
-  "id, account_id, from_raw, subject, snippet, received_at, category, is_sent, flagged, flag_reason, summary";
+  "id, account_id, from_raw, subject, received_at, category, is_sent, flagged, flag_reason, summary";
 
 /** MailPort Supabase — lit `mail_items` (RLS), fenêtre J-2 + veille + jour. */
 export function createSupabaseMail(client: SupabaseClient): MailPort {
