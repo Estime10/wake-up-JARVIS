@@ -18,7 +18,7 @@ export function formatMailOverviewReply(
 
   const lines = buckets.map(
     (bucket, index) =>
-      `${index + 1}. ${bucket.label.toLocaleUpperCase("fr-FR")} — ${bucket.count}`,
+      `${index + 1}. ${bucket.label.toLocaleUpperCase("fr-FR")} · ${bucket.count}`,
   );
   return `${t("assistant.mailOverviewHeader", { count: total })}\n${lines.join("\n")}`;
 }

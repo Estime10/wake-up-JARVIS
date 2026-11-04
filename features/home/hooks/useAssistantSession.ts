@@ -24,6 +24,8 @@ import {
 import { useLatestRef } from "@/lib/hooks/useLatestRef";
 import { t } from "@/lib/i18n";
 import type { ActionProposal, Message } from "@/lib/schemas";
+import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
+import type { AssistantUiPending } from "@/features/assistant/services/applyAssistantUiIntent";
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 import { prepareConversationSpeakText } from "@/features/home/model/prepareConversationSpeakText";
 import { markWelcomeSpeakPlayed } from "@/lib/voice/welcomeSpeak";
@@ -76,6 +78,16 @@ type UseAssistantSessionResult = {
 type UseAssistantSessionArgs = {
   /** Phrase non reconnue → ouvrir le catalogue. */
   onUnrecognized?: (phrase: string) => void;
+  /** Side-effects UI (terminal, GitHub, Studio) + follow-up pending. */
+  onUiIntent?: (args: {
+    intent: AssistantIntent | null;
+    text: string;
+    pending: AssistantUiPending;
+  }) => Promise<{
+    intent: AssistantIntent | null;
+    pending: AssistantUiPending;
+    spokenReply?: string;
+  }>;
 };
 
 /**
@@ -84,7 +96,7 @@ type UseAssistantSessionArgs = {
 export function useAssistantSession(
   args: UseAssistantSessionArgs = {},
 ): UseAssistantSessionResult {
-  const { onUnrecognized } = args;
+  const { onUnrecognized, onUiIntent } = args;
   const { llm, memory, voice, action } = usePorts();
   const [assistant, dispatch] = useReducer(sessionReducer, "idle");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -102,6 +114,7 @@ export function useAssistantSession(
   const assistantRef = useLatestRef(assistant);
   const actionTimersRef = useRef<Map<string, number>>(new Map());
   const actionAbortRef = useRef<Map<string, AbortController>>(new Map());
+  const uiPendingRef = useRef<AssistantUiPending>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -441,6 +454,70 @@ export function useAssistantSession(
     }));
   }
 
+  /** Réponse figée (ex. Studio lancé) — sans re-parse LLM. */
+  async function runDirectReply(fullText: string): Promise<void> {
+    const trimmedReply = fullText.trim();
+    if (trimmedReply.length === 0) {
+      dispatch({ type: "REPLY_DONE" });
+      return;
+    }
+
+    const ac = new AbortController();
+    abortRef.current = ac;
+    const id = createMessageId();
+    const createdAt = new Date().toISOString();
+    speakIdRef.current = id;
+    const time = formatMessageTime(new Date(createdAt));
+
+    try {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id,
+          role: "assistant",
+          text: trimmedReply,
+          time,
+          createdAt,
+          streaming: false,
+        },
+      ]);
+      dispatch({ type: "REPLY_START" });
+
+      const toSpeak = prepareConversationSpeakText(trimmedReply);
+      const speakPromise =
+        toSpeak.length > 0 && !ac.signal.aborted
+          ? voice.speak(toSpeak, { onLevel: () => {} }, ac.signal).catch(() => {
+              /* TTS non bloquant */
+            })
+          : Promise.resolve();
+
+      await Promise.all([
+        persist({
+          id,
+          role: "assistant",
+          text: trimmedReply,
+          createdAt,
+        }),
+        speakPromise,
+      ]);
+
+      speakIdRef.current = null;
+      if (!ac.signal.aborted) {
+        dispatch({ type: "SPEAK_END" });
+      }
+    } catch {
+      if (ac.signal.aborted) {
+        return;
+      }
+      speakIdRef.current = null;
+      dispatch({ type: "FAIL" });
+    } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
+    }
+  }
+
   async function runReply(userText: string): Promise<void> {
     const ac = new AbortController();
     abortRef.current = ac;
@@ -591,7 +668,8 @@ export function useAssistantSession(
       dispatch({ type: "INTERRUPT" });
     }
 
-    if (!parseAssistantIntent(trimmed)) {
+    const parsed = parseAssistantIntent(trimmed);
+    if (!parsed && uiPendingRef.current !== "supabase.studio") {
       onUnrecognized?.(trimmed);
     }
 
@@ -616,7 +694,30 @@ export function useAssistantSession(
     setListenSeed(undefined);
 
     void persist(userMessage);
-    void runReply(trimmed);
+
+    void (async () => {
+      let replyText = trimmed;
+      if (onUiIntent) {
+        const result = await onUiIntent({
+          intent: parsed,
+          text: trimmed,
+          pending: uiPendingRef.current,
+        });
+        uiPendingRef.current = result.pending;
+        if (result.spokenReply) {
+          await runDirectReply(result.spokenReply);
+          return;
+        }
+        if (result.intent?.kind === "supabase.studio_stop") {
+          replyText = "arrête le studio";
+        } else if (result.intent?.kind === "supabase.studio") {
+          replyText = result.intent.projectQuery
+            ? `lance supabase studio sur ${result.intent.projectQuery}`
+            : "lance le studio";
+        }
+      }
+      await runReply(replyText);
+    })();
   }
 
   async function speakRing(

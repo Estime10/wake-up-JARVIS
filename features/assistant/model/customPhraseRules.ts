@@ -33,6 +33,11 @@ function isIntentKind(value: string): value is IntentKind {
     value === "github.list_pulls" ||
     value === "github.list_commits" ||
     value === "github.list_branches" ||
+    value === "github.open_panel" ||
+    value === "github.open_repo" ||
+    value === "supabase.list_projects" ||
+    value === "supabase.studio" ||
+    value === "supabase.studio_stop" ||
     value === "terminal.open" ||
     value === "files.goto" ||
     value === "files.find" ||
@@ -184,6 +189,20 @@ export function ruleToIntent(rule: CustomPhraseRule): AssistantIntent | null {
       return rule.repoQuery
         ? { kind: "github.list_branches", repoQuery: rule.repoQuery }
         : { kind: "github.list_branches" };
+    case "github.open_panel":
+      return { kind: "github.open_panel" };
+    case "github.open_repo":
+      return rule.repoQuery
+        ? { kind: "github.open_repo", repoQuery: rule.repoQuery }
+        : null;
+    case "supabase.list_projects":
+      return { kind: "supabase.list_projects" };
+    case "supabase.studio":
+      return rule.query
+        ? { kind: "supabase.studio", projectQuery: rule.query }
+        : { kind: "supabase.studio" };
+    case "supabase.studio_stop":
+      return { kind: "supabase.studio_stop" };
     case "terminal.open":
       return rule.folder
         ? { kind: "terminal.open", folder: rule.folder }

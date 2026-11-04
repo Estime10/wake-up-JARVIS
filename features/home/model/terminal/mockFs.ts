@@ -20,7 +20,7 @@ export const MOCK_FS: FsDir = {
               children: {
                 "notes.txt": {
                   kind: "file",
-                  content: "JARVIS — notes locales\n",
+                  content: "E.L.S.A. — notes locales\n",
                 },
               },
             },

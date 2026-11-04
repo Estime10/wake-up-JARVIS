@@ -44,6 +44,15 @@ export async function buildIntentAssistantReply(
       return intent.folder
         ? t("assistant.terminalOpenFolder", { folder: intent.folder })
         : t("assistant.terminalOpen");
+    case "github.open_panel":
+      return t("assistant.githubOpenPanel");
+    case "github.open_repo":
+      return t("assistant.githubOpenRepo", { repo: intent.repoQuery });
+    case "supabase.list_projects":
+    case "supabase.studio":
+      return t("assistant.supabaseNotConnected");
+    case "supabase.studio_stop":
+      return t("assistant.supabaseStudioStopped");
     case "files.goto":
       return t("assistant.filesGoto", { folder: intent.folder });
     case "files.find":

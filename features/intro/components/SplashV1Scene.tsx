@@ -114,7 +114,7 @@ export function SplashV1Scene({ hostRef, onSvgReady }: SplashV1SceneProps) {
         />
       ) : null}
       <p className="sr-only" aria-live="polite">
-        JARVIS : démarrage des systèmes.
+        E.L.S.A. : démarrage des systèmes.
       </p>
     </div>
   );

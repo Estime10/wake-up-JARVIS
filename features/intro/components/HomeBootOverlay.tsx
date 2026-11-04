@@ -107,10 +107,10 @@ export function HomeBootOverlay({ onFinished }: HomeBootOverlayProps) {
       {/* Nom sous le mark home — un cran plus bas que le slot. */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
         <div className={cn("shrink-0", MARK_SLOT_SIZE.splash)} aria-hidden />
-        <div className="h-20 w-full shrink-0 sm:h-24" aria-hidden />
+        <div className="h-24 w-full shrink-0 sm:h-28" aria-hidden />
         <p
           data-boot-wordmark
-          className="t-wordmark text-wordmark-display mt-[calc(2.5rem+55px)] text-center text-text sm:mt-[calc(3rem+55px)]"
+          className="t-wordmark text-wordmark-display mt-[calc(3.5rem+72px)] text-center text-text sm:mt-[calc(4rem+72px)]"
         >
           {letters.map((letter, index) => (
             <span

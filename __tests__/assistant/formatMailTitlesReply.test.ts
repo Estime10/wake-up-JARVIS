@@ -22,6 +22,6 @@ describe("formatMailTitlesReply", () => {
   });
 
   it("signale l’absence de mails", () => {
-    expect(formatMailTitlesReply("DEV", [])).toMatch(/Aucun mail/i);
+    expect(formatMailTitlesReply("DEV", [])).toMatch(/pas de nouveau mail/i);
   });
 });

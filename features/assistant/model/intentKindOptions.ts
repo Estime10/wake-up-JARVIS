@@ -69,6 +69,31 @@ export const INTENT_KIND_OPTIONS: readonly IntentKindOption[] = [
     fields: ["repoQuery"],
   },
   {
+    kind: "github.open_panel",
+    labelKey: "assistant.kindGithubOpenPanel",
+    fields: [],
+  },
+  {
+    kind: "github.open_repo",
+    labelKey: "assistant.kindGithubOpenRepo",
+    fields: ["repoQuery"],
+  },
+  {
+    kind: "supabase.list_projects",
+    labelKey: "assistant.kindSupabaseList",
+    fields: [],
+  },
+  {
+    kind: "supabase.studio",
+    labelKey: "assistant.kindSupabaseStudio",
+    fields: ["query"],
+  },
+  {
+    kind: "supabase.studio_stop",
+    labelKey: "assistant.kindSupabaseStudioStop",
+    fields: [],
+  },
+  {
     kind: "terminal.open",
     labelKey: "assistant.kindTerminalOpen",
     fields: ["folder"],

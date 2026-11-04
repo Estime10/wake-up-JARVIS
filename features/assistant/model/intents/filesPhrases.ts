@@ -4,12 +4,15 @@ export const TERMINAL_OPEN_SHORTCUTS = [
   "terminal",
   "ouvre un terminal",
   "ouvre le terminal",
+  "lance le terminal",
+  "lance un terminal",
 ] as const;
 
 export const TERMINAL_OPEN_PHRASES = [
   "ouvre un terminal",
   "ouvre le terminal",
   "lance un terminal",
+  "lance le terminal",
   "ouvre un terminal dans {folder}",
   "ouvre le terminal sur le dossier {folder}",
   "terminal dans {folder}",

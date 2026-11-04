@@ -4,7 +4,11 @@ import { type ReactNode } from "react";
 import { AppShell } from "@/features/home/components/AppShell";
 import { HomeMailDrawer } from "@/features/home/components/HomeMailDrawer";
 import { HomeRepoPanel } from "@/features/home/components/HomeRepoPanel";
-import { MailPanelProvider, RepoPanelProvider } from "@/features/home/context";
+import {
+  MailPanelProvider,
+  RepoPanelProvider,
+  TerminalSessionProvider,
+} from "@/features/home/context";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
@@ -27,13 +31,15 @@ export default async function MainLayout({
   return (
     <RepoPanelProvider>
       <MailPanelProvider>
-        <AppShell
-          side={null}
-          repo={<HomeRepoPanel />}
-          mail={<HomeMailDrawer />}
-        >
-          {children}
-        </AppShell>
+        <TerminalSessionProvider>
+          <AppShell
+            side={null}
+            repo={<HomeRepoPanel />}
+            mail={<HomeMailDrawer />}
+          >
+            {children}
+          </AppShell>
+        </TerminalSessionProvider>
       </MailPanelProvider>
     </RepoPanelProvider>
   );

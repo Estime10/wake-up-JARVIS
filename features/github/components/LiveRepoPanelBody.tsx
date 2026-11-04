@@ -12,6 +12,8 @@ import { usePorts } from "@/app/ports-context";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { useLiveRepoPreview } from "@/features/github/context/liveRepoPreviewContext";
+import { useRepoPanel } from "@/features/home/context";
+import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 import {
   getLiveRepoDetailCache,
   getLiveRepoListCache,
@@ -177,6 +179,7 @@ export function LiveRepoPanelBody({
   );
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [listAttempt, setListAttempt] = useState(0);
+  const { focusRepoQuery, clearFocusRepo } = useRepoPanel();
 
   const selected = repos.find((item) => item.id === repoId);
   const activeRef = branch || selected?.defaultBranch || "";
@@ -225,6 +228,29 @@ export function LiveRepoPanelBody({
   useEffect(() => {
     setLiveRepoSelectionCache({ repoId, branch, tab });
   }, [repoId, branch, tab]);
+
+  useEffect(() => {
+    if (!focusRepoQuery || repos.length === 0) {
+      return;
+    }
+    const q = normalizeIntentText(focusRepoQuery);
+    const match =
+      repos.find((item) => normalizeIntentText(item.id) === q) ??
+      repos.find((item) => normalizeIntentText(item.name) === q) ??
+      repos.find((item) => normalizeIntentText(item.name).includes(q)) ??
+      repos.find((item) => normalizeIntentText(item.id).includes(q));
+    const timer = window.setTimeout(() => {
+      if (!match) {
+        clearFocusRepo();
+        return;
+      }
+      setRepoId(match.id);
+      setBranch(match.defaultBranch);
+      hydrateDetail(match.id, match.defaultBranch);
+      clearFocusRepo();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusRepoQuery, repos, clearFocusRepo, hydrateDetail]);
 
   useEffect(() => {
     let cancelled = false;

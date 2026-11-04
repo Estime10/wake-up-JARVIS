@@ -42,7 +42,7 @@ function proposalForTrigger(text: string): ActionProposal | null {
       ...base,
       id: "action_read_ls",
       command: "ls -la /Users/devinchat/code",
-      explanation: "Liste le contenu du dossier code (lecture seule).",
+      explanation: "Liste le contenu du dossier code.",
       risk: 1,
     });
   }

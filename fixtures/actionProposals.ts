@@ -16,7 +16,7 @@ export const MOCK_ACTION_PROPOSALS: {
     command: "ls -la /Users/devinchat/code",
     cwd: "/Users/devinchat/code",
     machine: { id: "mac-studio-1", name: "Mac Studio" },
-    explanation: "Liste le contenu du dossier code (lecture seule).",
+    explanation: "Liste le contenu du dossier code.",
     risk: 1,
     expiresAt,
   }),

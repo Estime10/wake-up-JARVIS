@@ -30,6 +30,9 @@ export function formatMailTitlesReply(
     );
 
   if (entries.length === 0) {
+    if (label === t("assistant.mailRecentLabel")) {
+      return t("assistant.mailRecentEmpty");
+    }
     return t("assistant.mailLabelEmpty", { label });
   }
 

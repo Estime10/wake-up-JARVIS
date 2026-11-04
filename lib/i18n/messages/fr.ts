@@ -4,9 +4,11 @@
  */
 export const fr = {
   app: {
-    name: "JARVIS",
-    shortName: "JARVIS",
-    description: "Assistant JARVIS",
+    name: "E.L.S.A.",
+    shortName: "E.L.S.A.",
+    /** Déploiement du sigle sous le mark, au-dessus du composer. */
+    expansion: "Estime Logiciel Système Assistant",
+    description: "Assistant E.L.S.A.",
   },
   user: {
     displayName: "DevinChat",
@@ -18,12 +20,12 @@ export const fr = {
     /** Affiché en uppercase CSS (HUD). */
     mailTotal: "{count} mails",
     /** Sigle : capitales dans la source (exception DA). */
-    wordmark: "JARVIS",
+    wordmark: "E.L.S.A.",
     wakeDetected: "Réveil détecté : « {phrase} »",
-    wakePhrase: "Wake up, JARVIS",
+    wakePhrase: "Wake up, E.L.S.A.",
     /** Splash — statut muet (annonce lecteurs d’écran uniquement, pas de TTS). */
     systemsOnline: "Systèmes en ligne",
-    systemsOnlineAnnounce: "JARVIS : systèmes en ligne.",
+    systemsOnlineAnnounce: "E.L.S.A. : systèmes en ligne.",
     /** HUD SYS — états Compute Pressure (CPU système). */
     sysNominal: "sys nominal",
     sysFair: "sys fair",
@@ -42,14 +44,14 @@ export const fr = {
     spokenDateTime: "Nous sommes le {date}, il est {time}.",
     spokenTimeHourOnly: "{hour} heures",
     spokenTimeHourMinute: "{hour} heures {minute}",
-    spokenMailsNone: "Vous n'avez aucun mail reçu aujourd'hui.",
-    spokenMailTodayOne: "Vous avez un mail reçu aujourd'hui.",
-    spokenMailTodayMany: "Vous avez {today} mails reçus aujourd'hui.",
-    spokenSystemsOk: "Votre système est opérationnel.",
+    spokenMailsNone: "Tu n'as pas de nouveau mail.",
+    spokenMailTodayOne: "Tu as un mail reçu aujourd'hui.",
+    spokenMailTodayMany: "Tu as {today} mails reçus aujourd'hui.",
+    spokenSystemsOk: "Ton système est opérationnel.",
     /** Alertes proactives mask (sans clic). */
     spokenMailNewOne: "Nouveau mail de {name}.",
     spokenMailNewGeneric: "Nouveau mail reçu.",
-    spokenMailNewMany: "Vous avez {count} nouveaux mails.",
+    spokenMailNewMany: "Tu as {count} nouveaux mails.",
     spokenSysNominal: "Charge processeur nominale.",
     spokenSysFair: "Charge processeur modérée.",
     spokenSysSerious: "Attention : charge processeur élevée.",
@@ -57,15 +59,15 @@ export const fr = {
   },
   system: {
     notFoundTitle: "Page introuvable",
-    notFoundBody: "Cette adresse n’existe pas dans JARVIS.",
+    notFoundBody: "Cette adresse n’existe pas dans E.L.S.A.",
     notFoundAction: "Retour",
     errorTitle: "Une erreur est survenue",
-    errorBody: "JARVIS n’a pas pu continuer. Tu peux réessayer.",
+    errorBody: "E.L.S.A. n’a pas pu continuer. Tu peux réessayer.",
     errorRetry: "Réessayer",
     errorHome: "Retour à l’accueil",
   },
   auth: {
-    title: "Accès JARVIS",
+    title: "Accès E.L.S.A.",
     subtitle: "Connecte-toi pour continuer.",
     loginTab: "Connexion",
     registerTab: "Créer un compte",
@@ -90,12 +92,12 @@ export const fr = {
     errorRateLimit: "Trop de tentatives. Attends un moment avant de réessayer.",
     errorMissingConfig:
       "La connexion n’est pas configurée sur cet environnement.",
-    dialogLabel: "Connexion JARVIS",
+    dialogLabel: "Connexion E.L.S.A.",
   },
   assistant: {
-    help: "Je peux :\n• Mails — récents, résumé, compte, label, envoyés, importants\n• GitHub — statut, repos, PR, commits, branches\n• Mac — ouvrir un terminal / dossier / trouver un fichier\nDis « aide », « mails label DEV », « liste mes repos »…",
+    help: "Je peux :\n• Mails : récents, résumé, compte, label, envoyés, importants\n• GitHub : statut, repos, PR, commits, branches\n• Supabase : projets, lancer / arrêter Studio\n• Terminal, fichiers, GitHub drawer\nDis « aide », « mails label DEV », « liste mes repos »…",
     fallbackCapability:
-      "Je n'ai pas reconnu cette phrase. Dis « aide » pour la liste.",
+      "Je n'ai pas la ref de cette phrase. Cherche dans la liste.",
     phraseCatalogTitle: "Phrases reconnues",
     phraseCatalogSearch: "Rechercher une phrase",
     phraseCatalogSearchLabel: "Filtrer le catalogue",
@@ -110,7 +112,7 @@ export const fr = {
     phraseCatalogAddFolder: "Dossier",
     phraseCatalogAddFile: "Fichier",
     phraseCatalogAddSubmit: "Enregistrer",
-    phraseCatalogAddOk: "Phrase ajoutée — elle sera reconnue dès maintenant.",
+    phraseCatalogAddOk: "Phrase ajoutée, elle sera reconnue dès maintenant.",
     phraseCatalogClose: "Fermer le catalogue",
     kindHelp: "Aide / commandes",
     kindGreeting: "Salutation",
@@ -132,14 +134,38 @@ export const fr = {
     kindFilesGoto: "Aller dans un dossier",
     kindFilesFind: "Trouver un fichier",
     kindFilesOpen: "Ouvrir / révéler un fichier",
-    kindRefuseWrite: "Refuser — écriture / hors périmètre",
+    kindRefuseWrite: "Hors périmètre",
     chatGreeting: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
     chatHowAreYou: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
     chatThanks: "Avec plaisir.",
     refuseWrite:
-      "Pas d'écriture, pas d'envoi, pas d'exécution. Demande-moi plutôt de lister, chercher ou ouvrir.",
-    terminalOpen: "Ouvre le terminal depuis le HUD.",
-    terminalOpenFolder: "Terminal demandé sur « {folder} ».",
+      "Je ne peux pas faire ça. Dis-moi plutôt ce que tu veux voir ou ouvrir.",
+    terminalOpen: "J'ouvre le terminal.",
+    terminalOpenFolder: "J'ouvre le terminal sur « {folder} ».",
+    githubOpenPanel: "J'ouvre GitHub.",
+    githubOpenRepo: "J'ouvre le dépôt « {repo} ».",
+    githubOpenRepoMissing:
+      "Précise le dépôt : « va sur le projet github mon-repo ».",
+    supabaseNotConnected:
+      "Supabase n'est pas connecté. Ajoute un compte dans la colonne de droite.",
+    supabaseProjectsEmpty: "Aucun projet sur tes comptes Supabase.",
+    supabaseProjectsHeader: "Voici tous tes projets Supabase :",
+    supabaseStudioAsk:
+      "Quel projet je lance dans Studio ? Dis-moi le nom.\n\n{list}",
+    supabaseStudioLaunching: "Je lance Studio sur « {project} » ({account}).",
+    supabaseStudioNotFound:
+      "Je ne trouve pas le projet « {project} » parmi tes comptes Supabase.",
+    supabaseStudioFailed:
+      "Impossible de lancer Studio pour « {project} ». Vérifie Docker et réessaie.",
+    supabaseStudioStopped: "J'arrête Studio.",
+    supabaseStudioAlreadyStopped: "Studio est déjà arrêté.",
+    supabaseStudioStopFailed:
+      "Impossible d'arrêter Studio. Vérifie Docker et réessaie.",
+    kindGithubOpenPanel: "Ouvrir le panneau GitHub",
+    kindGithubOpenRepo: "Ouvrir un dépôt GitHub",
+    kindSupabaseList: "Lister les projets Supabase",
+    kindSupabaseStudio: "Lancer Supabase Studio",
+    kindSupabaseStudioStop: "Arrêter Supabase Studio",
     filesGoto:
       "Dossier « {folder} » : je pourrai l'ouvrir une fois l'agent Mac branché.",
     filesFind: "Recherche de « {file} » : ouverture dans ton app.",
@@ -148,7 +174,7 @@ export const fr = {
     filesOpenGeneric: "Ouverture du résultat.",
     filesReveal: "Je montrerai « {file} » dans le Finder.",
     filesRevealGeneric: "Je le montrerai dans le Finder.",
-    mailLabelEmpty: "Aucun mail avec le label {label} dans la fenêtre récente.",
+    mailLabelEmpty: "Tu n'as pas de nouveau mail pour « {label} ».",
     mailLabelOne: "Voici le mail avec le label {label} :",
     mailLabelMany: "Voici les {count} mails avec le label {label} :",
     mailFlaggedLabel: "importants",
@@ -157,8 +183,9 @@ export const fr = {
     mailUnlabeled: "sans label",
     mailCount: "Tu as {count} mails dans la fenêtre récente.",
     mailCountLabel: "Tu as {count} mails avec le label {label}.",
-    mailOverviewEmpty: "Aucun mail à résumer dans la fenêtre récente.",
+    mailOverviewEmpty: "Tu n'as pas de nouveau mail.",
     mailOverviewHeader: "Voici le résumé de ta boîte, {count} mails :",
+    mailRecentEmpty: "Tu n'as pas de nouveau mail.",
     githubNeedsLive:
       "Les commandes GitHub passent par le serveur. Réessaie depuis l'app home.",
     githubNotConnected:
@@ -183,7 +210,7 @@ export const fr = {
   },
   home: {
     /** Titre de page sr-only (h1 unique) — nom accessible de `main`. */
-    title: "JARVIS, accueil",
+    title: "E.L.S.A., accueil",
     /** CTA HUD — agent terminal (branchement réel plus tard). */
     terminal: "Terminal",
     terminalClose: "Fermer",
@@ -204,7 +231,7 @@ export const fr = {
     mailCloseLabel: "Fermer le tiroir mails",
     mailNoSubject: "(sans objet)",
     mailOpenLabel: "Ouvrir le mail {subject}",
-    mailPreviewLabel: "Aperçu — {subject}",
+    mailPreviewLabel: "Aperçu : {subject}",
     mailPreviewCloseLabel: "Fermer l’aperçu du mail",
     /** CTA HUD — panneau REPO mock. */
     github: "GitHub",
@@ -261,7 +288,7 @@ export const fr = {
     supabaseStudioErrorDockerStart: "Docker n’a pas démarré à temps.",
     supabaseStudioErrorStart: "Échec de supabase start.",
     supabaseStudioErrorPortInUse:
-      "Un port Supabase local est déjà pris — supabase stop, ou change le port dans supabase/config.toml.",
+      "Un port Supabase local est déjà pris. Fais supabase stop, ou change le port dans supabase/config.toml.",
     repoPanelLabel: "Dépôts",
     repoTitle: "Repo",
     repoClose: "Fermer",
@@ -278,7 +305,7 @@ export const fr = {
     repoBranchProtected: "protégée",
     repoEmpty: "Aucun repo trouvé.",
     repoEmptyTitle: "Aucun repo trouvé",
-    repoEmptyHint: "Aucun repo n’est ouvert à JARVIS pour l’instant.",
+    repoEmptyHint: "Aucun repo n’est ouvert à E.L.S.A. pour l’instant.",
     repoEmptyCommits: "Aucun commit pour l’instant",
     repoCommitsCount: "{count} commits",
     repoCommitPointed: "Pointé {branch}",
@@ -306,7 +333,7 @@ export const fr = {
       "Colle le fine-grained PAT. Sur GitHub : Repository access = All repositories (pas Public only), permissions Read : Contents + Metadata + Pull requests.",
     repoDeniedTitle: "Accès refusé (jeton expiré)",
     repoDeniedHint:
-      "JARVIS ne peut plus lire tes repos — colle un nouveau PAT.",
+      "E.L.S.A. ne peut plus lire tes repos. Colle un nouveau PAT.",
     repoPatLabel: "fine-grained pat",
     repoPatPlaceholder: "github_pat_…",
     repoPatExpiresLabel: "expiration (optionnel)",
@@ -315,7 +342,7 @@ export const fr = {
     repoPatSubmit: "connecter",
     repoPatSubmitting: "vérification…",
     repoPatPrivateHint:
-      "Privés absents ? Le PAT est souvent en « Public repositories » — recrée-le avec All repositories, puis reconnecte.",
+      "Privés absents ? Le PAT est souvent en « Public repositories ». Recrée-le avec All repositories, puis reconnecte.",
     repoPatErrorUnauthorized: "Jeton invalide ou révoqué.",
     repoPatErrorForbidden: "Jeton refusé par GitHub (scopes / SSO).",
     repoPatErrorBody: "Formulaire invalide.",
@@ -323,7 +350,7 @@ export const fr = {
     repoPatErrorNetwork: "Réseau indisponible.",
     repoPatErrorUpstream: "GitHub ne répond pas.",
     repoPatErrorConfig: "Config serveur manquante.",
-    repoPatErrorAuth: "Session expirée — reconnecte-toi.",
+    repoPatErrorAuth: "Session expirée, reconnecte-toi.",
     repoConnectedTitle: "GitHub connecté",
     repoConnectedHint:
       "Compte @{login}. Aucun dépôt visible avec ce PAT (All repositories ?).",
@@ -342,10 +369,10 @@ export const fr = {
       "Limite 512 Ko. Ouvre le fichier sur GitHub pour le consulter.",
     repoPreviewBinaryTitle: "Fichier binaire",
     repoPreviewBinaryBody:
-      "{name} n’est pas un fichier texte : pas d’aperçu dans JARVIS.",
+      "{name} n’est pas un fichier texte : pas d’aperçu dans E.L.S.A.",
     repoPreviewProtectedTitle: "Fichier protégé",
     repoPreviewProtectedBody:
-      "Le contenu de ce fichier n’est pas affiché dans JARVIS.",
+      "Le contenu de ce fichier n’est pas affiché dans E.L.S.A.",
     repoPreviewOfflineTitle: "Aperçu indisponible hors ligne",
     repoPreviewOfflineBody:
       "Le contenu des fichiers n’est jamais gardé en cache.",
@@ -368,12 +395,11 @@ export const fr = {
     mailOAuthLimit: "Maximum 3 boîtes.",
     mailOAuthError: "Connexion Gmail impossible.",
     mailOAuthState:
-      "Session OAuth expirée ou cookie perdu — relance « + Gmail ».",
+      "Session OAuth expirée ou cookie perdu. Relance « + Gmail ».",
     mailOAuthNoRefresh:
-      "Google n’a pas renvoyé de refresh token — déconnecte l’accès JARVIS dans ton compte Google, puis réessaie.",
+      "Google n’a pas renvoyé de refresh token. Déconnecte l’accès E.L.S.A. dans ton compte Google, puis réessaie.",
     mailOAuthStore: "Impossible d’enregistrer la boîte (Vault / RPC).",
-    mailOAuthScope:
-      "Autorise bien Gmail (lecture seule) sur l’écran Google, puis réessaie.",
+    mailOAuthScope: "Autorise bien Gmail sur l’écran Google, puis réessaie.",
     mailOAuthConfig: "Config Google / Supabase manquante.",
     /** Compteur section liste — mails de la boîte active. */
     entriesCount: "{count} mails",
@@ -381,7 +407,7 @@ export const fr = {
     mailLoading: "Chargement des mails…",
     mailEmpty: "Aucun mail pour le moment.",
     mailUnavailable:
-      "Mails indisponibles — configure Supabase pour brancher Gmail.",
+      "Mails indisponibles. Configure Supabase pour brancher Gmail.",
     mailError: "Impossible de charger les mails.",
     mailRetry: "Réessayer",
     mailRefresh: "actualiser",
@@ -390,8 +416,8 @@ export const fr = {
     conversationLoading: "Chargement de la conversation…",
     conversationError: "Impossible de charger la mémoire.",
     conversationRetry: "Réessayer",
-    composerLabel: "Message à JARVIS",
-    composerPlaceholder: "Écris à JARVIS…",
+    composerLabel: "Message à E.L.S.A.",
+    composerPlaceholder: "Écris à E.L.S.A.…",
     composerListening: "Écoute…",
     composerMic: "Micro",
     composerMicStop: "Arrêter l'écoute",
@@ -445,7 +471,7 @@ export const fr = {
   },
   dev: {
     statesTitle: "Galerie des états",
-    statesDescription: "Blocs de capture — développement / preview uniquement.",
+    statesDescription: "Blocs de capture (développement / preview uniquement).",
     tokensTitle: "Tokens",
     tokensColors: "Couleurs",
     tokensRadii: "Rayons",
@@ -453,7 +479,7 @@ export const fr = {
     tokensTouch: "Cible tactile 44 px",
     tokensSampleTitle: "Titre de section",
     tokensSampleLabel: "Label statut",
-    tokensSampleBody: "Corps 16 px — lisible, sans tracking.",
+    tokensSampleBody: "Corps 16 px, lisible, sans tracking.",
     tokensSampleMono: "mono /usr/bin/git status -sb",
     tokensSampleTouch: "44×44",
     actionsTitle: "Cartes d'action",

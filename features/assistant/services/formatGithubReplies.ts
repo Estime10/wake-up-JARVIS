@@ -29,7 +29,7 @@ export function formatGithubPullsReply(
     return t("assistant.githubPullsEmpty", { repo: repoId });
   }
   const lines = pulls.slice(0, 20).map((pull, index) => {
-    return `${index + 1}. ${pull.author.toLocaleUpperCase("fr-FR")}\n#${pull.number} — ${pull.title}`;
+    return `${index + 1}. ${pull.author.toLocaleUpperCase("fr-FR")}\n#${pull.number} · ${pull.title}`;
   });
   const header = t("assistant.githubPullsMany", {
     count: pulls.length,
@@ -65,9 +65,9 @@ export function formatGithubBranchesReply(
   }
   const lines = branches.slice(0, 40).map((branch, index) => {
     const mark = branch.isDefault
-      ? " — défaut"
+      ? " (défaut)"
       : branch.protected
-        ? " — protégée"
+        ? " (protégée)"
         : "";
     return `${index + 1}. ${branch.name.toLocaleUpperCase("fr-FR")}${mark}`;
   });

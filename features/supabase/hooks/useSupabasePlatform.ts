@@ -14,7 +14,7 @@ import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 export type SupabasePlatformStatus =
   "loading" | "ready" | "error" | "unavailable";
 
-type UseSupabasePlatformResult = {
+export type UseSupabasePlatformResult = {
   status: SupabasePlatformStatus;
   connections: SupabasePlatformConnection[];
   /** Compte actif (session). */
@@ -39,6 +39,8 @@ type UseSupabasePlatformResult = {
   startStudio: () => Promise<{ ok: true; studioUrl: string } | { ok: false }>;
   /** Quitte la vue Studio → revient aux projets. */
   clearStudio: () => void;
+  /** Pose l’URL embed après lancement via intent assistant. */
+  adoptStudioUrl: (embedUrl: string) => void;
 };
 
 const SUPABASE_READY = hasSupabasePublicEnv();
@@ -348,6 +350,15 @@ export function useSupabasePlatform(): UseSupabasePlatformResult {
     setStudioError(null);
   }, []);
 
+  const adoptStudioUrl = useCallback((embedUrl: string) => {
+    const trimmed = embedUrl.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+    setStudioError(null);
+    setStudioUrl(trimmed);
+  }, []);
+
   return {
     status,
     connections,
@@ -366,5 +377,6 @@ export function useSupabasePlatform(): UseSupabasePlatformResult {
     selectProject,
     startStudio,
     clearStudio,
+    adoptStudioUrl,
   };
 }

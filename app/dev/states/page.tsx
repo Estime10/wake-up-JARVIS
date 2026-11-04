@@ -7,7 +7,7 @@ const isEnabled =
   process.env.NODE_ENV !== "production" || process.env.VERCEL_ENV === "preview";
 
 export const metadata: Metadata = {
-  title: "JARVIS — états",
+  title: "E.L.S.A. — états",
   robots: { index: false, follow: false },
 };
 

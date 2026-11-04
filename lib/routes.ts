@@ -31,4 +31,5 @@ export const ROUTES = {
   supabasePlatformSetActive: "/api/supabase/platform/set-active",
   supabasePlatformDockerEnsure: "/api/supabase/platform/docker/ensure",
   supabasePlatformStudioStart: "/api/supabase/platform/studio/start",
+  supabasePlatformStudioStop: "/api/supabase/platform/studio/stop",
 } as const;

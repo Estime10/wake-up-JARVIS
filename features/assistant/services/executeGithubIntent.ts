@@ -72,6 +72,13 @@ async function resolveRepo(
 export async function executeGithubIntent(
   intent: GithubIntent,
 ): Promise<string> {
+  if (intent.kind === "github.open_panel") {
+    return t("assistant.githubOpenPanel");
+  }
+  if (intent.kind === "github.open_repo") {
+    return t("assistant.githubOpenRepo", { repo: intent.repoQuery });
+  }
+
   const auth = await requireGithubToken();
   if (!auth.ok) {
     return auth.reply;
@@ -89,7 +96,7 @@ export async function executeGithubIntent(
     return formatGithubReposReply(listed.repos);
   }
 
-  if (!intent.repoQuery) {
+  if (!("repoQuery" in intent) || !intent.repoQuery) {
     return t("assistant.githubRepoRequired");
   }
 

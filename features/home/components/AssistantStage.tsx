@@ -11,14 +11,17 @@ import { cn } from "@/lib/cn";
 
 /**
  * Zone mark (+ wordmark uniquement en briefing centré legacy).
- * Refonte-ui : taille splash permanente, mark reste centré (pas de scale-down).
+ * Expansion E.L.S.A. : ancrée au-dessus du composer (HomeScreen).
  */
 export function AssistantStage() {
   const { phase, briefingReady, skipCenteredBriefing } = useHomeEnter();
   const briefing = phase === "briefing" && !skipCenteredBriefing;
 
   return (
-    <div className="relative flex w-full max-w-full shrink-0 flex-col items-center">
+    <div
+      data-home="assistant-stage"
+      className="relative flex w-full max-w-full shrink-0 flex-col items-center"
+    >
       <MarkSlot
         name={briefing ? "splash" : "home"}
         className={MARK_SLOT_SIZE.splash}
@@ -30,7 +33,7 @@ export function AssistantStage() {
       />
 
       {briefing ? (
-        <div className="mt-6 flex justify-center sm:mt-8">
+        <div className="mt-10 flex justify-center sm:mt-14">
           <SplashWordmark settled={briefingReady} size="display" />
         </div>
       ) : null}

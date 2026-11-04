@@ -155,6 +155,53 @@ function classifyStartError(
   };
 }
 
+export type LocalStudioStopResult =
+  | { ok: true; alreadyStopped: boolean }
+  | { ok: false; reason: "disabled" | "supabase_stop_failed"; detail?: string };
+
+/**
+ * `supabase stop` dans le repo — no-op soft si déjà arrêté.
+ */
+export async function stopLocalSupabaseStudio(
+  cwd: string,
+): Promise<LocalStudioStopResult> {
+  if (!localStudioAllowed()) {
+    return { ok: false, reason: "disabled" };
+  }
+
+  const running =
+    (await isLocalStudioReachable()) || (await isSupabaseStackRunning(cwd));
+  if (!running) {
+    return { ok: true, alreadyStopped: true };
+  }
+
+  try {
+    await execFileAsync("npx", ["supabase", "stop"], {
+      cwd,
+      timeout: 120_000,
+      env: process.env,
+    });
+    return { ok: true, alreadyStopped: false };
+  } catch (error) {
+    const err = error as {
+      message?: string;
+      stderr?: string | Buffer;
+      stdout?: string | Buffer;
+    };
+    const detail = String(err.stderr ?? err.stdout ?? err.message ?? "").slice(
+      0,
+      280,
+    );
+    if (
+      !(await isLocalStudioReachable()) &&
+      !(await isSupabaseStackRunning(cwd))
+    ) {
+      return { ok: true, alreadyStopped: false };
+    }
+    return { ok: false, reason: "supabase_stop_failed", detail };
+  }
+}
+
 /**
  * Démarre Docker si besoin, puis `supabase start` dans le repo.
  * Si la stack / Studio tourne déjà → succès (pas d’erreur).

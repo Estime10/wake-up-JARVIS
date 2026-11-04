@@ -5,12 +5,14 @@ import { sanitizeCapturedToken } from "@/features/assistant/model/matchIntentPat
 const SLOT_CAPTURE: Record<string, string> = {
   label: "(\\S+(?:\\s+\\S+){0,12})",
   repo: "([A-Za-z0-9_.-]+(?:\\/[A-Za-z0-9_.-]+)?)",
+  /** Nom de projet Supabase (espaces autorisés). */
+  project: "(\\S+(?:\\s+\\S+){0,12})",
   folder: "(\\S+(?:\\s+\\S+){0,12})",
   file: "(\\S+(?:\\s+\\S+){0,8})",
   n: "(\\d{1,6})",
 };
 
-const SLOT_RE = /\{(label|repo|folder|file|n)\}/g;
+const SLOT_RE = /\{(label|repo|project|folder|file|n)\}/g;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -27,7 +29,7 @@ export function countPhraseSlots(phrase: string): number {
 export function phraseToRegExp(phrase: string): RegExp {
   const normalized = normalizeIntentText(phrase);
   const parts: string[] = [];
-  const slotRe = /\{(label|repo|folder|file|n)\}/g;
+  const slotRe = /\{(label|repo|project|folder|file|n)\}/g;
   let lastIndex = 0;
   let match = slotRe.exec(normalized);
   while (match) {

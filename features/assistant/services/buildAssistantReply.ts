@@ -7,13 +7,17 @@ import {
   executeGithubIntent,
   isGithubIntent,
 } from "@/features/assistant/services/executeGithubIntent";
+import {
+  executeSupabaseIntent,
+  isSupabaseIntent,
+} from "@/features/assistant/services/executeSupabaseIntent";
 import { createLogger } from "@/lib/logger";
 import type { MailPort } from "@/ports/mail-port";
 
 const log = createLogger("assistant.reply");
 
 /**
- * Orchestration serveur — intents locaux (mail + github).
+ * Orchestration serveur — intents locaux (mail + github + supabase).
  */
 export async function buildAssistantReply(
   text: string,
@@ -29,6 +33,12 @@ export async function buildAssistantReply(
   if (intent && isGithubIntent(intent)) {
     const reply = await executeGithubIntent(intent);
     log.info("reply_ok", { chars: reply.length, via: "github" });
+    return reply;
+  }
+
+  if (intent && isSupabaseIntent(intent)) {
+    const reply = await executeSupabaseIntent(intent);
+    log.info("reply_ok", { chars: reply.length, via: "supabase" });
     return reply;
   }
 

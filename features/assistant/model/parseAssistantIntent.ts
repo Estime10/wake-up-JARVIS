@@ -31,6 +31,19 @@ import {
   GITHUB_STATUS_SHORTCUTS,
 } from "@/features/assistant/model/intents/githubPhrases";
 import {
+  GITHUB_OPEN_PANEL_PHRASES,
+  GITHUB_OPEN_PANEL_SHORTCUTS,
+  GITHUB_OPEN_REPO_PHRASES,
+} from "@/features/assistant/model/intents/githubUiPhrases";
+import {
+  SUPABASE_LIST_PHRASES,
+  SUPABASE_LIST_SHORTCUTS,
+  SUPABASE_STUDIO_PHRASES,
+  SUPABASE_STUDIO_SHORTCUTS,
+  SUPABASE_STUDIO_STOP_PHRASES,
+  SUPABASE_STUDIO_STOP_SHORTCUTS,
+} from "@/features/assistant/model/intents/supabasePhrases";
+import {
   HELP_PHRASES,
   HELP_SHORTCUTS,
 } from "@/features/assistant/model/intents/helpPhrases";
@@ -83,9 +96,20 @@ export type ParseAssistantIntentOptions = {
   customRules?: readonly CustomPhraseRule[];
 };
 
+function projectFromCaptures(captures: readonly string[]): string | undefined {
+  const project = captures.find((value) => !/^\d+$/.test(value))?.trim();
+  if (
+    !project ||
+    /^(supabase|studio|projet|projets|compte|comptes)$/i.test(project)
+  ) {
+    return undefined;
+  }
+  return project;
+}
+
 /**
  * Routeur d’intents — registre lecture seule (phrases d’exemple).
- * Priorité : custom user → refus → help → chat → fichiers/terminal → github → mail.
+ * Priorité : custom → refus → help → chat → terminal → supabase → github UI → github → files → mail.
  */
 export function parseAssistantIntent(
   text: string,
@@ -141,6 +165,47 @@ export function parseAssistantIntent(
     return folder
       ? { kind: "terminal.open", folder }
       : { kind: "terminal.open" };
+  }
+
+  if (
+    matchShortcuts(text, SUPABASE_STUDIO_STOP_SHORTCUTS) ||
+    matchPhraseCatalog(text, SUPABASE_STUDIO_STOP_PHRASES)
+  ) {
+    return { kind: "supabase.studio_stop" };
+  }
+
+  if (
+    matchShortcuts(text, SUPABASE_STUDIO_SHORTCUTS) ||
+    matchPhraseCatalog(text, SUPABASE_STUDIO_PHRASES)
+  ) {
+    const hit = matchPhraseCatalog(text, SUPABASE_STUDIO_PHRASES);
+    const projectQuery = hit ? projectFromCaptures(hit.captures) : undefined;
+    return {
+      kind: "supabase.studio",
+      ...(projectQuery ? { projectQuery } : {}),
+    };
+  }
+
+  if (
+    matchShortcuts(text, SUPABASE_LIST_SHORTCUTS) ||
+    matchPhraseCatalog(text, SUPABASE_LIST_PHRASES)
+  ) {
+    return { kind: "supabase.list_projects" };
+  }
+
+  if (
+    matchShortcuts(text, GITHUB_OPEN_PANEL_SHORTCUTS) ||
+    matchPhraseCatalog(text, GITHUB_OPEN_PANEL_PHRASES)
+  ) {
+    return { kind: "github.open_panel" };
+  }
+
+  const openRepoHit = matchPhraseCatalog(text, GITHUB_OPEN_REPO_PHRASES);
+  if (openRepoHit) {
+    const repoQuery = repoFromCaptures(openRepoHit.captures);
+    if (repoQuery) {
+      return { kind: "github.open_repo", repoQuery };
+    }
   }
 
   const findHit = matchPhraseCatalog(text, FILES_FIND_PHRASES);

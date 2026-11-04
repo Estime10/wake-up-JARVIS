@@ -27,6 +27,19 @@ import {
   GITHUB_STATUS_SHORTCUTS,
 } from "@/features/assistant/model/intents/githubPhrases";
 import {
+  GITHUB_OPEN_PANEL_PHRASES,
+  GITHUB_OPEN_PANEL_SHORTCUTS,
+  GITHUB_OPEN_REPO_PHRASES,
+} from "@/features/assistant/model/intents/githubUiPhrases";
+import {
+  SUPABASE_LIST_PHRASES,
+  SUPABASE_LIST_SHORTCUTS,
+  SUPABASE_STUDIO_PHRASES,
+  SUPABASE_STUDIO_SHORTCUTS,
+  SUPABASE_STUDIO_STOP_PHRASES,
+  SUPABASE_STUDIO_STOP_SHORTCUTS,
+} from "@/features/assistant/model/intents/supabasePhrases";
+import {
   HELP_PHRASES,
   HELP_SHORTCUTS,
 } from "@/features/assistant/model/intents/helpPhrases";
@@ -116,6 +129,23 @@ export function listBuiltinCatalogEntries(): CatalogEntry[] {
     ...pack("github.list_branches", [
       ...GITHUB_BRANCHES_SHORTCUTS,
       ...GITHUB_BRANCHES_PHRASES,
+    ]),
+    ...pack("github.open_panel", [
+      ...GITHUB_OPEN_PANEL_SHORTCUTS,
+      ...GITHUB_OPEN_PANEL_PHRASES,
+    ]),
+    ...pack("github.open_repo", GITHUB_OPEN_REPO_PHRASES),
+    ...pack("supabase.list_projects", [
+      ...SUPABASE_LIST_SHORTCUTS,
+      ...SUPABASE_LIST_PHRASES,
+    ]),
+    ...pack("supabase.studio", [
+      ...SUPABASE_STUDIO_SHORTCUTS,
+      ...SUPABASE_STUDIO_PHRASES,
+    ]),
+    ...pack("supabase.studio_stop", [
+      ...SUPABASE_STUDIO_STOP_SHORTCUTS,
+      ...SUPABASE_STUDIO_STOP_PHRASES,
     ]),
     ...pack("terminal.open", [
       ...TERMINAL_OPEN_SHORTCUTS,

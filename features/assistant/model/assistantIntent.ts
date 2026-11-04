@@ -19,6 +19,11 @@ export type AssistantIntent =
   | { kind: "github.list_pulls"; repoQuery?: string }
   | { kind: "github.list_commits"; repoQuery?: string }
   | { kind: "github.list_branches"; repoQuery?: string }
+  | { kind: "github.open_panel" }
+  | { kind: "github.open_repo"; repoQuery: string }
+  | { kind: "supabase.list_projects" }
+  | { kind: "supabase.studio"; projectQuery?: string }
+  | { kind: "supabase.studio_stop" }
   | { kind: "terminal.open"; folder?: string }
   | { kind: "files.goto"; folder: string }
   | { kind: "files.find"; query: string; folder?: string }
