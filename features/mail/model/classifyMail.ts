@@ -7,12 +7,13 @@ type ClassifyInput = {
   subject: string;
 };
 
+/** Matching littéral (anti-ReDoS) — métacaractères non interprétés. */
 function tryMatch(pattern: string, haystack: string): boolean {
-  try {
-    return new RegExp(pattern, "i").test(haystack);
-  } catch {
-    return haystack.toLowerCase().includes(pattern.toLowerCase());
+  const needle = pattern.trim().toLowerCase();
+  if (needle.length === 0) {
+    return false;
   }
+  return haystack.toLowerCase().includes(needle);
 }
 
 /**

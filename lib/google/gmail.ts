@@ -1,6 +1,11 @@
 import "server-only";
 
+import { mapPool } from "@/lib/async/mapPool";
+import { createLogger } from "@/lib/logger";
+
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
+const log = createLogger("gmail");
+const DETAIL_CONCURRENCY = 5;
 
 export type GmailMessageMeta = {
   id: string;
@@ -147,21 +152,22 @@ export async function listGmailMessagesByQuery(
         break;
       }
     }
-    pageToken =
-      refs.length >= LIST_HARD_CAP ? undefined : list.data.nextPageToken;
+    if (refs.length >= LIST_HARD_CAP) {
+      log.warn("list_hard_cap", { query, cap: LIST_HARD_CAP });
+      pageToken = undefined;
+    } else {
+      pageToken = list.data.nextPageToken;
+    }
   } while (pageToken);
 
-  const messages: GmailMessageMeta[] = [];
-  for (const ref of refs) {
+  const details = await mapPool(refs, DETAIL_CONCURRENCY, async (ref) => {
     const detail = await gmailFetch<GmailMessageResponse>(
       accessToken,
       `/messages/${ref.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
     );
-    if (detail.ok) {
-      messages.push(mapMessage(detail.data));
-    }
-  }
-  return messages;
+    return detail.ok ? mapMessage(detail.data) : null;
+  });
+  return details.filter((item): item is GmailMessageMeta => item !== null);
 }
 
 /**
@@ -191,20 +197,18 @@ export async function listGmailHistoryAdded(
     }
   }
 
-  const messages: GmailMessageMeta[] = [];
-  for (const [id] of ids) {
+  const idList = [...ids.keys()];
+  const details = await mapPool(idList, DETAIL_CONCURRENCY, async (id) => {
     const detail = await gmailFetch<GmailMessageResponse>(
       accessToken,
       `/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
     );
-    if (detail.ok) {
-      messages.push(mapMessage(detail.data));
-    }
-  }
+    return detail.ok ? mapMessage(detail.data) : null;
+  });
 
   return {
     ok: true,
-    messages,
+    messages: details.filter((item): item is GmailMessageMeta => item !== null),
     newHistoryId: history.data.historyId ?? null,
   };
 }

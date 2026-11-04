@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSupabaseMail } from "@/adapters/supabase/createSupabaseMail";
+import { countPhraseSlots } from "@/features/assistant/model/matchPhraseCatalog";
 import { coerceCustomPhraseRules } from "@/features/assistant/model/customPhraseRules";
 import { buildAssistantReply } from "@/features/assistant/services/buildAssistantReply";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { createLogger } from "@/lib/logger";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,12 @@ const log = createLogger("assistant.reply.route");
 
 const customRuleSchema = z.object({
   id: z.string().min(1).max(80),
-  phrase: z.string().trim().min(1).max(200),
+  phrase: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .refine((phrase) => countPhraseSlots(phrase) <= 2, "too_many_slots"),
   kind: z.string().min(1).max(64),
   label: z.string().trim().min(1).max(80).optional(),
   repoQuery: z.string().trim().min(1).max(120).optional(),
@@ -22,7 +28,7 @@ const customRuleSchema = z.object({
 });
 
 const bodySchema = z.object({
-  text: z.string().trim().min(1).max(4_000),
+  text: z.string().trim().min(1).max(300),
   customRules: z.array(customRuleSchema).max(200).optional(),
 });
 
@@ -36,19 +42,19 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return jsonNoStore({ error: "unauthorized" }, { status: 401 });
   }
 
   let json: unknown;
   try {
     json = await request.json();
   } catch {
-    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+    return jsonNoStore({ error: "invalid_json" }, { status: 400 });
   }
 
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+    return jsonNoStore({ error: "invalid_body" }, { status: 400 });
   }
 
   try {
@@ -64,10 +70,10 @@ export async function POST(request: Request) {
       customRules,
     );
     log.info("response_ok", { chars: reply.length });
-    return NextResponse.json({ ok: true, reply });
+    return jsonNoStore({ ok: true, reply });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown";
     log.error("reply_failed", { message: message.slice(0, 400) });
-    return NextResponse.json({ error: "reply_failed" }, { status: 500 });
+    return jsonNoStore({ error: "reply_failed" }, { status: 500 });
   }
 }

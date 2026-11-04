@@ -9,7 +9,7 @@ import type { MailRule } from "@/features/mail/model/mailRule";
 const RULES: MailRule[] = [
   {
     matchType: "sender",
-    pattern: "github\\.com",
+    pattern: "github.com",
     category: "DEV/GitHub",
     priority: 10,
   },
@@ -55,5 +55,28 @@ describe("classifyMail", () => {
   it("est déterministe", () => {
     const input = { fromRaw: "billing@stripe.com", subject: "Receipt" };
     expect(classifyMail(input, RULES)).toBe(classifyMail(input, RULES));
+  });
+
+  it("traite les métacaractères littéralement", () => {
+    expect(
+      classifyMail({ fromRaw: "a@b.com", subject: "prix = 10" }, [
+        {
+          matchType: "subject",
+          pattern: "prix.*",
+          category: "X",
+          priority: 1,
+        },
+      ]),
+    ).toBe(DEFAULT_MAIL_CATEGORY);
+    expect(
+      classifyMail({ fromRaw: "a@b.com", subject: "promo prix.*" }, [
+        {
+          matchType: "subject",
+          pattern: "prix.*",
+          category: "X",
+          priority: 1,
+        },
+      ]),
+    ).toBe("X");
   });
 });

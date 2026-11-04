@@ -1,5 +1,5 @@
-/** Intervalle relève Gmail → DB (client, onglet visible). */
-export const MAIL_POLL_INTERVAL_MS = 10 * 60_000;
+/** Intervalle relève Gmail → DB (client, onglet visible) — ADR 0010 CA11. */
+export const MAIL_POLL_INTERVAL_MS = 5 * 60_000;
 
 const MAIL_POLL_AT_KEY = "jarvis_mail_poll_at";
 

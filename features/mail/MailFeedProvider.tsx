@@ -71,6 +71,7 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    let debounceId: number | null = null;
     const client = createSupabaseBrowserClient();
     const channel = client
       .channel("mail_items_feed")
@@ -78,12 +79,22 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
         "postgres_changes",
         { event: "*", schema: "public", table: "mail_items" },
         () => {
-          setAttempt((value) => value + 1);
+          // M3 — debounce : une seule listRecent pour une rafale Realtime.
+          if (debounceId !== null) {
+            window.clearTimeout(debounceId);
+          }
+          debounceId = window.setTimeout(() => {
+            debounceId = null;
+            setAttempt((value) => value + 1);
+          }, 750);
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceId !== null) {
+        window.clearTimeout(debounceId);
+      }
       void client.removeChannel(channel);
     };
   }, []);

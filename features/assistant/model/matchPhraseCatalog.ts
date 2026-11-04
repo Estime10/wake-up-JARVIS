@@ -1,16 +1,24 @@
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 import { sanitizeCapturedToken } from "@/features/assistant/model/matchIntentPatterns";
 
+/** Captures bornées — pas de `(.+)` gourmand adjacent (anti-ReDoS). */
 const SLOT_CAPTURE: Record<string, string> = {
-  label: "(.+)",
+  label: "(\\S+(?:\\s+\\S+){0,12})",
   repo: "([A-Za-z0-9_.-]+(?:\\/[A-Za-z0-9_.-]+)?)",
-  folder: "(.+)",
-  file: "(.+)",
-  n: "(\\d+)",
+  folder: "(\\S+(?:\\s+\\S+){0,12})",
+  file: "(\\S+(?:\\s+\\S+){0,8})",
+  n: "(\\d{1,6})",
 };
+
+const SLOT_RE = /\{(label|repo|folder|file|n)\}/g;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function countPhraseSlots(phrase: string): number {
+  const normalized = normalizeIntentText(phrase);
+  return (normalized.match(SLOT_RE) ?? []).length;
 }
 
 /**
@@ -25,7 +33,7 @@ export function phraseToRegExp(phrase: string): RegExp {
   while (match) {
     parts.push(escapeRegExp(normalized.slice(lastIndex, match.index)));
     const slot = match[1]!;
-    parts.push(SLOT_CAPTURE[slot] ?? "(.+)");
+    parts.push(SLOT_CAPTURE[slot] ?? "(\\S+)");
     lastIndex = match.index + match[0].length;
     match = slotRe.exec(normalized);
   }
@@ -41,17 +49,21 @@ export type PhraseMatch = {
 
 /**
  * Premier match sur un catalogue de phrases (après normalisation).
+ * Ignore les phrases à plus de 2 slots (ReDoS).
  */
 export function matchPhraseCatalog(
   text: string,
   phrases: readonly string[],
 ): PhraseMatch | null {
   const normalized = normalizeIntentText(text);
-  if (normalized.length === 0) {
+  if (normalized.length === 0 || normalized.length > 300) {
     return null;
   }
 
   for (const phrase of phrases) {
+    if (countPhraseSlots(phrase) > 2) {
+      continue;
+    }
     const pattern = phraseToRegExp(phrase);
     const match = normalized.match(pattern);
     if (!match) {
