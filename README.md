@@ -39,15 +39,17 @@ JARVIS, c'est :
 
 ## 2) Statut actuel
 
-🚧 **Phase V0 → V0b (partiel).**
+🚧 **Phase V0b avancée** (branche `feature/api` → `develop`).
 
-- **UI** : splash → gate auth → home ; terminal mock, panneau REPO mock, conversation, cartes d’action, `/dev/states`.
-- **V0b déjà branché** : Auth Supabase **e-mail/mot de passe** (`/login`) ; `MemoryPort` → table `messages` (+ RLS) si env publique présente, sinon mock + seed local.
-- **Encore mock** : LLM, voix, mails, actions, journal ; **pas** de Gmail ni d’agent terminal réel.
-- **Système** : `not-found` / `error` / `global-error` brandés ; mails & mémoire gèrent loading / empty / error (+ retry).
-- **Hors scope volontaire** : offline navigateur (`navigator.onLine`) — usage perso desktop.
-- L'UI ne parle qu'aux **ports** ; composition dans `app/providers.tsx` via `createAppPorts()`.
-- Détail décision : [ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md). Plan UI : **[PLAN-UI.md](./PLAN-UI.md)**.
+- **UI** : splash → auth → home refonte (grille, tiroirs gauche/droite) ; terminal ; GitHub live ; mails live ; **tiroir Supabase Studio** embarqué ; conversation + TTS Piper ; `/dev/states`.
+- **Auth / mémoire** : Supabase e-mail (`/login`) ; `MemoryPort` → `messages` (+ RLS).
+- **Mail** : OAuth Gmail readonly, Vault, relève + tri déterministe, résumé sur consentement ([ADR 0010](./docs/adr/0010-tri-des-mails.md)).
+- **GitHub** : PAT fine-grained en Vault, lecture repos ([ADR 0011](./docs/adr/0011-github-repos-lecture.md)).
+- **Voix** : Piper siwis FR local + proxy Next ([ADR 0012](./docs/adr/0012-voix-de-jarvis.md)).
+- **Platform Supabase** : multi-comptes Management API + Studio dans le tiroir via proxy CSP-strip ([ADR 0013](./docs/adr/0013-supabase-platform-studio-embarque.md)).
+- **Encore mock / plus tard** : LLM réel, agent terminal Tauri, Wake word.
+- **Sécurité** : lockdown Vault (H1), allowlist `OWNER_EMAILS`, grants least-privilege, **pas de `pg_graphql`** (advisors GraphQL traités).
+- Synthèse : [docs/plans/NOTE-feature-api-2026-11-04.md](./docs/plans/NOTE-feature-api-2026-11-04.md). Plan UI : **[PLAN-UI.md](./PLAN-UI.md)**.
 
 ## 3) Fonctionnalités prévues de l'UI
 
@@ -105,32 +107,32 @@ flowchart LR
   D["Domaine pur (lib)<br/>machine d'états, risques, schémas Zod"]
   H --> D
 
-  subgraph NOW["Aujourd'hui — V0 + V0b partiel"]
-    MOCK["Adapters mock<br/>(llm, voice, action, mail)"]
-    SUPA_MEM["Adapter Supabase<br/>(MemoryPort + Auth)"]
+  subgraph NOW["Aujourd'hui — V0b avancée"]
+    MOCK["Adapters mock<br/>(llm, action)"]
+    SUPA_MEM["Supabase<br/>Memory + Auth"]
+    GMAIL_NOW["Gmail readonly<br/>+ Vault"]
+    GH_NOW["GitHub lecture<br/>+ Vault"]
+    VOICE_NOW["Piper TTS<br/>(proxy Next)"]
   end
 
-  subgraph LATER["Plus tard — reste V0b à V4"]
+  subgraph LATER["Plus tard — V1+"]
     LLMA["Adapter LLM"]
-    VOICEA["Adapter voix<br/>(micro, Web Audio, synthèse)"]
-    AGENT["Agent macOS<br/>(Tauri v2, via la file Supabase)"]
-    GMAIL["Adapter Gmail<br/>(lecture + brouillons)"]
+    VOICEA["STT / micro"]
+    AGENT["Agent macOS<br/>(Tauri v2)"]
   end
 
   LLM -.-> MOCK
-  VOICE -.-> MOCK
+  VOICE -.-> VOICE_NOW
   ACTION -.-> MOCK
-  MAIL -.-> MOCK
+  MAIL -.-> GMAIL_NOW
   MEM -.-> SUPA_MEM
-  MEM -.-> MOCK
 
   LLM -.-> LLMA
   VOICE -.-> VOICEA
   ACTION -.-> AGENT
-  MAIL -.-> GMAIL
 ```
 
-Détails : [PLAN-UI.md §1.9](./PLAN-UI.md), [ADR 0001](./docs/adr/0001-ui-d-abord-ports-et-mocks.md), [ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md).
+Détails : [PLAN-UI.md §1.9](./PLAN-UI.md), [ADR 0001](./docs/adr/0001-ui-d-abord-ports-et-mocks.md), [ADR 0008](./docs/adr/0008-auth-email-memoire-supabase.md), [0010](./docs/adr/0010-tri-des-mails.md)–[0013](./docs/adr/0013-supabase-platform-studio-embarque.md).
 
 ## 5) Stack
 
@@ -141,7 +143,7 @@ Détails : [PLAN-UI.md §1.9](./PLAN-UI.md), [ADR 0001](./docs/adr/0001-ui-d-abo
 | Style          | Tailwind CSS v4 via `@tailwindcss/turbopack` (tokens dans `@theme`), IBM Plex Sans + IBM Plex Mono (`next/font/google`, auto-hébergées car CSP)             |
 | Animation      | GSAP + `@gsap/react` (SVG + CSS), Canvas 2D pour la voix                                                                                                    |
 | Validation     | Zod                                                                                                                                                         |
-| Backend (V0b)  | Supabase Auth (e-mail) + Postgres (`messages`, RLS) ; clients `@supabase/ssr`                                                                               |
+| Backend (V0b)  | Supabase Auth + Postgres (RLS, Vault) : `messages`, mail__, github__, platform_* ; `@supabase/ssr` ; **sans** `pg_graphql`                                  |
 | Tests          | Vitest + Testing Library, Playwright + axe                                                                                                                  |
 | Lint et format | ESLint (`eslint-config-next`) + Prettier (`eslint-config-prettier`) ; Husky + lint-staged au commit                                                         |
 | PWA            | `app/manifest.ts`, **seul manifest** (sans service worker pour l'instant) ; icônes `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `public/icons/` |
@@ -197,24 +199,26 @@ Flux : `/` (splash) → `/login` si anonyme → `/home` si session.
 **Sécurité compte unique (M7)** — actions **manuelles** sur le projet Supabase distant (non vérifiables depuis le repo) :
 
 1. **Authentication → Providers / settings** : désactiver les inscriptions publiques (`enable_signup`).
-2. Renseigner `OWNER_EMAILS` dans `.env.local` (CSV). Les routes Gmail / mail / GitHub exigent un e-mail allowlisté (403 sinon). Pas de MFA.
+2. Renseigner `OWNER_EMAILS` dans `.env.local` (CSV). Les routes Gmail / mail / GitHub / platform Supabase exigent un e-mail allowlisté (403 sinon). Pas de MFA.
+3. Optionnel : activer **Leaked Password Protection** (HaveIBeenPwned) dans Auth.
+
+**Studio local (dev)** — Docker Desktop + CLI Supabase ; API `:54331`, Studio `:54323`, embed iframe via proxy `:54332` (voir [ADR 0013](./docs/adr/0013-supabase-platform-studio-embarque.md)).
 
 ## 8) Arborescence (résumée)
 
 ```
 wake-up-JARVIS/
-├─ proxy.ts           # CSP à nonce + refresh session Supabase
+├─ proxy.ts           # CSP à nonce (+ frame-src Studio embed) + refresh session
 ├─ .env.example       # modèle env publique (pas de secrets)
-├─ app/               # routes : /, /login, /home, not-found, error, global-error, /dev/states
-├─ features/          # auth, home, intro, jarvis, actions, system, dev…
+├─ app/               # /, /login, /home, /api/{mail,github,google,voice,supabase/platform}, /dev/*
+├─ features/          # home (tiroirs), mail, github, supabase, assistant, jarvis, auth…
 ├─ components/ui/     # Button, HudModal, HudFrameBrackets, JarvisMark…
-├─ lib/               # domaine + i18n + supabase/{client,server,env,updateSession}
+├─ lib/               # domaine + i18n + supabase/{…,platform} + github + google
 ├─ ports/             # interfaces TypeScript
-├─ fixtures/          # données factices (Zod)
-├─ adapters/          # mock/* + supabase/* + createAppPorts.ts
-├─ supabase/          # config CLI + migrations (messages + RLS)
+├─ adapters/          # mock/* + supabase/* + http/* + createAppPorts.ts
+├─ supabase/          # config.toml (API :54331) + migrations Vault / RLS / lockdown GraphQL
 ├─ e2e/               # Playwright
-└─ docs/adr/          # ADR 0001–0008
+└─ docs/              # adr/ 0001–0013 · plans/ · design/v3/
 ```
 
 Version complète : [PLAN-UI.md §1.8](./PLAN-UI.md).
@@ -261,6 +265,8 @@ Version complète : [PLAN-UI.md §1.8](./PLAN-UI.md).
 - **SVG (règles HACKER)** : aucun script, aucun attribut `on*`, pas de `style=`, pas de liens, pas de `data:`.
 - **Carte de signature** : JCS brut entier, sans troncature, `dir="ltr"` ; échappements JSON et cases `U+XXXX` (caractère invisible, de contrôle ou non ASCII) dans le même style, sans ambre.
 - **Aucun secret dans le dépôt** (il est public). `.env.local` et autres `.env*` sont ignorés ; **`.env.example`** (sans secrets) est versionné.
+- **Vault** : jetons Gmail / GitHub / platform Supabase — lecture `security definer` liée au propriétaire ; pas de `vault_secret_id` exposé au client (H1).
+- **Grants** : `anon` sans SELECT sur les tables métier ; `authenticated` en least-privilege ; extension **`pg_graphql` absente** (REST seulement).
 
 **Plus tard (phases terminal) :**
 
@@ -274,23 +280,25 @@ Détails : [PLAN-UI.md §6](./PLAN-UI.md), [ADR 0006](./docs/adr/0006-execution-
 
 ## 12) Feuille de route
 
-| Phase                              | Contenu                                                                                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **V0 — UI** _(fait)_               | Interface + mocks, accessibilité, PWA, tests, terminal/REPO mock                                                                                              |
-| **V0b — Branchements** _(partiel)_ | **Fait** : Auth e-mail + MemoryPort Supabase + pages système. **Reste** : LLM réel, voix réelle — toujours via adapters seulement                             |
-| **V1 — Agent lecture seule**       | Agent macOS Tauri v2, file Supabase, ordres signés, actions de niveau 1 seulement                                                                             |
-| **V2 — Actions**                   | Exécution après clic + Touch ID / mot de passe du Mac, multi-Mac, arrêt d'urgence                                                                             |
-| **V3 — « Wake up, JARVIS »**       | openWakeWord local, `caffeinate -u` pour l'écran, déverrouillage par mot de passe ou Touch ID seulement ; reconnaissance locale ; mémoire Supabase + pgvector |
-| **V4 — Gmail**                     | Lecture + brouillons (jamais d'envoi automatique)                                                                                                             |
-| **V5 — Premium**                   | Voix premium + mode cinéma 3D (Three.js, optionnel)                                                                                                           |
+| Phase                             | Contenu                                                                                                                                                  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **V0 — UI** _(fait)_              | Interface + mocks, accessibilité, PWA, tests                                                                                                             |
+| **V0b — Branchements** _(avancé)_ | **Fait** : Auth, mémoire, Gmail readonly, GitHub lecture, Piper TTS, platform Studio embarqué, lockdown Vault / GraphQL. **Reste** : LLM réel, STT micro |
+| **V1 — Agent lecture seule**      | Agent macOS Tauri v2 (WebView Studio natif), file Supabase, ordres signés, actions de niveau 1                                                           |
+| **V2 — Actions**                  | Exécution après clic + Touch ID / mot de passe du Mac, multi-Mac, arrêt d'urgence                                                                        |
+| **V3 — « Wake up, JARVIS »**      | openWakeWord local, `caffeinate -u` pour l'écran ; mémoire + pgvector                                                                                    |
+| **V4 — Gmail+**                   | Brouillons (jamais d'envoi automatique) — lecture déjà en V0b                                                                                            |
+| **V5 — Premium**                  | Voix premium + mode cinéma 3D (Three.js, optionnel)                                                                                                      |
 
 **HACKER relit toute phase qui touche au terminal** (V1, V2, V3).
 
 ## 13) Documentation
 
-- **[PLAN-UI.md](./PLAN-UI.md)** — le plan complet de la phase UI (stack, commandes, composants, tokens, accessibilité, 24 étapes).
-- **[docs/adr/](./docs/adr/README.md)** — les décisions d'architecture (ADR 0001 à 0008) et le modèle pour en écrire.
-- **[docs/design/v3/](./docs/design/v3/README.md)** — les maquettes de la DA v3 « blanc nacré » (écrans bureau, mobile, planche de composants) et leurs notes ([README-front](./docs/design/v3/README-front.md)).
+- **[PLAN-UI.md](./PLAN-UI.md)** — plan de la phase UI (stack, composants, tokens, accessibilité).
+- **[docs/adr/](./docs/adr/README.md)** — ADR 0001–0013.
+- **[docs/plans/NOTE-feature-api-2026-11-04.md](./docs/plans/NOTE-feature-api-2026-11-04.md)** — synthèse livrables `feature/api`.
+- **[docs/plans/PLAN-CORRECTION-feature-api.md](./docs/plans/PLAN-CORRECTION-feature-api.md)** — plan sécurité H/M/L (historique + état).
+- **[docs/design/v3/](./docs/design/v3/README.md)** — DA v3 « blanc nacré ».
 
 ## 14) Travailler avec l'équipe
 

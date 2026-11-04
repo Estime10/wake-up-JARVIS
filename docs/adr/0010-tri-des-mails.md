@@ -1,6 +1,6 @@
 # 0010 — Tri des mails : lecture Gmail, tri déterministe, résumé sur demande
 
-- **Statut** : Proposé (étape 2 en cours sur `feature/api` — relève + tri + résumé consent)
+- **Statut** : Proposé (étapes 1–2 livrées sur `feature/api` — OAuth, relève, tri, résumé consent ; lockdown Vault H1)
 - **Niveau** : 3 (jetons OAuth, données perso) — **revue HACKER obligatoire avant toute ligne de code**
 - **Date** : 2026-11-02
 - **Auteur** : ARCHITECT — Analyse : ENGINE (`feature/api` @ `fc347fd`)

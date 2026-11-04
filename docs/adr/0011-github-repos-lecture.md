@@ -1,6 +1,6 @@
 # 0011 — GitHub : lecture repos (privés + publics), jeton Vault
 
-- **Statut** : Proposé (étape 2 en cours sur `feature/api` — lecture repos live)
+- **Statut** : Proposé (étapes 1–2 livrées sur `feature/api` — PAT Vault + lecture repos live ; lockdown H1)
 - **Niveau** : 3 (jeton GitHub, repos privés) — **revue HACKER obligatoire avant implémentation**
 - **Date** : 2026-11-02
 - **Auteur** : ARCHITECT — suite API après [ADR 0010](./0010-tri-des-mails.md)

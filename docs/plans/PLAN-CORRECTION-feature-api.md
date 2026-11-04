@@ -1,5 +1,9 @@
 # Plan de correction — feature/api (JARVIS)
 
+> **État 2026-11-04** : Phase 1 (H1, M7, H2) et Phase 2/3 ciblées (M1–M5) **livrées** sur `feature/api`.  
+> Compléments : refonte home + tiroir Studio ([ADR 0013](../adr/0013-supabase-platform-studio-embarque.md)), drop `pg_graphql` + revoke `anon` (advisors 0026/0027).  
+> Synthèse : [NOTE-feature-api-2026-11-04.md](./NOTE-feature-api-2026-11-04.md).
+
 ## Contexte
 
 | Élément          | Valeur                                                                                                                                            |
