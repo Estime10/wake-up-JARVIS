@@ -69,9 +69,10 @@ export function HomeScreen() {
   } = useAssistantSession({ onUnrecognized: openPhraseCatalog });
 
   useVoiceRingMotion(state);
-  useHomeVoiceGreeting({ speakWelcome });
+  const { greetingDone } = useHomeVoiceGreeting({ speakWelcome });
   useProactiveMarkAlerts({
-    enabled: settled,
+    // Après settle seulement, et après la tentative de salut (sinon vol idle).
+    enabled: settled && greetingDone,
     assistantState: state,
     speakAlert,
   });

@@ -113,6 +113,11 @@ function resumeExistingContext(): void {
   }
 }
 
+/** Reprend le ctx créé au login / geste — sans créer de nouveau hors geste. */
+export function resumeUnlockedAudio(): void {
+  resumeExistingContext();
+}
+
 /**
  * À appeler SYNCHRONEMENT dans un handler de geste (submit login, pointer).
  * Débloque AudioContext (Piper) — speechSynthesis unlock à volume 0 (pas de clic audible).

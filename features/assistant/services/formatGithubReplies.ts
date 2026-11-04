@@ -65,9 +65,9 @@ export function formatGithubBranchesReply(
   }
   const lines = branches.slice(0, 40).map((branch, index) => {
     const mark = branch.isDefault
-      ? " (défaut)"
+      ? " — défaut"
       : branch.protected
-        ? " (protégée)"
+        ? " — protégée"
         : "";
     return `${index + 1}. ${branch.name.toLocaleUpperCase("fr-FR")}${mark}`;
   });

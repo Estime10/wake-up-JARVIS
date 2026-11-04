@@ -64,7 +64,13 @@ export function createWebAudioSink(): WebAudioSink {
     async playWav(wav, { onStart, onLevel }, signal) {
       const audioCtx = ensureCtx();
       if (audioCtx.state === "suspended") {
-        await audioCtx.resume();
+        // Sans geste, resume() peut pendre indéfiniment → Piper ne fallback jamais.
+        await Promise.race([
+          audioCtx.resume(),
+          new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 400);
+          }),
+        ]);
       }
       // Sans geste Chrome reste suspended : onStart ne doit pas mentir (greeting « OK » silencieux).
       if (audioCtx.state !== "running") {
