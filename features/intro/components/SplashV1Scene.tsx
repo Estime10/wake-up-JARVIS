@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 
+import { HudAmbient } from "@/components/ui/HudAmbient";
+
 type SplashV1SceneProps = {
   /** Conteneur scope GSAP (ref parent). */
   hostRef: RefObject<HTMLDivElement | null>;
@@ -20,8 +22,14 @@ function prepareSvgMarkup(text: string): string {
     throw new Error("splash_svg_shape");
   }
   let svg = text.slice(start, end + "</svg>".length);
+  // Cover plein écran ; le léger scale CSS réduit le mark sans le miniaturiser.
   if (!svg.includes("preserveAspectRatio")) {
     svg = svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" ');
+  } else {
+    svg = svg.replace(
+      /preserveAspectRatio="[^"]*"/,
+      'preserveAspectRatio="xMidYMid slice"',
+    );
   }
   return svg;
 }
@@ -32,11 +40,15 @@ function prepareSvgMarkup(text: string): string {
  * à t=4,9 s ; sans ça on voit un flash (souvent « deux fois le masque »).
  */
 export function SplashV1Scene({ hostRef, onSvgReady }: SplashV1SceneProps) {
-  const [markup, setMarkup] = useState<string | null>(() => svgCache);
+  const [markup, setMarkup] = useState<string | null>(() =>
+    svgCache ? prepareSvgMarkup(svgCache) : null,
+  );
   const readyOnce = useRef(false);
 
   useEffect(() => {
     if (svgCache) {
+      // Alignement cache module (markup déjà préparé dans useState).
+      svgCache = prepareSvgMarkup(svgCache);
       return undefined;
     }
     let cancelled = false;
@@ -90,17 +102,17 @@ export function SplashV1Scene({ hostRef, onSvgReady }: SplashV1SceneProps) {
       className="fixed inset-0 z-50 overflow-hidden bg-bg text-accent"
       role="presentation"
     >
+      {/* Même fond app (vignette + scanlines) — pas seulement dans le SVG mark. */}
+      <HudAmbient />
       {markup ? (
         <div
           data-splash-scene
-          className="absolute inset-0 flex items-center justify-center opacity-0 [&_svg]:h-full [&_svg]:w-full [&_svg]:max-w-none data-[splash-primed=1]:opacity-100"
+          className="absolute inset-0 z-[1] flex items-center justify-center opacity-0 [&_svg]:h-full [&_svg]:w-full [&_svg]:max-w-none [&_svg]:origin-center [&_svg]:translate-y-[3vh] [&_svg]:scale-[0.92] [&_#splash-background]:hidden [&_#splash-vignette]:hidden [&_#splash-ambient]:hidden data-[splash-primed=1]:opacity-100"
           // Asset local contrôlé (SKETCH) — pas de HTML utilisateur.
           // eslint-disable-next-line react/no-danger -- SVG splash assemblé versionné, pas d’entrée user.
           dangerouslySetInnerHTML={{ __html: markup }}
         />
-      ) : (
-        <div className="absolute inset-0 bg-bg" aria-hidden />
-      )}
+      ) : null}
       <p className="sr-only" aria-live="polite">
         JARVIS : démarrage des systèmes.
       </p>

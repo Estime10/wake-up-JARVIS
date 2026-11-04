@@ -71,16 +71,13 @@ export function showRingMode(
   }
 }
 
-/** Coupe tout mouvement d'état (cadran, boot, arcs, segments, barres). */
+/**
+ * Coupe le mouvement du mode actif (barres / spokes / think).
+ * Ne touche pas cadran ni chrome boot — ils tournent en continu
+ * (idle / listening / speaking / thinking).
+ */
 export function stopRingMotion(layers: RingLayers): void {
-  const targets = [
-    layers.dial,
-    layers.thinkGroup,
-    ...layers.spokes,
-    ...layers.bars,
-    layers.root.querySelector<SVGElement>("[data-jarvis='boot-r150']"),
-    layers.root.querySelector<SVGElement>("[data-jarvis='boot-r160']"),
-  ];
+  const targets = [layers.thinkGroup, ...layers.spokes, ...layers.bars];
   for (const target of targets) {
     if (target) {
       gsap.killTweensOf(target);

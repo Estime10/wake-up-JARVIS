@@ -29,9 +29,13 @@ function freezeDial(layers: RingLayers): void {
   }
 }
 
-export const enterIdleRing: EnterRingState = (layers, { reducedMotion }) => {
+/** Cadran + chrome boot — spin ambiant partagé (pas seulement idle). */
+export function ensureAmbientSpin(
+  layers: RingLayers,
+  reducedMotion: boolean,
+): void {
   if (reducedMotion) {
-    return NO_CLEANUP;
+    return;
   }
   if (layers.dial) {
     startDialIdleSpin(layers.dial);
@@ -39,6 +43,10 @@ export const enterIdleRing: EnterRingState = (layers, { reducedMotion }) => {
   if (layers.root) {
     startSplashChromeIdle(layers.root);
   }
+}
+
+export const enterIdleRing: EnterRingState = (layers, { reducedMotion }) => {
+  ensureAmbientSpin(layers, reducedMotion);
   return NO_CLEANUP;
 };
 
@@ -46,6 +54,7 @@ export const enterThinkingRing: EnterRingState = (
   layers,
   { reducedMotion },
 ) => {
+  ensureAmbientSpin(layers, reducedMotion);
   if (!layers.thinkGroup || reducedMotion) {
     return NO_CLEANUP;
   }

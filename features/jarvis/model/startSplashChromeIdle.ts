@@ -13,13 +13,13 @@ const BOOT_160_SPIN_SECONDS = 48;
 /**
  * Dérive continue des anneaux boot (sens opposés), comme la fin du splash.
  * Croix / réticules restent fixes.
+ * Idempotent — ne reset pas si déjà en spin (idle ↔ speaking).
  */
 export function startSplashChromeIdle(root: ParentNode): void {
   const boot150 = root.querySelector<SVGElement>("[data-jarvis='boot-r150']");
   const boot160 = root.querySelector<SVGElement>("[data-jarvis='boot-r160']");
 
-  if (boot150) {
-    gsap.killTweensOf(boot150);
+  if (boot150 && !gsap.isTweening(boot150)) {
     gsap.set(boot150, {
       rotation: BOOT_150_START_DEG,
       svgOrigin: MARK_SVG_ORIGIN,
@@ -33,8 +33,7 @@ export function startSplashChromeIdle(root: ParentNode): void {
     });
   }
 
-  if (boot160) {
-    gsap.killTweensOf(boot160);
+  if (boot160 && !gsap.isTweening(boot160)) {
     gsap.set(boot160, {
       rotation: BOOT_160_START_DEG,
       svgOrigin: MARK_SVG_ORIGIN,

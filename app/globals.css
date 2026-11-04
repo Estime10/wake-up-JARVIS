@@ -155,9 +155,15 @@
     @apply font-mono text-dial font-normal tracking-dial uppercase;
   }
 
-  /* Vignette + scanlines ≤ 4 % — calque fixe, aria-hidden à l'usage. */
+  /* Vignette + scanlines ≤ 4 % — calque fixe, aria-hidden à l'usage.
+     Éclair nacré haut (ex-splash vignette glow) + assombrissement bords. */
   .hud-ambient {
     background-image:
+      radial-gradient(
+        ellipse 75% 48% at 50% 22%,
+        rgb(236 234 228 / 0.05) 0%,
+        transparent 58%
+      ),
       radial-gradient(
         ellipse 70% 55% at 50% 45%,
         transparent 35%,

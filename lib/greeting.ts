@@ -49,27 +49,16 @@ function formatSpokenTime(at: Date): string {
   return t("greeting.spokenTimeHourMinute", { hour, minute });
 }
 
-function spokenMailBlock(mailTotal: number, mailToday: number): string {
-  assertNonNegInt(mailTotal, "mailTotal");
+function spokenMailBlock(mailToday: number): string {
   assertNonNegInt(mailToday, "mailToday");
 
-  if (mailTotal === 0 && mailToday === 0) {
+  if (mailToday === 0) {
     return t("greeting.spokenMailsNone");
   }
-
-  const totalPart =
-    mailTotal === 1
-      ? t("greeting.spokenMailTotalOne")
-      : t("greeting.spokenMailTotalMany", { total: mailTotal });
-
-  const todayPart =
-    mailToday === 0
-      ? t("greeting.spokenMailTodayZero")
-      : mailToday === 1
-        ? t("greeting.spokenMailTodayOne")
-        : t("greeting.spokenMailTodayMany", { today: mailToday });
-
-  return `${totalPart} ${todayPart}`;
+  if (mailToday === 1) {
+    return t("greeting.spokenMailTodayOne");
+  }
+  return t("greeting.spokenMailTodayMany", { today: mailToday });
 }
 
 export type SpokenBriefingInput = {
@@ -77,16 +66,15 @@ export type SpokenBriefingInput = {
   at: Date;
   /** Lieu nu (sans préfixe GEOLOC) — null si inconnu. */
   place: string | null;
-  mailTotal: number;
+  /** Mails reçus aujourd’hui uniquement. */
   mailToday: number;
 };
 
 /**
- * Briefing TTS home — aligné sur les 4 points HUD :
- * salut + date/heure + géoloc + mails (total + jour) + système OK.
+ * Briefing TTS home — salut + date/heure + géoloc + mails du jour + système OK.
  */
 export function spokenBriefing(input: SpokenBriefingInput): string {
-  const { name, at, place, mailTotal, mailToday } = input;
+  const { name, at, place, mailToday } = input;
   const hour = at.getHours();
   assertHour(hour);
 
@@ -103,7 +91,7 @@ export function spokenBriefing(input: SpokenBriefingInput): string {
     ? t("greeting.spokenPlace", { place })
     : t("greeting.spokenPlaceUnknown");
 
-  const mails = spokenMailBlock(mailTotal, mailToday);
+  const mails = spokenMailBlock(mailToday);
   const systems = t("greeting.spokenSystemsOk");
 
   return `${hello} ${dateTime} ${placePart} ${mails} ${systems}`;

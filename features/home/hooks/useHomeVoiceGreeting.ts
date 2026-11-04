@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { usePorts } from "@/app/ports-context";
 import { useHomeEnter } from "@/features/home/context/homeEnterContext";
@@ -12,6 +12,7 @@ import { t } from "@/lib/i18n";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
 import {
   installOpportunisticAudioUnlock,
+  resumeUnlockedAudio,
   waitForAudioUnlock,
 } from "@/lib/voice/speechUnlock";
 import {
@@ -24,25 +25,32 @@ type UseHomeVoiceGreetingArgs = {
   speakWelcome: (text: string) => Promise<boolean>;
 };
 
+type UseHomeVoiceGreetingResult = {
+  /** `true` une fois la tentative de salut terminée (succès ou échec). */
+  greetingDone: boolean;
+};
+
 const MAIL_WAIT_MS = 600;
 const GEO_WAIT_MS = 800;
-/** Filet : ne jamais bloquer le settle si le TTS pend. */
-const BRIEFING_MAX_MS = 45_000;
-/** Attente max AudioContext (splash a déjà unlock au clic). */
-const AUDIO_UNLOCK_WAIT_MS = 2_500;
+/** Filet : ne jamais bloquer indéfiniment sur le TTS. */
+const BRIEFING_MAX_MS = 20_000;
+/** Court : le splash / login a déjà dû unlock — on ne bloque pas le speak. */
+const AUDIO_UNLOCK_WAIT_MS = 800;
 
 /**
- * Briefing vocal home après `briefingReady`, puis `beginSettle`.
- * Settle après la voix : sinon ready trop tôt vole l’état idle / coupe Piper.
+ * Briefing vocal après `briefingReady`.
+ * Settle UI tout de suite (messages) — TTS en parallèle.
+ * Alertes proactives : attendre `greetingDone` (ne pas voler idle).
  */
 export function useHomeVoiceGreeting({
   speakWelcome,
-}: UseHomeVoiceGreetingArgs): void {
+}: UseHomeVoiceGreetingArgs): UseHomeVoiceGreetingResult {
   const { profile } = usePorts();
   const { mails, status: mailStatus } = useMailFeed();
   const { place, status: geoStatus } = useDeviceLocation();
   const { phase, briefingReady, beginSettle } = useHomeEnter();
   const ranRef = useRef(false);
+  const [greetingDone, setGreetingDone] = useState(false);
 
   useEffect(() => {
     return installOpportunisticAudioUnlock();
@@ -66,21 +74,25 @@ export function useHomeVoiceGreeting({
     }
 
     const mailReady = mailStatus === "ready";
-    const mailTotal = mailReady ? mails.length : 0;
     const mailToday = mailReady ? countMailsToday(mails) : 0;
 
     const text = spokenBriefing({
       name,
       at: now,
       place,
-      mailTotal,
       mailToday,
     });
     setWelcomeSpeakText(text);
 
+    // UI home d’abord — ne pas attendre le TTS pour les messages.
+    beginSettle();
+
+    resumeUnlockedAudio();
+
     try {
       await Promise.race([
         (async () => {
+          // Filet court puis speak quand même (repli navigateur si Piper suspendu).
           await waitForAudioUnlock(AUDIO_UNLOCK_WAIT_MS);
           const ok = await speakWelcome(text);
           if (!ok && !wasWelcomeSpeakPlayed()) {
@@ -92,10 +104,10 @@ export function useHomeVoiceGreeting({
         }),
       ]);
     } catch {
-      /* settle quand même */
+      /* TTS optionnel */
+    } finally {
+      setGreetingDone(true);
     }
-
-    beginSettle();
   });
 
   useEffect(() => {
@@ -122,4 +134,6 @@ export function useHomeVoiceGreeting({
       window.clearTimeout(timeoutId);
     };
   }, [phase, briefingReady, mailStatus, mails, geoStatus, place]);
+
+  return { greetingDone };
 }

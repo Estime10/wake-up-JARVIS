@@ -5,10 +5,12 @@ import { DIAL_IDLE_SPIN_SECONDS } from "@/lib/intro/timings";
 
 /**
  * Cadran pointillé : rotation continue antihoraire.
- * Tue les tweens existants — un seul propriétaire du spin.
+ * Idempotent — ne reset pas si déjà en spin (passage idle ↔ speaking).
  */
 export function startDialIdleSpin(ringDial: SVGGeometryElement): void {
-  gsap.killTweensOf(ringDial);
+  if (gsap.isTweening(ringDial)) {
+    return;
+  }
   gsap.set(ringDial, {
     svgOrigin: MARK_SVG_ORIGIN,
     transformOrigin: "50% 50%",

@@ -1,7 +1,10 @@
 import gsap from "gsap";
 
 import { subscribeMockVoiceLevel } from "@/features/jarvis/model/mockVoiceLevel";
-import type { EnterRingState } from "@/features/jarvis/model/voiceRing/voiceRingStates";
+import {
+  ensureAmbientSpin,
+  type EnterRingState,
+} from "@/features/jarvis/model/voiceRing/voiceRingStates";
 
 /** Déphasage entre éléments (angle d'or, rad) — pas de Math.random par frame. */
 const PHASE_STEP = 2.399963;
@@ -37,6 +40,7 @@ export const enterListeningRing: EnterRingState = (
   layers,
   { reducedMotion },
 ) => {
+  ensureAmbientSpin(layers, reducedMotion);
   gsap.set(layers.spokes, {
     transformOrigin: "50% 100%",
     scaleY: reducedMotion ? 0.55 : 0.35,
@@ -56,6 +60,7 @@ export const enterSpeakingRing: EnterRingState = (
   layers,
   { reducedMotion },
 ) => {
+  ensureAmbientSpin(layers, reducedMotion);
   gsap.set(layers.bars, {
     transformOrigin: "50% 50%",
     scaleY: reducedMotion ? 0.6 : 0.4,

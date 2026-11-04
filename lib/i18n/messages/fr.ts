@@ -48,12 +48,9 @@ export const fr = {
     spokenTimeHourMinute: "{hour} heures {minute}",
     spokenPlace: "Vous êtes à {place}.",
     spokenPlaceUnknown: "Votre position n'est pas disponible.",
-    spokenMailsNone: "Vous n'avez aucun mail pour le moment.",
-    spokenMailTotalOne: "Vous avez un total d'un mail,",
-    spokenMailTotalMany: "Vous avez un total de {total} mails,",
-    spokenMailTodayZero: "donc aucun reçu aujourd'hui.",
-    spokenMailTodayOne: "donc un reçu aujourd'hui.",
-    spokenMailTodayMany: "donc {today} reçus aujourd'hui.",
+    spokenMailsNone: "Vous n'avez aucun mail reçu aujourd'hui.",
+    spokenMailTodayOne: "Vous avez un mail reçu aujourd'hui.",
+    spokenMailTodayMany: "Vous avez {today} mails reçus aujourd'hui.",
     spokenSystemsOk: "Votre système est opérationnel.",
     /** Alertes proactives mask (sans clic). */
     spokenMailNewOne: "Nouveau mail de {name}.",
@@ -102,7 +99,7 @@ export const fr = {
     dialogLabel: "Connexion JARVIS",
   },
   assistant: {
-    help: "Je suis en lecture seule. Je peux :\n• Mails — récents, résumé, compte, label, envoyés, importants\n• GitHub — statut, repos, PR, commits, branches\n• Mac — ouvrir un terminal / dossier / trouver un fichier (sans écrire)\nDis « aide », « mails label DEV », « liste mes repos »…",
+    help: "Je peux :\n• Mails — récents, résumé, compte, label, envoyés, importants\n• GitHub — statut, repos, PR, commits, branches\n• Mac — ouvrir un terminal / dossier / trouver un fichier\nDis « aide », « mails label DEV », « liste mes repos »…",
     fallbackCapability:
       "Je n'ai pas reconnu cette phrase. Dis « aide » pour la liste.",
     phraseCatalogTitle: "Phrases reconnues",
@@ -141,32 +138,22 @@ export const fr = {
     kindFilesGoto: "Aller dans un dossier",
     kindFilesFind: "Trouver un fichier",
     kindFilesOpen: "Ouvrir / révéler un fichier",
-    kindRefuseWrite: "Refuser (écriture / hors périmètre)",
-    chatGreeting:
-      "Salut — je suis là. Mails, GitHub, fichiers : dis-moi ce dont tu as besoin.",
-    chatHowAreYou:
-      "Ça va, merci. Je tourne en lecture seule — mails, GitHub ou fichiers, je t'écoute.",
+    kindRefuseWrite: "Refuser — écriture / hors périmètre",
+    chatGreeting: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
+    chatHowAreYou: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
     chatThanks: "Avec plaisir.",
     refuseWrite:
-      "Je reste en lecture seule : pas d'écriture, pas d'envoi, pas d'exécution. Demande-moi plutôt de lister, chercher ou ouvrir.",
-    terminalOpen:
-      "Terminal : lecture seule. Ouvre-le depuis le HUD — les dossiers sensibles (.ssh, clés…) restent bloqués.",
-    terminalOpenFolder:
-      "Terminal demandé sur « {folder} » (lecture seule). Les données sensibles restent bloquées.",
+      "Pas d'écriture, pas d'envoi, pas d'exécution. Demande-moi plutôt de lister, chercher ou ouvrir.",
+    terminalOpen: "Ouvre le terminal depuis le HUD.",
+    terminalOpenFolder: "Terminal demandé sur « {folder} ».",
     filesGoto:
-      "Dossier « {folder} » : je pourrai l'ouvrir en lecture seule une fois l'agent Mac branché. Rien ne sera modifié.",
-    filesFind:
-      "Recherche de « {file} » : lecture seule — ouverture dans ton app, sans exécution.",
-    filesFindIn:
-      "Recherche de « {file} » dans « {folder} » : lecture seule, ouverture seule.",
-    filesOpen:
-      "Ouverture de « {file} » : lecture seule (fichier passif). Les types sensibles restent bloqués.",
-    filesOpenGeneric:
-      "Ouverture du résultat : lecture seule, fichier passif uniquement. Les types sensibles restent bloqués.",
-    filesReveal:
-      "Je montrerai « {file} » dans le Finder (sans l’exécuter). Les types sensibles restent bloqués.",
-    filesRevealGeneric:
-      "Je le montrerai dans le Finder (sans l’exécuter). Les types sensibles restent bloqués.",
+      "Dossier « {folder} » : je pourrai l'ouvrir une fois l'agent Mac branché.",
+    filesFind: "Recherche de « {file} » : ouverture dans ton app.",
+    filesFindIn: "Recherche de « {file} » dans « {folder} » : ouverture.",
+    filesOpen: "Ouverture de « {file} ».",
+    filesOpenGeneric: "Ouverture du résultat.",
+    filesReveal: "Je montrerai « {file} » dans le Finder.",
+    filesRevealGeneric: "Je le montrerai dans le Finder.",
     mailLabelEmpty: "Aucun mail avec le label {label} dans la fenêtre récente.",
     mailLabelOne: "Voici le mail avec le label {label} :",
     mailLabelMany: "Voici les {count} mails avec le label {label} :",
@@ -174,12 +161,12 @@ export const fr = {
     mailRecentLabel: "récents",
     mailSentLabel: "envoyés",
     mailUnlabeled: "sans label",
-    mailCount: "Tu as {count} mails dans la fenêtre récente (reçus).",
+    mailCount: "Tu as {count} mails dans la fenêtre récente.",
     mailCountLabel: "Tu as {count} mails avec le label {label}.",
     mailOverviewEmpty: "Aucun mail à résumer dans la fenêtre récente.",
-    mailOverviewHeader: "Voici le résumé de ta boîte ({count} mails) :",
+    mailOverviewHeader: "Voici le résumé de ta boîte, {count} mails :",
     githubNeedsLive:
-      "Les commandes GitHub passent par le serveur (session connectée). Réessaie depuis l'app home.",
+      "Les commandes GitHub passent par le serveur. Réessaie depuis l'app home.",
     githubNotConnected:
       "GitHub n'est pas connecté. Ouvre le panneau GitHub pour coller un PAT.",
     githubNeedsReauth:
