@@ -8,7 +8,6 @@ import { pickPrimaryUserLabel } from "@/features/mail/model/mailLabelColors";
 import {
   gmailAfterDateQuery,
   isWithinMailWindow,
-  startOfMailWindow,
 } from "@/features/mail/model/mailWindow";
 import {
   fetchGmailLabelNames,
@@ -25,7 +24,6 @@ const log = createLogger("mail.poll");
 export type PollAccountRow = {
   id: string;
   user_id: string;
-  vault_secret_id: string;
   gmail_history_id: string | null;
   status: string;
 };
@@ -98,7 +96,6 @@ async function persistMessages(
       p_gmail_thread_id: message.threadId,
       p_from_raw: message.fromRaw,
       p_subject: message.subject,
-      p_snippet: message.snippet,
       p_received_at: message.receivedAt.toISOString(),
       p_category: category,
       p_flagged: Boolean(flag),
@@ -119,8 +116,8 @@ async function persistMessages(
 }
 
 /**
- * Relève une boîte active — **toujours** J-2 + veille + jour via Gmail `q=after:`.
- * (Pas d’history seul : après un purge DB, history croit être à jour et ne ramène rien.)
+ * Relève une boîte active — J-2 + veille + jour via Gmail `q=after:`.
+ * (History incrémental : à brancher côté cron serveur — M2 suite.)
  */
 export async function pollMailAccount(
   account: PollAccountRow,
@@ -128,20 +125,9 @@ export async function pollMailAccount(
 ): Promise<PollAccountResult> {
   const admin = createSupabaseAdminClient();
 
-  const { error: purgeError } = await admin.rpc(
-    "admin_mail_items_purge_before",
-    {
-      p_user_id: account.user_id,
-      p_before: startOfMailWindow().toISOString(),
-    },
-  );
-  if (purgeError) {
-    log.warn("purge_before_failed", { message: purgeError.message });
-  }
-
   const { data: token, error: tokenError } = await admin.rpc(
     "admin_mail_account_read_token",
-    { p_secret_id: account.vault_secret_id },
+    { p_user_id: account.user_id, p_account_id: account.id },
   );
 
   if (tokenError || typeof token !== "string" || !token) {
@@ -158,6 +144,7 @@ export async function pollMailAccount(
   if (!access.ok) {
     if (access.reason === "invalid_grant") {
       await admin.rpc("admin_mail_account_set_status", {
+        p_user_id: account.user_id,
         p_account_id: account.id,
         p_status: "needs_reauth",
       });

@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { revokeGoogleToken } from "@/lib/google/oauth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,13 +18,9 @@ const bodySchema = z.object({
  * Body JSON `{ accountId }`.
  */
 export async function POST(request: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
   let parsed: z.infer<typeof bodySchema>;
@@ -32,9 +30,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
+  const supabase = await createSupabaseServerClient();
   const { data: account, error: loadError } = await supabase
     .from("mail_accounts")
-    .select("id, vault_secret_id")
+    .select("id")
     .eq("id", parsed.accountId)
     .maybeSingle();
 
@@ -44,7 +43,8 @@ export async function POST(request: NextRequest) {
 
   const admin = createSupabaseAdminClient();
   const { data: token } = await admin.rpc("admin_mail_account_read_token", {
-    p_secret_id: account.vault_secret_id,
+    p_user_id: access.user.id,
+    p_account_id: parsed.accountId,
   });
 
   if (typeof token === "string" && token.length > 0) {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { error: deleteError } = await admin.rpc("admin_mail_account_delete", {
-    p_user_id: user.id,
+    p_user_id: access.user.id,
     p_account_id: parsed.accountId,
   });
 

@@ -10,8 +10,16 @@ export type GithubTokenLoad =
       reason: "auth" | "missing" | "needs_reauth" | "vault" | "config";
     };
 
+type GithubConnectionRow = {
+  id: string;
+  github_login: string;
+  status: string;
+  expires_at: string | null;
+};
+
 /**
  * Charge le PAT Vault pour l’user session — server-only.
+ * Ne sélectionne jamais vault_secret_id (lecture via RPC liée au propriétaire).
  */
 export async function loadGithubConnectionToken(): Promise<GithubTokenLoad> {
   const supabase = await createSupabaseServerClient();
@@ -25,7 +33,7 @@ export async function loadGithubConnectionToken(): Promise<GithubTokenLoad> {
 
   const { data: row, error } = await supabase
     .from("github_connections")
-    .select("id, github_login, status, vault_secret_id, expires_at")
+    .select("id, github_login, status, expires_at")
     .maybeSingle();
 
   if (error) {
@@ -35,13 +43,7 @@ export async function loadGithubConnectionToken(): Promise<GithubTokenLoad> {
     return { ok: false, reason: "missing" };
   }
 
-  const typed = row as {
-    id: string;
-    github_login: string;
-    status: string;
-    vault_secret_id: string;
-    expires_at: string | null;
-  };
+  const typed = row as GithubConnectionRow;
 
   if (
     typed.status === "needs_reauth" ||
@@ -53,7 +55,7 @@ export async function loadGithubConnectionToken(): Promise<GithubTokenLoad> {
   const admin = createSupabaseAdminClient();
   const { data: token, error: tokenError } = await admin.rpc(
     "admin_github_connection_read_token",
-    { p_secret_id: typed.vault_secret_id },
+    { p_user_id: user.id, p_connection_id: typed.id },
   );
 
   if (tokenError || typeof token !== "string" || token.length === 0) {
