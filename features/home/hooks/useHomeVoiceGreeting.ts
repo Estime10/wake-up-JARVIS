@@ -28,13 +28,12 @@ const MAIL_WAIT_MS = 600;
 const GEO_WAIT_MS = 800;
 /** Filet : ne jamais bloquer le settle si le TTS pend. */
 const BRIEFING_MAX_MS = 45_000;
-/** Attente max d’un geste (filet) avant de parler — splash a déjà unlock. */
-const AUDIO_UNLOCK_WAIT_MS = 1_500;
+/** Attente max AudioContext (splash a déjà unlock au clic). */
+const AUDIO_UNLOCK_WAIT_MS = 2_500;
 
 /**
- * Briefing vocal (HUD) → toujours `beginSettle` ensuite.
- * Contenu : salut, date/heure, géoloc, mails total + jour, système OK.
- * Déclenché uniquement sur home après `briefingReady` (jamais pendant le splash).
+ * Briefing vocal home après `briefingReady`, puis `beginSettle`.
+ * Settle après la voix : sinon ready trop tôt vole l’état idle / coupe Piper.
  */
 export function useHomeVoiceGreeting({
   speakWelcome,
@@ -46,7 +45,6 @@ export function useHomeVoiceGreeting({
   const ranRef = useRef(false);
 
   useEffect(() => {
-    // Filet si le splash n’a pas reçu de geste — unlock only, pas de TTS.
     return installOpportunisticAudioUnlock();
   }, []);
 
@@ -80,13 +78,9 @@ export function useHomeVoiceGreeting({
     });
     setWelcomeSpeakText(text);
 
-    // UI home d’abord (HUD / messages / composer) — TTS en parallèle.
-    beginSettle();
-
     try {
       await Promise.race([
         (async () => {
-          // Audio déjà débloqué au login / clic splash → Piper part seul ici.
           await waitForAudioUnlock(AUDIO_UNLOCK_WAIT_MS);
           const ok = await speakWelcome(text);
           if (!ok && !wasWelcomeSpeakPlayed()) {
@@ -98,8 +92,10 @@ export function useHomeVoiceGreeting({
         }),
       ]);
     } catch {
-      /* TTS optionnel après settle */
+      /* settle quand même */
     }
+
+    beginSettle();
   });
 
   useEffect(() => {
