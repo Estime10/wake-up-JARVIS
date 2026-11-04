@@ -2,11 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { reverseGeocodePlace } from "@/lib/geo/reverseGeocode";
 import { t } from "@/lib/i18n";
-
-type ReverseResponse = {
-  place: string | null;
-};
 
 export type DeviceLocationStatus = "pending" | "ready" | "unavailable";
 
@@ -43,25 +40,6 @@ function publish(next: DeviceLocationState): DeviceLocationState {
   return next;
 }
 
-function reversePlace(
-  latitude: number,
-  longitude: number,
-): Promise<string | null> {
-  const url = new URL("/api/geo/reverse", window.location.origin);
-  url.searchParams.set("latitude", String(latitude));
-  url.searchParams.set("longitude", String(longitude));
-
-  return fetch(url.toString())
-    .then(async (response) => {
-      if (!response.ok) {
-        return null;
-      }
-      const data = (await response.json()) as ReverseResponse;
-      return data.place;
-    })
-    .catch(() => null);
-}
-
 function resolveDeviceLocation(): Promise<DeviceLocationState> {
   if (shared.status !== "pending") {
     return Promise.resolve(shared);
@@ -79,7 +57,7 @@ function resolveDeviceLocation(): Promise<DeviceLocationState> {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        void reversePlace(latitude, longitude).then((resolved) => {
+        void reverseGeocodePlace(latitude, longitude).then((resolved) => {
           const place = resolved?.trim();
           if (place) {
             resolve(
@@ -109,7 +87,7 @@ function resolveDeviceLocation(): Promise<DeviceLocationState> {
 }
 
 /**
- * Lieu appareil (Geolocation + reverse geocode via `/api/geo/reverse`).
+ * Lieu appareil (Geolocation + reverse BigDataCloud côté navigateur).
  * Partagé entre HUD et TTS — un seul `getCurrentPosition` / reverse.
  * Permission refusée / indispo → placeholder.
  */

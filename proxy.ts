@@ -17,8 +17,8 @@ export async function proxy(request: NextRequest) {
       : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    // Géocode : via /api/geo/reverse (serveur). Supabase : Auth + Data API.
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    // Géocode BigDataCloud (client). Supabase : Auth + Data API.
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.bigdatacloud.net",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
