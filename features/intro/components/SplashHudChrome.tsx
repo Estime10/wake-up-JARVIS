@@ -13,7 +13,7 @@ type SplashHudChromeProps = {
 
 /**
  * Chrome home — équerres uniquement.
- * CTAs (terminal, e-mail, github, supabase) → `HomeLeftCtaStack`.
+ * Nav (heure + Terminal · Mail · GitHub) → `HomeNavHeader`.
  */
 export function SplashHudChrome({
   settled = false,

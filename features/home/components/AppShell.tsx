@@ -21,8 +21,6 @@ type AppShellProps = {
   repo: ReactNode;
   /** Tiroir mails — section gauche plein cadre. */
   mail?: ReactNode;
-  /** Tiroir Supabase — section droite. */
-  supabase?: ReactNode;
 };
 
 /**
@@ -35,7 +33,7 @@ type BootGate = "boot" | "playing" | "ready";
  * Coquille `(main)` — home visible pendant le boot (même mark / équerres),
  * overlay = scan + nom JARVIS seulement.
  */
-export function AppShell({ children, repo, mail, supabase }: AppShellProps) {
+export function AppShell({ children, repo, mail }: AppShellProps) {
   const { mainFocus } = useJarvisShell();
   const [gate, setGate] = useState<BootGate>("boot");
 
@@ -80,7 +78,6 @@ export function AppShell({ children, repo, mail, supabase }: AppShellProps) {
         <HudAmbient />
         {repo}
         {mail}
-        {supabase}
 
         {bootPlaying ? <HomeBootOverlay onFinished={onBootFinished} /> : null}
 

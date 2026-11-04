@@ -5,5 +5,4 @@ export {
   REPO_MOTION_MS,
   REPO_SLIDE_IN,
   REPO_SLIDE_OUT,
-  RIGHT_SLIDE_OUT,
 } from "@/features/home/animations/repoMotion";

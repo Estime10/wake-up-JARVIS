@@ -3,21 +3,9 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import {
-  REPO_MOTION_CLASS,
-  REPO_SLIDE_IN,
-  RIGHT_SLIDE_OUT,
-} from "@/features/home/animations";
 import { SupabaseConnectModal } from "@/features/home/components/SupabaseConnectModal";
 import { SupabaseStudioBrowser } from "@/features/home/components/SupabaseStudioBrowser";
-import { useSupabasePanel } from "@/features/home/context";
-import {
-  REPO_MOTION_MS,
-  usePresenceMotion,
-} from "@/features/home/hooks/usePresenceMotion";
-import { HOME_RIGHT_SECTION_WIDTH_CLASS } from "@/features/home/model/homeColumnLayout";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
-import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
 import { useSupabasePlatform } from "@/features/supabase/hooks/useSupabasePlatform";
 import { cn } from "@/lib/cn";
 import type { MessageKey } from "@/lib/i18n";
@@ -45,21 +33,16 @@ const STUDIO_ERROR_KEYS: Record<string, MessageKey> = {
 };
 
 /**
- * Tiroir Supabase — multi-comptes → projets → Docker / Studio local.
+ * Colonne droite permanente — Studio / comptes comme surface bureau
+ * (pas de tiroir, pas de barre fermer).
  */
-export function HomeSupabaseDrawer() {
-  const { open, close } = useSupabasePanel();
-  const motion = usePresenceMotion(open, REPO_MOTION_MS);
+export function HomeSupabasePane() {
   const platform = useSupabasePlatform();
   const [connectOpen, setConnectOpen] = useState(false);
   const [connectSubmitting, setConnectSubmitting] = useState(false);
   const [connectErrorKey, setConnectErrorKey] = useState<MessageKey | null>(
     null,
   );
-
-  if (!motion.mounted) {
-    return null;
-  }
 
   const hasAccounts = platform.connections.length > 0;
   const dockerErrorKey = platform.dockerError
@@ -73,41 +56,15 @@ export function HomeSupabaseDrawer() {
 
   return (
     <>
-      <aside
-        className={cn(
-          "fixed inset-y-0 right-0 flex flex-col border-l border-line-subtle bg-bg isolate",
-          HOME_RIGHT_SECTION_WIDTH_CLASS,
-          REPO_MOTION_CLASS,
-          REPO_LAYER_CLASS.panel,
-          motion.visible ? REPO_SLIDE_IN : RIGHT_SLIDE_OUT,
-        )}
-        data-scroll-lock-allow="true"
+      <section
+        className="flex h-full min-h-0 min-w-0 flex-col"
         aria-label={t("home.supabasePanelLabel")}
-        aria-hidden={!motion.visible || undefined}
-        inert={!motion.visible ? true : undefined}
+        data-scroll-lock-allow="true"
       >
-        <header className={cn(REPO_CHROME.header, "justify-between")}>
-          <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
-            {t("home.supabase")}
-          </p>
-          <Button
-            variant="ghost"
-            size="bare"
-            className={REPO_CHROME.closeButton}
-            aria-label={t("home.supabaseCloseLabel")}
-            onClick={() => {
-              setConnectOpen(false);
-              close();
-            }}
-          >
-            {t("home.supabaseClose")}
-          </Button>
-        </header>
-
         <div
           data-scroll-lock-allow="true"
           className={cn(
-            "flex min-h-0 flex-1 flex-col gap-4 px-4 py-4",
+            "flex min-h-0 flex-1 flex-col gap-4 pt-5 pr-6 pb-4 pl-3 sm:pt-6 sm:pr-8 sm:pl-4",
             platform.studioUrl
               ? "overflow-hidden"
               : "overflow-y-auto overscroll-y-contain",
@@ -174,10 +131,10 @@ export function HomeSupabaseDrawer() {
                           void platform.setActiveAccount(account.id);
                         }}
                         className={cn(
-                          "t-mono min-w-0 flex-1 rounded-md px-3 py-2 text-left text-sm transition-colors",
+                          "t-mono min-w-0 flex-1 px-1 py-2 text-left text-sm transition-colors",
                           account.isActive
-                            ? "bg-surface-2 text-text"
-                            : "text-text-muted hover:bg-surface-2/50 hover:text-text",
+                            ? "text-text"
+                            : "text-text-muted hover:text-text",
                         )}
                       >
                         <span className="block truncate">
@@ -238,10 +195,10 @@ export function HomeSupabaseDrawer() {
                                   void platform.selectProject(project);
                                 }}
                                 className={cn(
-                                  "t-mono w-full rounded-md px-3 py-2 text-left text-sm transition-colors",
+                                  "t-mono w-full px-1 py-2 text-left text-sm transition-colors",
                                   selected
-                                    ? "bg-surface-2 text-text"
-                                    : "text-text-muted hover:bg-surface-2/50 hover:text-text",
+                                    ? "text-text"
+                                    : "text-text-muted hover:text-text",
                                   platform.dockerEnsuring && "opacity-60",
                                 )}
                               >
@@ -284,8 +241,9 @@ export function HomeSupabaseDrawer() {
                     )}
                     <Button
                       type="button"
-                      variant="bordered"
-                      size="md"
+                      variant="hud"
+                      size="bare"
+                      className="w-fit"
                       disabled={
                         platform.studioStarting ||
                         platform.dockerEnsuring ||
@@ -313,10 +271,10 @@ export function HomeSupabaseDrawer() {
             </>
           )}
         </div>
-      </aside>
+      </section>
 
       <SupabaseConnectModal
-        open={connectOpen && motion.visible}
+        open={connectOpen}
         submitting={connectSubmitting}
         errorKey={connectErrorKey}
         onClose={() => setConnectOpen(false)}

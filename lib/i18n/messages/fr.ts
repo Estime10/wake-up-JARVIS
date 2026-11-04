@@ -210,11 +210,10 @@ export const fr = {
     github: "GitHub",
     githubLabel: "Ouvrir le panneau dépôts",
     githubCloseLabel: "Fermer le panneau dépôts",
-    /** CTA HUD — tiroir Supabase (section droite). */
+    /** Nav header — CTA centrés (Terminal · Mail · GitHub). */
+    navLabel: "Navigation",
+    /** Colonne droite permanente — Studio / platform. */
     supabase: "Supabase",
-    supabaseLabel: "Ouvrir Supabase Studio",
-    supabaseCloseLabel: "Fermer Supabase Studio",
-    supabaseClose: "Fermer",
     supabasePanelLabel: "Supabase Studio",
     supabaseConnect: "Connect",
     supabaseConnectLabel: "Connecter Supabase",
