@@ -63,6 +63,9 @@ export async function POST(request: NextRequest) {
   );
 
   if (error || !data) {
+    if (error?.message.includes("supabase_platform_connection_limit")) {
+      return NextResponse.json({ ok: false, error: "limit" }, { status: 409 });
+    }
     log.error("store_token_failed");
     return NextResponse.json({ ok: false, error: "store" }, { status: 500 });
   }

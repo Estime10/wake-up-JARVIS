@@ -23,6 +23,7 @@ export async function POST() {
 
   const result = await startLocalSupabaseStudio(process.cwd());
   if (!result.ok) {
+    // DEV-13 — détail CLI journalisé serveur uniquement, jamais au client.
     log.error("studio_start_failed", {
       reason: result.reason,
       ...(result.detail ? { detail: result.detail } : {}),
@@ -33,14 +34,7 @@ export async function POST() {
         : result.reason === "docker_missing" || result.reason === "port_in_use"
           ? 503
           : 500;
-    return NextResponse.json(
-      {
-        ok: false,
-        error: result.reason,
-        ...(result.detail ? { detail: result.detail } : {}),
-      },
-      { status },
-    );
+    return NextResponse.json({ ok: false, error: result.reason }, { status });
   }
 
   return NextResponse.json({

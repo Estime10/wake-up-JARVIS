@@ -21,7 +21,7 @@ Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-
 - **Données gardées** : métadonnées (boîte, expéditeur, objet, date, catégorie, motif du signalement) et résumés. **Jamais** le corps complet. Pas d’effacement (choix DevinChat).
 - **Schéma (Supabase, [ADR 0008](./0008-auth-email-memoire-supabase.md))** :
   - `mail_accounts` — référence Vault (`secret_id`), **jamais** le jeton en colonne ;
-  - `mail_rules` — règles et regex en base (pas dans le repo public) ;
+  - `mail_rules` — règles en base (pas dans le repo public) ; matching **littéral** (`includes`, anti-ReDoS) — plus de regex (DEV-8) ;
   - `mail_items`, `mail_reads` ;
   - RLS sur `auth.uid()` partout ; **aucune** policy DELETE ; trigger qui bloque les suppressions ;
   - jetons dans **Supabase Vault**, lus seulement par des fonctions `security definer` du schéma `private`.
@@ -66,6 +66,7 @@ Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-
 - **Gain** : signalement utile sans tri IA ; lecture seule compatible POSTMAN ; étape 1 isole le risque OAuth/Vault avant tout corps de mail.
 - **Risque** : données personnelles de tiers gardées sans limite de durée (choix assumé, à revoir si JARVIS sort de l’usage perso) ; jeton révoqué / `invalid_grant` → boîte `needs_reauth`, sans retry en boucle.
 - **Coût** : Vault + Edge Functions + `pg_cron`/`pg_net` ; règles en base à synchroniser avec POSTMAN (`mail_rules`).
+- **N2 / DEV-8 (2026-11-04)** : inventaire distant `mail_rules` = **0 ligne** — aucune conversion regex→littéral à faire. Motifs futurs : sous-chaînes littérales, `length(pattern) ≤ 200` (DEV-10, contrainte déjà validée sur table vide).
 - **Process** : zéro commit d’implémentation étape 1 sans validation DevinChat **et** relecture HACKER (niveau 3).
 
 ## Critères d’acceptation

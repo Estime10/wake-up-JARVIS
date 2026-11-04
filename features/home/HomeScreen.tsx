@@ -6,6 +6,7 @@ import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalo
 import { AssistantStage } from "@/features/home/components/AssistantStage";
 import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
+import { HomeClock } from "@/features/home/components/HomeClock";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
 import { HomeNavHeader } from "@/features/home/components/HomeNavHeader";
 import { HomeStatusHeader } from "@/features/home/components/HomeStatusHeader";
@@ -123,12 +124,15 @@ export function HomeScreen() {
       <div className="relative z-10 grid h-full min-h-0 w-full grid-cols-3">
         <div
           className={cn(
-            "relative flex min-h-0 min-w-0 flex-col pt-14 pl-6 sm:pt-16 sm:pl-8",
+            "relative flex min-h-0 min-w-0 flex-col pl-6 sm:pl-8",
             PANEL_CONTENT_MOTION_CLASS,
             homeContentHidden && "pointer-events-none opacity-0",
           )}
           aria-hidden={homeContentHidden || undefined}
         >
+          <div className="z-20 shrink-0 px-0 pt-5 pb-2 sm:pt-6">
+            <HomeClock visible={showNav} />
+          </div>
           {!settled ? null : memoryBlocked ? (
             <ConversationLoadState
               status={memoryStatus === "error" ? "error" : "loading"}

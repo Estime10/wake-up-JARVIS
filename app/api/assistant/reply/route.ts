@@ -4,6 +4,8 @@ import { createSupabaseMail } from "@/adapters/supabase/createSupabaseMail";
 import { countPhraseSlots } from "@/features/assistant/model/matchPhraseCatalog";
 import { coerceCustomPhraseRules } from "@/features/assistant/model/customPhraseRules";
 import { buildAssistantReply } from "@/features/assistant/services/buildAssistantReply";
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { createLogger } from "@/lib/logger";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -38,14 +40,12 @@ const bodySchema = z.object({
  * Réponse assistant — intents déterministes (mail + GitHub), sans LLM.
  */
 export async function POST(request: Request) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonNoStore({ error: "unauthorized" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
+
+  const supabase = await createSupabaseServerClient();
 
   let json: unknown;
   try {

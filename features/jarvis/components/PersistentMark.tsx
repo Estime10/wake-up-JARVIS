@@ -1,8 +1,9 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { JarvisMark } from "@/components/ui/JarvisMark";
 import { useJarvisShell } from "@/features/jarvis/context";
@@ -13,6 +14,8 @@ import {
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
 import { ROUTES } from "@/lib/routes";
+
+gsap.registerPlugin(useGSAP);
 
 function isHomePath(pathname: string): boolean {
   return pathname === ROUTES.home || pathname.startsWith(`${ROUTES.home}/`);
@@ -37,6 +40,7 @@ function placeMarkOnSlot(
 /**
  * Unique mark de session — toujours le même nœud DOM (fixed).
  * Dessin = splash (JarvisMark v2 + chrome boot).
+ * Pose via useGSAP (ADR 0004 / DEV-9).
  */
 export function PersistentMark() {
   const pathname = usePathname();
@@ -44,48 +48,51 @@ export function PersistentMark() {
   const phaseRef = useRef<"home" | "splash" | null>(null);
   const home = isHomePath(pathname);
 
-  useLayoutEffect(() => {
-    const mark = markRef.current;
-    if (!mark) {
-      return;
-    }
+  useGSAP(
+    () => {
+      const mark = markRef.current;
+      if (!mark) {
+        return;
+      }
 
-    gsap.set(mark, {
-      position: "fixed",
-      margin: 0,
-      x: 0,
-      y: 0,
-      maxWidth: "none",
-      zIndex: 30,
-      pointerEvents: "none",
-    });
-
-    if (home && handoff.hasPending()) {
-      // Pose capture splash : ne pas re-placer au slot home (saut visible).
-      phaseRef.current = "home";
-      showMark(mark);
-      mark.style.visibility = "";
-      return handoff.onComplete(() => {
-        // Repasse sous le HUD une fois l’overlay démonté.
-        mark.style.zIndex = "30";
+      gsap.set(mark, {
+        position: "fixed",
+        margin: 0,
+        x: 0,
+        y: 0,
+        maxWidth: "none",
+        zIndex: 30,
+        pointerEvents: "none",
       });
-    }
 
-    if (home && phaseRef.current === "splash") {
-      phaseRef.current = "home";
-      placeMarkOnSlot(mark, "home", { visible: true });
+      if (home && handoff.hasPending()) {
+        // Pose capture splash : ne pas re-placer au slot home (saut visible).
+        phaseRef.current = "home";
+        showMark(mark);
+        mark.style.visibility = "";
+        return handoff.onComplete(() => {
+          // Repasse sous le HUD une fois l’overlay démonté.
+          mark.style.zIndex = "30";
+        });
+      }
+
+      if (home && phaseRef.current === "splash") {
+        phaseRef.current = "home";
+        placeMarkOnSlot(mark, "home", { visible: true });
+        return undefined;
+      }
+
+      if (home) {
+        phaseRef.current = "home";
+        return undefined;
+      }
+
+      phaseRef.current = "splash";
+      gsap.set(mark, { opacity: 0, visibility: "hidden" });
       return undefined;
-    }
-
-    if (home) {
-      phaseRef.current = "home";
-      return undefined;
-    }
-
-    phaseRef.current = "splash";
-    gsap.set(mark, { opacity: 0, visibility: "hidden" });
-    return undefined;
-  }, [handoff, home, markRef, pathname]);
+    },
+    { dependencies: [handoff, home, markRef, pathname] },
+  );
 
   return (
     <div

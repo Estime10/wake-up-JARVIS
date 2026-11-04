@@ -137,7 +137,8 @@ function classifyStartError(
   stdout: string,
 ): {
   reason: "port_in_use" | "supabase_start_failed";
-  detail: string;
+  /** Log serveur uniquement — jamais renvoyé au client (DEV-13). */
+  logDetail: string;
 } {
   const text = `${stderr}\n${stdout}`;
   if (
@@ -145,12 +146,12 @@ function classifyStartError(
   ) {
     return {
       reason: "port_in_use",
-      detail: text.slice(0, 280),
+      logDetail: text.slice(0, 280),
     };
   }
   return {
     reason: "supabase_start_failed",
-    detail: text.slice(0, 280) || "unknown",
+    logDetail: text.slice(0, 280) || "unknown",
   };
 }
 
@@ -198,7 +199,7 @@ export async function startLocalSupabaseStudio(
     return {
       ok: false,
       reason: classified.reason,
-      detail: classified.detail,
+      detail: classified.logDetail,
     };
   }
 }

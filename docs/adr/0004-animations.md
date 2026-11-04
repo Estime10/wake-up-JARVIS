@@ -12,6 +12,7 @@ La direction artistique (SKETCH) demande un anneau holographique, des arcs de ca
 ## Décision
 
 - Anneau et cadran en **SVG + CSS**, animés avec **GSAP** (`useGSAP`, `gsap.matchMedia`), **transform et opacity uniquement**.
+- Mark de session (`PersistentMark`) : pose initiale via **`useGSAP`** + `gsap.set` (DEV-9) — pas de `useLayoutEffect` GSAP.
 - Seule exception validée par SKETCH : `stroke-dashoffset` pour **dessiner l'anneau une fois** dans l'intro.
 - Niveau de voix (~30 valeurs/s) : **jamais en state React ni en dépendance de hook** ; une ref + `gsap.quickTo(el, "scale")`.
 - Fin de l'intro : **GSAP Flip** (`import { Flip } from "gsap/Flip"`, `gsap.registerPlugin(useGSAP, Flip)`) : `Flip.getState` dans un handler `contextSafe` avant le `setState`, `Flip.from` dans `useGSAP` ; anneau de l'intro et anneau principal avec le même `data-flip-id` ; pas de Flip en reduced motion.

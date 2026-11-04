@@ -10,15 +10,16 @@ import {
   isPiperProxyEnabled,
   proxyPiperSynthesize,
 } from "@/adapters/piper/piperProxy";
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { createLogger } from "@/lib/logger";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 const log = createLogger("voice.piper.proxy");
 
 /**
- * Proxy TTS Piper — same-origin + session (ADR 0008).
+ * Proxy TTS Piper — same-origin + owner (ADR 0008 / DEV-17).
  * Désactivé en production sauf `PIPER_PROXY_ENABLED=1`.
  * Upstream loopback uniquement (jamais 0.0.0.0).
  */
@@ -33,12 +34,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "origin" }, { status: 403 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
   const raw = await request.arrayBuffer();

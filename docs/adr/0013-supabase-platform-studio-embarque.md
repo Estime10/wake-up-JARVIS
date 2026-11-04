@@ -12,7 +12,7 @@ DevinChat veut brancher **plusieurs comptes** Supabase (orgs / perso / clients) 
 
 ## Décision
 
-- **Multi-comptes** : table `public.supabase_platform_connections` — 1 ligne = 1 access token Management API (`sbp_…`) en **Vault** ; colonnes UI sans `vault_secret_id` ; `is_active` = session courante.
+- **Multi-comptes** : table `public.supabase_platform_connections` — 1 ligne = 1 access token Management API (`sbp_…`) en **Vault** ; colonnes UI sans `vault_secret_id` ; `is_active` = session courante ; **max 5** comptes / user (DEV-14).
 - **API** : routes `app/api/supabase/platform/*` (connect, status, disconnect, projects, select-project, set-active, docker/ensure, studio/start) — owner only (`requireOwnerAccess`).
 - **Docker / Studio** : `ensureDockerRunning` + `supabase start` en Node (`ALLOW_LOCAL_STUDIO` / `NODE_ENV=development`). API locale sur **`:54331`** (évite conflit CleanMyMac sur `:54321`) ; Studio reste `:54323`.
 - **Embed Next** : reverse-proxy local **`:54332`** (`studioEmbedProxy`) ; Host allowlist (`127.0.0.1` / `localhost`:+port) ; CSP réponse `frame-ancestors` borné à l’origine app (`:3000`) — **pas** de strip total (DEV-3) ; iframe dans `SupabaseStudioBrowser` ; CSP app `frame-src` Studio **dev-only**.

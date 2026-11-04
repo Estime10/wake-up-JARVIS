@@ -3,7 +3,7 @@
  * CLI purge mail_items (service_role).
  *
  *   pnpm mail:purge           → hors fenêtre (avant début de J-2)
- *   pnpm mail:purge --all     → tous les mail_items (mail_reads épargnés / SET NULL)
+ *   pnpm mail:purge --all     → tous les mail_items (mail_reads : SET NULL sur mail_item_id)
  *   pnpm mail:purge --user <uuid>
  *
  * Charge `.env.local` puis `.env` (NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY).

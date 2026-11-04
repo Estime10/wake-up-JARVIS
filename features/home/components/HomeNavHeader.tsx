@@ -3,7 +3,6 @@
 import type { Ref } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { useIntroClockParts } from "@/features/intro/hooks/useIntroClockParts";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
@@ -21,9 +20,7 @@ type HomeNavHeaderProps = {
   onGithubClick?: () => void;
 };
 
-/**
- * Nav colonne milieu — heure/date + CTA en `justify-between` sur toute la largeur.
- */
+/** Nav colonne milieu — CTA centrés (horloge = colonne gauche). */
 export function HomeNavHeader({
   visible = true,
   terminalOpen = false,
@@ -37,27 +34,17 @@ export function HomeNavHeader({
   githubDisabled = false,
   onGithubClick,
 }: HomeNavHeaderProps) {
-  const { time, date } = useIntroClockParts();
-
   return (
     <header
       className={cn(
-        "z-20 flex w-full shrink-0 items-center px-3 pt-5 pb-2 sm:px-4 sm:pt-6",
+        "z-20 flex w-full shrink-0 items-center justify-center px-3 pt-5 pb-2 sm:px-4 sm:pt-6",
         !visible && "pointer-events-none opacity-0",
       )}
     >
       <nav
-        className="flex w-full items-center justify-between gap-2"
+        className="flex items-center justify-center gap-3 sm:gap-4"
         aria-label={t("home.navLabel")}
       >
-        <p
-          className="t-mono flex min-w-0 flex-wrap items-baseline gap-x-2 truncate text-dial text-text-muted uppercase sm:text-sm"
-          suppressHydrationWarning
-        >
-          <span>{time}</span>
-          {date ? <span>{date}</span> : null}
-        </p>
-
         <Button
           ref={terminalTriggerRef}
           type="button"
