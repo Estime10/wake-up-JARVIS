@@ -102,11 +102,15 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
       if (!isMailPollStale()) {
         return;
       }
-      void runMailPoll().then((ok) => {
-        if (ok && !cancelled) {
-          setAttempt((value) => value + 1);
-        }
-      });
+      void runMailPoll()
+        .then((ok) => {
+          if (ok && !cancelled) {
+            setAttempt((value) => value + 1);
+          }
+        })
+        .catch(() => {
+          /* runMailPoll ne throw plus — filet HMR / abort */
+        });
     };
 
     tick();

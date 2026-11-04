@@ -13,6 +13,7 @@ type HomeEnterProviderProps = {
   phase: HomeEnterPhase;
   briefingReady: boolean;
   beginSettle: () => void;
+  skipCenteredBriefing: boolean;
 };
 
 export function HomeEnterProvider({
@@ -20,10 +21,11 @@ export function HomeEnterProvider({
   phase,
   briefingReady,
   beginSettle,
+  skipCenteredBriefing,
 }: HomeEnterProviderProps) {
   const value = useMemo<HomeEnterContextValue>(
-    () => ({ phase, briefingReady, beginSettle }),
-    [phase, briefingReady, beginSettle],
+    () => ({ phase, briefingReady, beginSettle, skipCenteredBriefing }),
+    [phase, briefingReady, beginSettle, skipCenteredBriefing],
   );
 
   return <HomeEnterContext value={value}>{children}</HomeEnterContext>;

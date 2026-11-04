@@ -1,25 +1,27 @@
-/** Géométrie SVG de l’anneau vocal — précalculée une fois (PLAN-UI / DA v3). */
+/** Géométrie SVG de l’anneau vocal — mark v2 (viewBox 248). */
 
-export const RING_CX = 256;
-export const RING_CY = 256;
+export const RING_CX = 124;
+export const RING_CY = 124;
+/** Origine GSAP (spin cadran / modes). */
+export const MARK_SVG_ORIGIN = `${RING_CX} ${RING_CY}`;
 
-/** Anneaux d'état figés (erreur / hors ligne) — rayon de la traînée idle. */
-export const STATUS_RING_RADIUS = 180;
+/** Anneaux d'état figés (erreur / hors ligne) — rayon traînée idle. */
+export const STATUS_RING_RADIUS = 80;
 /** Hors ligne : tirets gris (longueur trait / vide, unités viewBox). */
-export const OFFLINE_RING_DASH = "6 18";
+export const OFFLINE_RING_DASH = "3 9";
 /** Erreur : triangle d'alerte centré + point d'exclamation. */
-export const ERROR_TRIANGLE_D = "M256 186L322 300H190Z";
-export const ERROR_EXCLAMATION_D = "M256 226v36M256 282v1";
+export const ERROR_TRIANGLE_D = "M124 90L156 145H92Z";
+export const ERROR_EXCLAMATION_D = "M124 110v18M124 138v1";
 
 export const LISTEN_SPOKE_COUNT = 72;
 export const THINK_SEGMENT_COUNT = 16;
 export const SPEAK_BAR_COUNT = 11;
 
-const LISTEN_INNER = 118;
-const LISTEN_LENGTH = 72;
-const THINK_RADIUS = 168;
+const LISTEN_INNER = 57;
+const LISTEN_LENGTH = 35;
+const THINK_RADIUS = 81;
 const THINK_ARC_DEG = 12;
-const SPEAK_BAR_MAX = 88;
+const SPEAK_BAR_MAX = 43;
 
 export type ListenSpoke = {
   key: string;
@@ -52,9 +54,9 @@ export function buildListenSpokes(): readonly ListenSpoke[] {
     spokes.push({
       key: `ls-${i}`,
       transform: `rotate(${deg} ${RING_CX} ${RING_CY})`,
-      x: RING_CX - 1.5,
+      x: RING_CX - 0.75,
       y: RING_CY - LISTEN_INNER - LISTEN_LENGTH,
-      width: 3,
+      width: 1.5,
       height: LISTEN_LENGTH,
     });
   }
@@ -93,8 +95,8 @@ export function buildThinkSegments(): readonly ThinkSegment[] {
 
 /** Barres verticales centrales — parole. */
 export function buildSpeakBars(): readonly SpeakBar[] {
-  const gap = 10;
-  const width = 5;
+  const gap = 5;
+  const width = 2.5;
   const total = SPEAK_BAR_COUNT * width + (SPEAK_BAR_COUNT - 1) * gap;
   const startX = RING_CX - total / 2;
   const mid = (SPEAK_BAR_COUNT - 1) / 2;

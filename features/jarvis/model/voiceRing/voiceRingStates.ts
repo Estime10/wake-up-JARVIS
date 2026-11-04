@@ -1,7 +1,12 @@
 import gsap from "gsap";
 
+import { MARK_SVG_ORIGIN } from "@/components/ui/JarvisMark/voiceRingGeometry";
 import type { RingLayers } from "@/features/jarvis/model/voiceRing/voiceRingLayers";
 import { startDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
+import {
+  startSplashChromeIdle,
+  stopSplashChromeIdle,
+} from "@/features/jarvis/model/startSplashChromeIdle";
 import { THINK_SPIN_SECONDS } from "@/lib/intro/timings";
 
 export type RingStateOptions = { reducedMotion: boolean };
@@ -14,16 +19,25 @@ export type EnterRingState = (
 
 const NO_CLEANUP = (): void => {};
 
-/** Cadran figé : aucun tween dessus (erreur, hors ligne). */
+/** Cadran + chrome boot figés (erreur, hors ligne, modes actifs). */
 function freezeDial(layers: RingLayers): void {
   if (layers.dial) {
     gsap.killTweensOf(layers.dial);
   }
+  if (layers.root) {
+    stopSplashChromeIdle(layers.root);
+  }
 }
 
 export const enterIdleRing: EnterRingState = (layers, { reducedMotion }) => {
-  if (layers.dial && !reducedMotion) {
+  if (reducedMotion) {
+    return NO_CLEANUP;
+  }
+  if (layers.dial) {
     startDialIdleSpin(layers.dial);
+  }
+  if (layers.root) {
+    startSplashChromeIdle(layers.root);
   }
   return NO_CLEANUP;
 };
@@ -36,7 +50,7 @@ export const enterThinkingRing: EnterRingState = (
     return NO_CLEANUP;
   }
   gsap.set(layers.thinkGroup, {
-    svgOrigin: "256 256",
+    svgOrigin: MARK_SVG_ORIGIN,
     transformOrigin: "50% 50%",
   });
   gsap.to(layers.thinkGroup, {

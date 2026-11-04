@@ -1,5 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Piper TTS (venv local + modèles ONNX ~60 Mo)
+.venv-piper/
+/models/piper/
+
 # dependencies
 /node_modules
 /.pnp

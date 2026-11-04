@@ -9,5 +9,6 @@ export function toConversationMessage(message: Message): ConversationMessage {
     role: message.role,
     text: message.text,
     time: formatMessageTime(new Date(message.createdAt)),
+    createdAt: message.createdAt,
   };
 }

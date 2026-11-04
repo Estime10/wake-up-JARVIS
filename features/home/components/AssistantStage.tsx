@@ -2,38 +2,40 @@
 
 import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { MarkSlot } from "@/features/jarvis/components/MarkSlot";
-import { MARK_SLOT_SIZE } from "@/features/jarvis/model/markSlotSizes";
+import {
+  MARK_HOME_CHROME_BELOW,
+  MARK_SLOT_SIZE,
+} from "@/features/jarvis/model/markSlotSizes";
 import { SplashWordmark } from "@/features/intro/components/SplashWordmark";
 import { cn } from "@/lib/cn";
 
 /**
- * Zone mark + JARVIS (toujours monté pour Flip settle).
- * États vocaux = anneau uniquement.
+ * Zone mark (+ wordmark uniquement en briefing centré legacy).
+ * Home : pad sous le slot = chrome boot/réticules, puis 10px avant les messages.
  */
 export function AssistantStage() {
-  const { phase, briefingReady } = useHomeEnter();
-  const briefing = phase === "briefing";
-  // Après révélation GSAP : settled pour ne pas retomber sur opacity-0 CSS.
-  const wordmarkVisible = briefingReady || !briefing;
+  const { phase, briefingReady, skipCenteredBriefing } = useHomeEnter();
+  const briefing = phase === "briefing" && !skipCenteredBriefing;
 
   return (
-    <div className="flex w-full max-w-full flex-col items-center">
+    <div className="flex w-full max-w-full shrink-0 flex-col items-center">
       <MarkSlot
         name={briefing ? "splash" : "home"}
         className={briefing ? MARK_SLOT_SIZE.splash : MARK_SLOT_SIZE.home}
       />
-
-      <div
-        className={cn(
-          "flex justify-center",
-          briefing ? "mt-6 sm:mt-8" : "mt-3 sm:mt-4",
-        )}
-      >
-        <SplashWordmark
-          settled={wordmarkVisible}
-          size={briefing ? "display" : "home"}
+      {/* Espace layout pour le débordement SVG (mark fixed overflow visible). */}
+      {!briefing ? (
+        <div
+          className={cn("w-full shrink-0", MARK_HOME_CHROME_BELOW)}
+          aria-hidden
         />
-      </div>
+      ) : null}
+
+      {briefing ? (
+        <div className="mt-6 flex justify-center sm:mt-8">
+          <SplashWordmark settled={briefingReady} size="display" />
+        </div>
+      ) : null}
     </div>
   );
 }

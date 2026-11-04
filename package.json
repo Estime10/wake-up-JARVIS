@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check",
     "mail:purge": "node scripts/purge-mail-items.mjs",
+    "voice:piper": "./scripts/run-piper.sh",
     "prepare": "husky"
   },
   "dependencies": {

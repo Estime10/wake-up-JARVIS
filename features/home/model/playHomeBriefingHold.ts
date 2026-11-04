@@ -8,7 +8,7 @@ import {
   setSidePanelOffscreen,
   setSidePanelOpen,
 } from "@/features/home/model/sidePanelLayout";
-import { WORDMARK_REVEAL_SECONDS } from "@/lib/intro/timings";
+import type { SplashEnterSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
 import {
   queryChrome,
   queryComposer,
@@ -17,6 +17,7 @@ import {
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
 import { Flip } from "@/lib/gsap/flip";
+import { WORDMARK_REVEAL_SECONDS } from "@/lib/intro/timings";
 
 type PlayHomeBriefingHoldArgs = {
   root: HTMLElement;
@@ -24,11 +25,13 @@ type PlayHomeBriefingHoldArgs = {
   aside: HTMLElement;
   reducedMotion: boolean;
   fromSplash: boolean;
+  flipSnapshot?: SplashEnterSnapshot | null;
+  skipCenteredBriefing?: boolean;
   onReady: () => void;
 };
 
 /**
- * Briefing : mark sur slot splash, puis révélation JARVIS, puis onReady (TTS).
+ * Briefing home : Flip du même JarvisMark (dessin splash) → slot home.
  */
 export function playHomeBriefingHold({
   root,
@@ -36,33 +39,44 @@ export function playHomeBriefingHold({
   aside,
   reducedMotion,
   fromSplash,
+  flipSnapshot = null,
+  skipCenteredBriefing = false,
   onReady,
 }: PlayHomeBriefingHoldArgs): () => void {
   const wordmark = queryWordmark(root);
   const composer = queryComposer(root);
   const chrome = queryChrome(root);
-  const briefingSlot =
-    queryMarkSlot(root, "splash") ?? queryMarkSlot(root, "home");
+  const homeSlot = queryMarkSlot(root, "home");
+  const briefingSlot = skipCenteredBriefing
+    ? (homeSlot ?? queryMarkSlot(root, "splash"))
+    : (queryMarkSlot(root, "splash") ?? homeSlot);
 
-  if (!reducedMotion) {
+  if (!reducedMotion && !skipCenteredBriefing) {
     setSidePanelOffscreen(aside);
   } else {
     setSidePanelOpen(aside);
   }
 
   prepareComposerHidden(composer);
-  prepareChromeHidden(chrome);
+  if (skipCenteredBriefing) {
+    if (chrome) {
+      gsap.set(chrome, { opacity: 1 });
+    }
+  } else {
+    prepareChromeHidden(chrome);
+  }
 
   if (wordmark) {
     gsap.set(wordmark, { opacity: 0, y: 16 });
   }
 
-  const placeOnBriefingSlot = (): void => {
+  const placeOnTargetSlot = (): void => {
     if (!mark || !briefingSlot) {
       return;
     }
     placeOnRect(mark, briefingSlot.getBoundingClientRect());
     showMark(mark);
+    mark.style.visibility = "";
     gsap.set(mark, {
       clearProps: "transform",
       opacity: 1,
@@ -107,8 +121,39 @@ export function playHomeBriefingHold({
     }
   };
 
+  // Splash v1 : même JarvisMark Flip → slot home.
+  if (
+    skipCenteredBriefing &&
+    mark &&
+    homeSlot &&
+    fromSplash &&
+    flipSnapshot &&
+    !reducedMotion
+  ) {
+    placeOnRect(mark, homeSlot.getBoundingClientRect());
+    showMark(mark);
+    mark.style.visibility = "";
+    const flip = Flip.from(flipSnapshot, {
+      targets: [mark],
+      scale: true,
+      duration: 0.65,
+      ease: "power2.inOut",
+      onComplete: revealWordmarkThenReady,
+    });
+    return () => {
+      flip.kill();
+      cleanup();
+    };
+  }
+
+  if (skipCenteredBriefing) {
+    placeOnTargetSlot();
+    revealWordmarkThenReady();
+    return cleanup;
+  }
+
   if (reducedMotion) {
-    placeOnBriefingSlot();
+    placeOnTargetSlot();
     if (composer) {
       gsap.set(composer, { clearProps: "opacity,transform" });
     }
@@ -121,9 +166,10 @@ export function playHomeBriefingHold({
   }
 
   if (mark && briefingSlot && fromSplash) {
-    const snapshot = Flip.getState(mark);
+    const snapshot = flipSnapshot ?? Flip.getState(mark);
     placeOnRect(mark, briefingSlot.getBoundingClientRect());
     showMark(mark);
+    mark.style.visibility = "";
     const flip = Flip.from(snapshot, {
       targets: [mark],
       scale: true,
@@ -137,7 +183,7 @@ export function playHomeBriefingHold({
     };
   }
 
-  placeOnBriefingSlot();
+  placeOnTargetSlot();
   revealWordmarkThenReady();
 
   return cleanup;

@@ -15,6 +15,8 @@ export const RING_MODES: readonly AssistantState[] = [
 const FADE = 0.28;
 
 export type RingLayers = {
+  /** Racine mark — chrome boot idle. */
+  root: HTMLElement;
   modes: Record<AssistantState, SVGGElement | null>;
   dial: SVGGeometryElement | null;
   spokes: SVGElement[];
@@ -26,6 +28,7 @@ export function queryRingLayers(root: HTMLElement): RingLayers {
   const mode = (name: AssistantState) =>
     root.querySelector<SVGGElement>(`[data-jarvis='mode-${name}']`);
   return {
+    root,
     modes: {
       idle: mode("idle"),
       listening: mode("listening"),
@@ -68,13 +71,15 @@ export function showRingMode(
   }
 }
 
-/** Coupe tout mouvement d'état (cadran, arcs, segments, barres). */
+/** Coupe tout mouvement d'état (cadran, boot, arcs, segments, barres). */
 export function stopRingMotion(layers: RingLayers): void {
   const targets = [
     layers.dial,
     layers.thinkGroup,
     ...layers.spokes,
     ...layers.bars,
+    layers.root.querySelector<SVGElement>("[data-jarvis='boot-r150']"),
+    layers.root.querySelector<SVGElement>("[data-jarvis='boot-r160']"),
   ];
   for (const target of targets) {
     if (target) {

@@ -21,6 +21,9 @@ export const fr = {
     wordmark: "JARVIS",
     wakeDetected: "Réveil détecté : « {phrase} »",
     wakePhrase: "Wake up, JARVIS",
+    /** Splash — statut muet (annonce lecteurs d’écran uniquement, pas de TTS). */
+    systemsOnline: "Systèmes en ligne",
+    systemsOnlineAnnounce: "JARVIS : systèmes en ligne.",
     /** HUD SYS — états Compute Pressure (CPU système). */
     sysNominal: "sys nominal",
     sysFair: "sys fair",
@@ -32,8 +35,6 @@ export const fr = {
     locationPending: "GEOLOC · …",
     locationUnavailable: "GEOLOC · —",
     clockPlaceholder: "—:— · —.—.—",
-    /** Après l’anim : geste requis pour débloquer le TTS (Chrome). */
-    wakeContinue: "Appuie pour réveiller",
   },
   greeting: {
     /** Phrase TTS courte (prefetch splash / seed). */
@@ -357,6 +358,8 @@ export const fr = {
       "La réponse est toujours écrite ; la voix s'ajoute par-dessus",
     composerSend: "Envoyer",
     conversationLabel: "Conversation",
+    conversationLoadingOlder: "Chargement…",
+    conversationLoadOlder: "Messages précédents",
     you: "Toi",
     replying: "en train de répondre",
     stateListening: "Écoute…",

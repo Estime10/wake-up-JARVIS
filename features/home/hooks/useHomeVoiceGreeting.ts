@@ -11,6 +11,10 @@ import { useDeviceLocation } from "@/lib/hooks/useDeviceLocation";
 import { t } from "@/lib/i18n";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
 import {
+  installOpportunisticAudioUnlock,
+  waitForAudioUnlock,
+} from "@/lib/voice/speechUnlock";
+import {
   setWelcomeSpeakText,
   waitWelcomeSpeakEnd,
   wasWelcomeSpeakPlayed,
@@ -20,14 +24,17 @@ type UseHomeVoiceGreetingArgs = {
   speakWelcome: (text: string) => Promise<boolean>;
 };
 
-const MAIL_WAIT_MS = 2000;
-const GEO_WAIT_MS = 2500;
+const MAIL_WAIT_MS = 600;
+const GEO_WAIT_MS = 800;
 /** Filet : ne jamais bloquer le settle si le TTS pend. */
-const BRIEFING_MAX_MS = 20_000;
+const BRIEFING_MAX_MS = 45_000;
+/** Attente max d’un geste (filet) avant de parler — splash a déjà unlock. */
+const AUDIO_UNLOCK_WAIT_MS = 1_500;
 
 /**
  * Briefing vocal (HUD) → toujours `beginSettle` ensuite.
  * Contenu : salut, date/heure, géoloc, mails total + jour, système OK.
+ * Déclenché uniquement sur home après `briefingReady` (jamais pendant le splash).
  */
 export function useHomeVoiceGreeting({
   speakWelcome,
@@ -37,6 +44,11 @@ export function useHomeVoiceGreeting({
   const { place, status: geoStatus } = useDeviceLocation();
   const { phase, briefingReady, beginSettle } = useHomeEnter();
   const ranRef = useRef(false);
+
+  useEffect(() => {
+    // Filet si le splash n’a pas reçu de geste — unlock only, pas de TTS.
+    return installOpportunisticAudioUnlock();
+  }, []);
 
   const runBriefing = useEffectEvent(async () => {
     if (ranRef.current) {
@@ -68,9 +80,14 @@ export function useHomeVoiceGreeting({
     });
     setWelcomeSpeakText(text);
 
+    // UI home d’abord (HUD / messages / composer) — TTS en parallèle.
+    beginSettle();
+
     try {
       await Promise.race([
         (async () => {
+          // Audio déjà débloqué au login / clic splash → Piper part seul ici.
+          await waitForAudioUnlock(AUDIO_UNLOCK_WAIT_MS);
           const ok = await speakWelcome(text);
           if (!ok && !wasWelcomeSpeakPlayed()) {
             await waitWelcomeSpeakEnd();
@@ -81,10 +98,8 @@ export function useHomeVoiceGreeting({
         }),
       ]);
     } catch {
-      /* settle quand même */
+      /* TTS optionnel après settle */
     }
-
-    beginSettle();
   });
 
   useEffect(() => {

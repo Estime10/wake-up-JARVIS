@@ -17,16 +17,30 @@ import {
 } from "@/features/home/model/conversationMessage";
 import { isMicShortcut } from "@/features/home/model/micShortcut";
 import { toConversationMessage } from "@/features/home/model/toConversationMessage";
+import {
+  CONVERSATION_INITIAL_PAGE,
+  CONVERSATION_OLDER_PAGE,
+} from "@/features/home/model/conversationPagination";
 import { useLatestRef } from "@/lib/hooks/useLatestRef";
 import { t } from "@/lib/i18n";
 import type { ActionProposal, Message } from "@/lib/schemas";
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 import { prepareConversationSpeakText } from "@/features/home/model/prepareConversationSpeakText";
-import {
-  isWelcomeSpeaking,
-  markWelcomeSpeakPlayed,
-  wasWelcomeSpeakPlayed,
-} from "@/lib/voice/welcomeSpeak";
+import { markWelcomeSpeakPlayed } from "@/lib/voice/welcomeSpeak";
+
+/** Probe limit+1 pour savoir s’il reste de l’historique. */
+function takePageTail<T>(
+  items: T[],
+  pageSize: number,
+): {
+  page: T[];
+  hasMore: boolean;
+} {
+  if (items.length > pageSize) {
+    return { page: items.slice(-pageSize), hasMore: true };
+  }
+  return { page: items, hasMore: false };
+}
 
 function sessionReducer(
   state: AssistantState,
@@ -43,6 +57,10 @@ type UseAssistantSessionResult = {
   state: AssistantState;
   messages: ConversationMessage[];
   memoryStatus: MemoryLoadStatus;
+  /** Historique plus ancien disponible (scroll up). */
+  hasMoreOlder: boolean;
+  loadingOlder: boolean;
+  loadOlderMessages: () => Promise<void>;
   retryMemory: () => void;
   listenSeed: string | undefined;
   toggleListen: () => void;
@@ -73,11 +91,14 @@ export function useAssistantSession(
   const messagesRef = useLatestRef(messages);
   const [memoryStatus, setMemoryStatus] = useState<MemoryLoadStatus>("loading");
   const [memoryAttempt, setMemoryAttempt] = useState(0);
+  const [hasMoreOlder, setHasMoreOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [listenSeed, setListenSeed] = useState<string | undefined>(undefined);
   const abortRef = useRef<AbortController | null>(null);
   const stopListenRef = useRef<(() => void) | null>(null);
   const speakIdRef = useRef<string | null>(null);
   const welcomeSpokenRef = useRef(false);
+  const loadingOlderRef = useRef(false);
   const assistantRef = useLatestRef(assistant);
   const actionTimersRef = useRef<Map<string, number>>(new Map());
   const actionAbortRef = useRef<Map<string, AbortController>>(new Map());
@@ -85,16 +106,19 @@ export function useAssistantSession(
   useEffect(() => {
     let cancelled = false;
     void memory
-      .listMessages()
+      .listMessages({ limit: CONVERSATION_INITIAL_PAGE + 1 })
       .then((list) => {
         if (cancelled) {
           return;
         }
-        setMessages(list.map(toConversationMessage));
+        const { page, hasMore } = takePageTail(list, CONVERSATION_INITIAL_PAGE);
+        setMessages(page.map(toConversationMessage));
+        setHasMoreOlder(hasMore);
         setMemoryStatus("ready");
       })
       .catch(() => {
         if (!cancelled) {
+          setHasMoreOlder(false);
           setMemoryStatus("error");
         }
       });
@@ -268,6 +292,43 @@ export function useAssistantSession(
     setMemoryAttempt((value) => value + 1);
   }
 
+  async function loadOlderMessages(): Promise<void> {
+    if (loadingOlderRef.current || !hasMoreOlder) {
+      return;
+    }
+    const oldest = messagesRef.current[0];
+    if (!oldest?.createdAt) {
+      setHasMoreOlder(false);
+      return;
+    }
+
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    try {
+      const list = await memory.listMessages({
+        limit: CONVERSATION_OLDER_PAGE + 1,
+        before: { createdAt: oldest.createdAt, id: oldest.id },
+      });
+      const { page, hasMore } = takePageTail(list, CONVERSATION_OLDER_PAGE);
+      if (page.length === 0) {
+        setHasMoreOlder(false);
+        return;
+      }
+      const older = page.map(toConversationMessage);
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const unique = older.filter((m) => !existingIds.has(m.id));
+        return unique.length === 0 ? prev : [...unique, ...prev];
+      });
+      setHasMoreOlder(hasMore);
+    } catch {
+      // Échec charge historique : on laisse réessayer au prochain scroll.
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
+    }
+  }
+
   async function runExecute(
     messageId: string,
     proposal: ActionProposal,
@@ -384,6 +445,7 @@ export function useAssistantSession(
     const ac = new AbortController();
     abortRef.current = ac;
     const id = createMessageId();
+    const createdAt = new Date().toISOString();
     speakIdRef.current = id;
     let started = false;
     let fullText = "";
@@ -398,7 +460,7 @@ export function useAssistantSession(
           fullText += chunk.text;
           if (!started) {
             started = true;
-            const time = formatMessageTime(new Date());
+            const time = formatMessageTime(new Date(createdAt));
             setMessages((prev) => [
               ...prev,
               {
@@ -406,6 +468,7 @@ export function useAssistantSession(
                 role: "assistant",
                 text: chunk.text,
                 time,
+                createdAt,
                 streaming: true,
               },
             ]);
@@ -441,33 +504,40 @@ export function useAssistantSession(
             msg.id === id ? { ...msg, streaming: false } : msg,
           ),
         );
-        await persist({
-          id,
-          role: "assistant",
-          text: fullText,
-          createdAt: new Date().toISOString(),
-        });
 
         const toSpeak = prepareConversationSpeakText(fullText);
-        if (toSpeak.length > 0 && !ac.signal.aborted) {
-          try {
-            await voice.speak(
-              toSpeak,
-              {
-                onLevel: () => {},
-              },
-              ac.signal,
-            );
-          } catch {
-            /* TTS non bloquant */
-          }
-        }
+        // TTS en parallèle de la persistance — bulle déjà à l’écran.
+        const speakPromise =
+          toSpeak.length > 0 && !ac.signal.aborted
+            ? voice
+                .speak(
+                  toSpeak,
+                  {
+                    onLevel: () => {},
+                  },
+                  ac.signal,
+                )
+                .catch(() => {
+                  /* TTS non bloquant */
+                })
+            : Promise.resolve();
+
+        await Promise.all([
+          persist({
+            id,
+            role: "assistant",
+            text: fullText,
+            createdAt,
+          }),
+          speakPromise,
+        ]);
       }
 
       if (proposal) {
         const confirmedProposal = proposal;
         const actionId = createMessageId();
-        const time = formatMessageTime(new Date());
+        const actionCreatedAt = new Date().toISOString();
+        const time = formatMessageTime(new Date(actionCreatedAt));
         setMessages((prev) => [
           ...prev,
           {
@@ -475,6 +545,7 @@ export function useAssistantSession(
             role: "assistant",
             text: "",
             time,
+            createdAt: actionCreatedAt,
             action: {
               proposal: confirmedProposal,
               status: "pending",
@@ -538,6 +609,7 @@ export function useAssistantSession(
         role: "user",
         text: trimmed,
         time: formatMessageTime(new Date(userMessage.createdAt)),
+        createdAt: userMessage.createdAt,
       },
     ]);
     dispatch({ type: "SUBMIT" });
@@ -610,11 +682,13 @@ export function useAssistantSession(
     if (welcomeSpokenRef.current) {
       return false;
     }
-    if (wasWelcomeSpeakPlayed() && !isWelcomeSpeaking()) {
+    // Toujours tenter le TTS — ne plus court-circuiter sur wasWelcomeSpeakPlayed
+    // (faux positif → settle sans voix ; les alertes passaient encore via speakAlert).
+    const ok = await speakRing(text, { markWelcomePlayed: true });
+    if (ok) {
       welcomeSpokenRef.current = true;
-      return true;
     }
-    return speakRing(text, { markWelcomePlayed: true });
+    return ok;
   }
 
   async function speakAlert(text: string): Promise<boolean> {
@@ -625,6 +699,9 @@ export function useAssistantSession(
     state: assistant,
     messages,
     memoryStatus,
+    hasMoreOlder,
+    loadingOlder,
+    loadOlderMessages,
     retryMemory,
     listenSeed,
     toggleListen,

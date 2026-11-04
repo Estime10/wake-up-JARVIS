@@ -40,7 +40,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Sync dans le geste submit — débloque le TTS home (Chrome) pour la session.
+    // Sync dans le geste submit — débloque TTS (speech + AudioContext Piper) pour home.
     unlockSpeechFromUserGesture();
     setFormError(null);
     setFieldErrors({});

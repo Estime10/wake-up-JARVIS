@@ -16,15 +16,10 @@ import { useSysPressure } from "@/lib/hooks/useSysPressure";
 import { t } from "@/lib/i18n";
 
 type SplashHudChromeProps = {
-  /** État final visible (home) — pas d'opacité 0 pour GSAP intro. */
+  /** État final visible (home). */
   settled?: boolean;
-  /** Ligne « Réveil détecté » — intro seulement. */
+  /** Ligne « Réveil détecté » — désactivée sur home actuel. */
   showWake?: boolean;
-  /**
-   * Splash minimal : uniquement la ligne wake (pas d'équerres / méta / CTA).
-   * Wordmark + chrome complets arrivent sur /home après le Flip du mark.
-   */
-  wakeOnly?: boolean;
   /** Terminal ouvert — CTA « Fermer ». */
   terminalOpen?: boolean;
   /** Désactivé tant que le panneau REPO est ouvert. */
@@ -38,11 +33,10 @@ type SplashHudChromeProps = {
   onGithubClick?: () => void;
 };
 
-/** Méta HUD — intro (targets GSAP) ou home figé (`settled`). */
+/** Méta HUD home — équerres, télémétrie, CTAs. */
 export function SplashHudChrome({
   settled = false,
-  showWake = true,
-  wakeOnly = false,
+  showWake = false,
   terminalOpen = false,
   terminalDisabled = false,
   terminalTriggerRef,
@@ -56,17 +50,6 @@ export function SplashHudChrome({
   const { label: place } = useDeviceLocation();
   const sysPressure = useSysPressure();
   const wakeText = t("intro.wakeDetected", { phrase: t("intro.wakePhrase") });
-
-  if (wakeOnly) {
-    return (
-      <div
-        className="pointer-events-none absolute inset-0 z-10 text-text-muted"
-        aria-hidden
-      >
-        {showWake ? <WakeLine settled={settled} wakeText={wakeText} /> : null}
-      </div>
-    );
-  }
 
   return (
     <>

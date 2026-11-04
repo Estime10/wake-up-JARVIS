@@ -1,68 +1,64 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 
-import { usePorts } from "@/app/ports-context";
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
+import { captureSplashMarkHandoff } from "@/features/intro/model/captureSplashMarkHandoff";
 import { useJarvisShell } from "@/features/jarvis/context";
-import { captureSplashSnapshot } from "@/features/jarvis/model/homeEnterHandoff";
-import { resolveDisplayName } from "@/features/profile/model/resolveDisplayName";
-import { spokenGreeting } from "@/lib/greeting";
-import { prefersReducedMotion } from "@/lib/motion/reducedMotion";
+import { markSplashV1Done } from "@/lib/intro/splashV1Session";
+import { SPLASH_HOLD_AT_END } from "@/lib/intro/timings";
 import { ROUTES } from "@/lib/routes";
 import { prefetchSpeechVoices } from "@/lib/voice/prefetchVoices";
-import { setWelcomeSpeakText } from "@/lib/voice/welcomeSpeak";
+import { installOpportunisticAudioUnlock } from "@/lib/voice/speechUnlock";
+import { resetWelcomeSpeakSession } from "@/lib/voice/welcomeSpeak";
 
 /**
- * Splash post-auth — intro complète puis `/home`.
- * (Le gate anonyme → login est côté `app/page.tsx`.)
+ * Splash post-auth — UI v1, muet, puis handoff Flip du même mark vers `/home`.
  */
 export function SplashEntry() {
   const router = useRouter();
-  const { profile } = usePorts();
-  const rootRef = useRef<HTMLDivElement | null>(null);
   const { markRef, handoff, mainFocus } = useJarvisShell();
 
   useEffect(() => {
     prefetchSpeechVoices();
-    const hour = new Date().getHours();
-    setWelcomeSpeakText(spokenGreeting(hour));
+  }, []);
 
-    let cancelled = false;
-    void profile
-      .getProfile()
-      .then((row) => {
-        if (cancelled || !row) {
-          return;
-        }
-        setWelcomeSpeakText(
-          spokenGreeting(
-            hour,
-            resolveDisplayName(row.displayName, row.username),
-          ),
-        );
-      })
-      .catch(() => {
-        /* fallback i18n déjà posé */
-      });
+  useEffect(() => {
+    return installOpportunisticAudioUnlock();
+  }, []);
 
+  // Mark caché pendant le splash SVG (sauf au moment du handoff).
+  useEffect(() => {
+    const mark = markRef.current;
+    if (!mark) {
+      return undefined;
+    }
+    mark.style.opacity = "0";
+    mark.style.visibility = "hidden";
+    mark.style.pointerEvents = "none";
     return () => {
-      cancelled = true;
+      mark.style.visibility = "";
     };
-  }, [profile]);
+  }, [markRef]);
 
   const onComplete = useCallback(() => {
-    const root = rootRef.current;
-    if (root && !prefersReducedMotion()) {
-      handoff.begin(captureSplashSnapshot(markRef.current, root));
+    if (SPLASH_HOLD_AT_END) {
+      return;
     }
+    const snapshot = captureSplashMarkHandoff(markRef.current);
+    if (snapshot) {
+      handoff.begin(snapshot);
+    } else {
+      resetWelcomeSpeakSession();
+    }
+    markSplashV1Done();
     mainFocus.request();
     router.replace(ROUTES.home);
   }, [handoff, mainFocus, markRef, router]);
 
   return (
-    <div ref={rootRef} className="relative min-h-dvh bg-bg text-text">
+    <div className="relative min-h-dvh bg-bg text-text">
       <SplashScreen mode="full" onComplete={onComplete} />
     </div>
   );

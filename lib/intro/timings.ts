@@ -1,34 +1,15 @@
-/** Durées en ms — miroir des tokens CSS (`--duration-intro-*`). */
-export const INTRO_DURATION_FULL_MS = 2900;
-export const INTRO_DURATION_SHORT_MS = 800;
-export const INTRO_DURATION_REDUCED_MS = 300;
+/** Durées en ms — splash v1 (storyboard 5,6 s + 2,5 s via timeScale). */
+export const INTRO_DURATION_FULL_BASE_MS = 5600;
+export const INTRO_DURATION_FULL_MS = 8100;
 
-type IntroPhaseWindow = { start: number; end: number };
+/**
+ * `true` : fin d’anim sans navigation `/home` (atelier splash).
+ * `false` : handoff Flip mark → home.
+ */
+export const SPLASH_HOLD_AT_END = false;
 
-/** Révélation wordmark JARVIS (briefing home) — secondes. */
+/** Révélation wordmark (briefing centré legacy) — secondes. */
 export const WORDMARK_REVEAL_SECONDS = 0.45;
-
-/**
- * Fenêtres splash « full » — wake + mark (wordmark révélé en home).
- */
-export const FULL_INTRO_PHASES = {
-  wake: { start: 0, end: 0.9 },
-  blink: { start: 0.9, end: 1.75 },
-  ring: { start: 1.75, end: 2.55 },
-  dial: { start: 1.95, end: 2.55 },
-  trail: { start: 2, end: 2.75 },
-  head: { start: 2.55, end: 2.9 },
-} as const satisfies Record<string, IntroPhaseWindow>;
-
-/**
- * Clignotement du noyau — WCAG 2.3.1 : 2 flashs max,
- * départs espacés de flash + pause = 0,34 s (≈ 2,9 Hz < 3 Hz).
- */
-export const CORE_BLINK = {
-  flashSeconds: 0.14,
-  pauseSeconds: 0.2,
-  count: 2,
-} as const;
 
 /** Un tour complet du cadran pointillé en idle (secondes). */
 export const DIAL_IDLE_SPIN_SECONDS = 36;

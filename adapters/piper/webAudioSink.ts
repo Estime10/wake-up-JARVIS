@@ -1,4 +1,5 @@
 import { decodeWavToAudioBuffer } from "@/adapters/piper/wav";
+import { getUnlockedAudioContext } from "@/lib/voice/speechUnlock";
 
 export type WebAudioSink = {
   playWav(
@@ -14,16 +15,25 @@ export type WebAudioSink = {
 
 /**
  * Lecture WAV via Web Audio — niveau approximé, abort = stop immédiat.
+ * Préfère l’AudioContext débloqué au login (greeting auto sans clic splash).
  */
 export function createWebAudioSink(): WebAudioSink {
   let ctx: AudioContext | null = null;
+  let ownsContext = false;
   let currentSource: AudioBufferSourceNode | null = null;
   let analyser: AnalyserNode | null = null;
   let levelTimer: number | null = null;
 
   function ensureCtx(): AudioContext {
+    const unlocked = getUnlockedAudioContext();
+    if (unlocked) {
+      ctx = unlocked;
+      ownsContext = false;
+      return unlocked;
+    }
     if (!ctx) {
       ctx = new AudioContext();
+      ownsContext = true;
     }
     return ctx;
   }
@@ -55,6 +65,10 @@ export function createWebAudioSink(): WebAudioSink {
       const audioCtx = ensureCtx();
       if (audioCtx.state === "suspended") {
         await audioCtx.resume();
+      }
+      // Sans geste Chrome reste suspended : onStart ne doit pas mentir (greeting « OK » silencieux).
+      if (audioCtx.state !== "running") {
+        throw new Error("audio_context_suspended");
       }
 
       stopSource();
@@ -122,10 +136,11 @@ export function createWebAudioSink(): WebAudioSink {
 
     dispose() {
       stopSource();
-      if (ctx) {
+      if (ctx && ownsContext) {
         void ctx.close();
-        ctx = null;
       }
+      ctx = null;
+      ownsContext = false;
     },
   };
 }

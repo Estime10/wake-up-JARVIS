@@ -17,6 +17,8 @@ export type ConversationMessage = {
   text: string;
   /** HH:MM local — affichage seul. */
   time: string;
+  /** ISO — curseur pagination (messages persistés / locaux). */
+  createdAt?: string;
   streaming?: boolean;
   /** Carte d'action inline (assistant). */
   action?: ConversationActionState;

@@ -25,12 +25,19 @@ export function markMailPolled(now: number = Date.now()): void {
   sessionStorage.setItem(MAIL_POLL_AT_KEY, String(now));
 }
 
-/** POST /api/mail/poll — Gmail → DB (Realtime met à jour l’UI). */
+/**
+ * POST /api/mail/poll — Gmail → DB (Realtime met à jour l’UI).
+ * Jamais de throw : réseau / serveur down → `false` (évite Failed to fetch non géré).
+ */
 export async function runMailPoll(): Promise<boolean> {
-  const response = await fetch("/api/mail/poll", { method: "POST" });
-  if (!response.ok) {
+  try {
+    const response = await fetch("/api/mail/poll", { method: "POST" });
+    if (!response.ok) {
+      return false;
+    }
+    markMailPolled();
+    return true;
+  } catch {
     return false;
   }
-  markMailPolled();
-  return true;
 }

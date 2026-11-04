@@ -23,16 +23,23 @@ type AppShellProps = {
  * Coquille `(main)` — briefing plein centre, puis grille 75/25 au settle.
  */
 export function AppShell({ children, side, repo }: AppShellProps) {
-  const { shellRef, sideRef, phase, briefingReady, beginSettle } =
-    useHomeEnterMotion();
+  const {
+    shellRef,
+    sideRef,
+    phase,
+    briefingReady,
+    beginSettle,
+    skipCenteredBriefing,
+  } = useHomeEnterMotion();
   const mainRef = useMainFocusAfterIntro();
-  const briefing = phase === "briefing";
+  const briefing = phase === "briefing" && !skipCenteredBriefing;
 
   return (
     <HomeEnterProvider
       phase={phase}
       briefingReady={briefingReady}
       beginSettle={beginSettle}
+      skipCenteredBriefing={skipCenteredBriefing}
     >
       <div
         ref={shellRef}

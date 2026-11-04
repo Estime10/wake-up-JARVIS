@@ -1,0 +1,1224 @@
+{
+  "name": "JARVIS splash v1 — éléments SVG",
+  "source": "design/motion/splash-v1/splash.js (mode full, 5,6 s)",
+  "viewBox": "-356 -129.333 960 600",
+  "viewBox_note": "Repère partagé : unités du mark v2 (centre 124,124, viewBox 248) ; le viewBox couvre l'écran 1440×900 à l'échelle du splash (1 u = 1,5 px ; px écran = 720 + (u − 124)·1,5, 380 + (v − 124)·1,5).",
+  "rig_viewBox": "-100 -100 448 448",
+  "duration": 5.6,
+  "fps_reference": 60,
+  "color": "currentColor = --color-accent #ECEAE4 ; les gris sont des opacités calibrées sur #0B0B0C (hud .21, hud-strong .33, muted .64, text .99)",
+  "easings": {
+    "outSoft": "cubic-bezier(0.22,1,0.36,1)",
+    "inOutSoft": "cubic-bezier(0.65,0,0.35,1)"
+  },
+  "handoff": {
+    "rig": {
+      "start": 4.95,
+      "end": 5.45,
+      "props": {
+        "x_px": [0, -180],
+        "y_px": [0, -193],
+        "scale": [1.5, 1]
+      },
+      "ease": "inOutSoft",
+      "note": "tout le groupe rig (sweep → core) rejoint le slot Home ; origine = centre du mark"
+    },
+    "title": {
+      "start": 4.95,
+      "end": 5.45,
+      "props": {
+        "x_px": [0, -184],
+        "y_px": [0, -345]
+      },
+      "ease": "inOutSoft"
+    },
+    "home": {
+      "start": 5.35,
+      "end": 5.6,
+      "props": {
+        "opacity": [0, 1]
+      },
+      "ease": "power1.inOut",
+      "note": "fondu de la Home, focus sur main#main"
+    }
+  },
+  "composites": [
+    {
+      "file": "splash-assembled.svg",
+      "role": "Tous les calques empilés (g#layer-*), état à t = 4,90 s",
+      "size_bytes": 40199
+    },
+    {
+      "file": "splash-rig.svg",
+      "role": "Variante serrée : groupe rig complet, viewBox -100 -100 448 448",
+      "size_bytes": 24711
+    },
+    {
+      "file": "splash-sheen-band.svg",
+      "role": "Variante serrée : bande de reflet 56×48",
+      "size_bytes": 563
+    }
+  ],
+  "elements": [
+    {
+      "file": "splash-background.svg",
+      "id": "splash-background",
+      "role": "Fond plein --color-bg #0B0B0C",
+      "act": 0,
+      "act_label": "tout le splash",
+      "z": 0,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 0.0,
+      "end": 5.6,
+      "size_bytes": 514,
+      "tweens": [],
+      "color": "#0B0B0C (fixe)"
+    },
+    {
+      "file": "splash-vignette.svg",
+      "id": "splash-vignette",
+      "role": "Vignette : lueur nacrée .025 + assombrissement noir .55",
+      "act": 0,
+      "act_label": "tout le splash",
+      "z": 1,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 0.0,
+      "end": 5.6,
+      "size_bytes": 1300,
+      "tweens": []
+    },
+    {
+      "file": "splash-ambient.svg",
+      "id": "splash-ambient",
+      "role": "Grain (feTurbulence) + scanlines 1/3 px, couche statique à .035, sous le texte",
+      "act": 0,
+      "act_label": "tout le splash",
+      "z": 2,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 0.0,
+      "end": 5.6,
+      "size_bytes": 1344,
+      "tweens": []
+    },
+    {
+      "file": "splash-corners.svg",
+      "id": "splash-corners",
+      "role": "4 équerres d'écran 20 px (g#splash-corner-tl/tr/bl/br, data-dx/dy)",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 3,
+      "in_rig": false,
+      "transform_origin": {
+        "x": "fill-box",
+        "y": "fill-box",
+        "note": "translation seule"
+      },
+      "start": 2.4,
+      "end": 5.2,
+      "size_bytes": 982,
+      "tweens": [
+        {
+          "start": 2.4,
+          "end": 3.0,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": ["±24", 0],
+            "y_px": ["±24", 0],
+            "x_u": ["±16", 0],
+            "y_u": ["±16", 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ]
+    },
+    {
+      "file": "splash-telemetry-geo.svg",
+      "id": "splash-telemetry-geo",
+      "role": "Télémétrie haut-gauche : LAT/LON, ville (2 lignes)",
+      "act": 4,
+      "act_label": "4 · télémétrie",
+      "z": 4,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 2.6,
+      "end": 5.2,
+      "size_bytes": 1094,
+      "tweens": [
+        {
+          "start": 2.6,
+          "end": 2.95,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0],
+            "x_u": [-5.333, 0]
+          },
+          "ease": "outSoft",
+          "note": "ligne 1 ; ligne 2 à +0,1 s"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ],
+      "stagger": 0.1
+    },
+    {
+      "file": "splash-telemetry-clock.svg",
+      "id": "splash-telemetry-clock",
+      "role": "Télémétrie haut-droite : horloge + nombre de mails (textes dynamiques)",
+      "act": 4,
+      "act_label": "4 · télémétrie",
+      "z": 5,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 2.75,
+      "end": 5.2,
+      "size_bytes": 1012,
+      "tweens": [
+        {
+          "start": 2.75,
+          "end": 3.1,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0],
+            "x_u": [-5.333, 0]
+          },
+          "ease": "outSoft",
+          "note": "ligne 1 ; ligne 2 à +0,1 s"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ],
+      "stagger": 0.1
+    },
+    {
+      "file": "splash-telemetry-modules.svg",
+      "id": "splash-telemetry-modules",
+      "role": "Colonne MODULES : en-tête + 5 lignes (libellé, conduite pointillée, • EN LIGNE)",
+      "act": 4,
+      "act_label": "4 · télémétrie",
+      "z": 6,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 2.9,
+      "end": 5.2,
+      "size_bytes": 3410,
+      "tweens": [
+        {
+          "start": 2.9,
+          "end": 3.25,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "en-tête MODULES"
+        },
+        {
+          "start": 3.0,
+          "end": 3.35,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0],
+            "x_u": [-5.333, 0]
+          },
+          "ease": "outSoft",
+          "note": "ligne i à 3,0 + 0,12·i s (fin 3,83 s)"
+        },
+        {
+          "start": 3.15,
+          "end": 3.35,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none",
+          "note": "g#…-ok (puce + EN LIGNE) à 3,15 + 0,12·i s"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ],
+      "stagger": 0.12
+    },
+    {
+      "file": "splash-telemetry-sequence.svg",
+      "id": "splash-telemetry-sequence",
+      "role": "Colonne SÉQUENCE : NOYAU OK, ANNEAUX 4/4, CADRAN 360°, VERROU OK",
+      "act": 1,
+      "act_label": "1 · noyau",
+      "z": 7,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 1.0,
+      "end": 5.2,
+      "size_bytes": 2169,
+      "tweens": [
+        {
+          "start": 1.0,
+          "end": 1.35,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "en-tête"
+        },
+        {
+          "start": 1.15,
+          "end": 1.5,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "NOYAU"
+        },
+        {
+          "start": 2.2,
+          "end": 2.55,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "ANNEAUX"
+        },
+        {
+          "start": 2.45,
+          "end": 2.8,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "CADRAN"
+        },
+        {
+          "start": 3.12,
+          "end": 3.47,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft",
+          "note": "VERROU"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ]
+    },
+    {
+      "file": "splash-init-gauge.svg",
+      "id": "splash-init-gauge",
+      "role": "Jauge INIT : compteur 000→100 % + barre 180 px",
+      "act": 4,
+      "act_label": "4 · télémétrie",
+      "z": 8,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "#splash-init-bar : origine à gauche (transform-origin 0 50%)"
+      },
+      "start": 2.6,
+      "end": 5.2,
+      "size_bytes": 1082,
+      "tweens": [
+        {
+          "start": 2.6,
+          "end": 2.95,
+          "props": {
+            "opacity": [0, 1],
+            "x_px": [-8, 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 2.6,
+          "end": 4.1,
+          "props": {
+            "#splash-init-bar.scaleX": [0, 1]
+          },
+          "ease": "inOutSoft"
+        },
+        {
+          "start": 2.6,
+          "end": 4.1,
+          "props": {
+            "#splash-init-pct.text": ["000", "100"]
+          },
+          "ease": "cubic in-out (textContent, pas une propriété animée)"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ]
+    },
+    {
+      "file": "splash-degrees.svg",
+      "id": "splash-degrees",
+      "role": "Repères de cap 000 / 090 / 180 / 270",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 9,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 2.7,
+      "end": 5.2,
+      "size_bytes": 935,
+      "tweens": [
+        {
+          "start": 2.7,
+          "end": 3.0,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none",
+          "note": "stagger 0,05 s (fin 3,15 s)"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ],
+      "stagger": 0.05
+    },
+    {
+      "file": "splash-sweep.svg",
+      "id": "splash-sweep",
+      "role": "Balayage radial (conic 0→50°, accent .12) sur disque r120",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 10,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 2.3,
+      "end": 3.2,
+      "size_bytes": 4823,
+      "tweens": [
+        {
+          "start": 2.3,
+          "end": 2.5,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none"
+        },
+        {
+          "start": 2.3,
+          "end": 3.2,
+          "props": {
+            "rotation": [0, 360]
+          },
+          "ease": "inOutSoft"
+        },
+        {
+          "start": 3.0,
+          "end": 3.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "none"
+        }
+      ]
+    },
+    {
+      "file": "splash-boot-ring-r138.svg",
+      "id": "splash-boot-ring-r138",
+      "role": "Anneau boot r138 tireté (hud)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 11,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.2,
+      "end": 5.25,
+      "size_bytes": 580,
+      "tweens": [
+        {
+          "start": 1.2,
+          "end": 2.3,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [60, 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 4.9,
+          "end": 5.25,
+          "props": {
+            "opacity": [1, 0],
+            "scale": [1, 1.06]
+          },
+          "ease": "power1.out",
+          "note": "anneaux boot : sortie"
+        }
+      ]
+    },
+    {
+      "file": "splash-boot-ring-r150.svg",
+      "id": "splash-boot-ring-r150",
+      "role": "Anneau boot segmenté r150 (accent .20)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 12,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.3,
+      "end": 5.6,
+      "size_bytes": 637,
+      "tweens": [
+        {
+          "start": 1.3,
+          "end": 2.5,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [-140, 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 2.5,
+          "end": 5.6,
+          "props": {
+            "rotation": [0, 14]
+          },
+          "ease": "none",
+          "note": "dérive lente"
+        },
+        {
+          "start": 4.9,
+          "end": 5.25,
+          "props": {
+            "opacity": [1, 0],
+            "scale": [1, 1.06]
+          },
+          "ease": "power1.out",
+          "note": "anneaux boot : sortie"
+        }
+      ]
+    },
+    {
+      "file": "splash-boot-graduations-r160.svg",
+      "id": "splash-boot-graduations-r160",
+      "role": "120 graduations boot r154/158→162 (3°)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 13,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.4,
+      "end": 5.6,
+      "size_bytes": 4076,
+      "tweens": [
+        {
+          "start": 1.4,
+          "end": 2.5,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [45, 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 2.5,
+          "end": 5.6,
+          "props": {
+            "rotation": [0, -8]
+          },
+          "ease": "none",
+          "note": "dérive lente"
+        },
+        {
+          "start": 4.9,
+          "end": 5.25,
+          "props": {
+            "opacity": [1, 0],
+            "scale": [1, 1.06]
+          },
+          "ease": "power1.out",
+          "note": "anneaux boot : sortie"
+        }
+      ]
+    },
+    {
+      "file": "splash-crosshair.svg",
+      "id": "splash-crosshair",
+      "role": "Croix cardinales r168→180",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 14,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 2.5,
+      "end": 5.25,
+      "size_bytes": 580,
+      "tweens": [
+        {
+          "start": 2.5,
+          "end": 2.95,
+          "props": {
+            "opacity": [0, 1],
+            "scale": [0.9, 1]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 4.9,
+          "end": 5.25,
+          "props": {
+            "opacity": [1, 0],
+            "scale": [1, 1.06]
+          },
+          "ease": "power1.out",
+          "note": "anneaux boot : sortie"
+        }
+      ]
+    },
+    {
+      "file": "splash-reticles.svg",
+      "id": "splash-reticles",
+      "role": "4 réticules (g#splash-reticle-tl/tr/br/bl)",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 15,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 2.55,
+      "end": 5.25,
+      "size_bytes": 858,
+      "tweens": [
+        {
+          "start": 2.55,
+          "end": 3.05,
+          "props": {
+            "opacity": [0, 1],
+            "scale": [1.25, 1]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 3.05,
+          "end": 3.12,
+          "props": {
+            "opacity": [1, 0.45]
+          },
+          "ease": "none",
+          "note": "flash de verrou unique"
+        },
+        {
+          "start": 3.12,
+          "end": 3.19,
+          "props": {
+            "opacity": [0.45, 1]
+          },
+          "ease": "none"
+        },
+        {
+          "start": 4.9,
+          "end": 5.25,
+          "props": {
+            "opacity": [1, 0],
+            "scale": [1, 1.06]
+          },
+          "ease": "power1.out",
+          "note": "anneaux boot : sortie"
+        }
+      ]
+    },
+    {
+      "file": "splash-ring-outer.svg",
+      "id": "splash-ring-outer",
+      "role": "Anneau extérieur r120 (hud)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 16,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.3,
+      "end": 2.2,
+      "size_bytes": 538,
+      "tweens": [
+        {
+          "start": 1.3,
+          "end": 2.2,
+          "props": {
+            "opacity": [0, 1],
+            "scale": [0.92, 1]
+          },
+          "ease": "outSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-ticks.svg",
+      "id": "splash-ticks",
+      "role": "72 graduations r100/104→108 (path[data-i], 0 = midi, sens horaire)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 17,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.45,
+      "end": 2.17,
+      "size_bytes": 4439,
+      "tweens": [
+        {
+          "start": 1.45,
+          "end": 1.57,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none",
+          "note": "par graduation ; départ 1,45 + 0,6·i/71 s (stagger amount 0,6) ; fin 2,17 s"
+        }
+      ],
+      "stagger_amount": 0.6
+    },
+    {
+      "file": "splash-arcs-r114.svg",
+      "id": "splash-arcs-r114",
+      "role": "Deux arcs r114 (hud-strong 1,25)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 18,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.35,
+      "end": 2.35,
+      "size_bytes": 613,
+      "tweens": [
+        {
+          "start": 1.35,
+          "end": 2.35,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [-90, 0]
+          },
+          "ease": "outSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-ring-r80.svg",
+      "id": "splash-ring-r80",
+      "role": "Groupe r80 : bande r88, voile r78, piste r80",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 19,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.16,
+      "end": 2.16,
+      "size_bytes": 932,
+      "tweens": [
+        {
+          "start": 1.16,
+          "end": 2.16,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [90, 0],
+            "scale": [0.9, 1]
+          },
+          "ease": "outSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-trail.svg",
+      "id": "splash-trail",
+      "role": "Traînée : 108 segments chevauchants r80 (path[data-i])",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 20,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.65,
+      "end": 2.48,
+      "size_bytes": 9923,
+      "tweens": [
+        {
+          "start": 1.65,
+          "end": 1.73,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none",
+          "note": "par segment ; départ 1,65 + 0,75·inOutSoft(i/107) s (stagger amount 0,75, ease inOutSoft) ; fin 2,48 s"
+        }
+      ],
+      "stagger_amount": 0.75
+    },
+    {
+      "file": "splash-trail-static.svg",
+      "id": "splash-trail",
+      "role": "Variante statique de la traînée (32 arcs imbriqués, mark v2) pour l'état final / reduced motion",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 20,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.65,
+      "end": 2.48,
+      "size_bytes": 2987,
+      "tweens": [],
+      "variant_of": "trail",
+      "note": "pas d'animation propre : remplace splash-trail.svg une fois révélée, ou en reduced motion"
+    },
+    {
+      "file": "splash-trail-head.svg",
+      "id": "splash-trail-head",
+      "role": "Tête de traînée (halo r9 + point r3)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 21,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.65,
+      "end": 2.48,
+      "size_bytes": 830,
+      "tweens": [
+        {
+          "start": 1.65,
+          "end": 1.8,
+          "props": {
+            "opacity": [0, 1]
+          },
+          "ease": "none"
+        },
+        {
+          "start": 1.65,
+          "end": 2.48,
+          "props": {
+            "rotation": [-195, 0]
+          },
+          "ease": "inOutSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-ring-r70-dashed.svg",
+      "id": "splash-ring-r70-dashed",
+      "role": "Cadran pointillé r70",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 22,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.08,
+      "end": 2.03,
+      "size_bytes": 571,
+      "tweens": [
+        {
+          "start": 1.08,
+          "end": 2.03,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [-150, 0],
+            "scale": [0.85, 1]
+          },
+          "ease": "outSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-ring-r60.svg",
+      "id": "splash-ring-r60",
+      "role": "Anneau r60 (hud)",
+      "act": 2,
+      "act_label": "2 · anneaux",
+      "z": 23,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 1.0,
+      "end": 1.9,
+      "size_bytes": 517,
+      "tweens": [
+        {
+          "start": 1.0,
+          "end": 1.9,
+          "props": {
+            "opacity": [0, 1],
+            "rotation": [120, 0],
+            "scale": [0.8, 1]
+          },
+          "ease": "outSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-core.svg",
+      "id": "splash-core",
+      "role": "Noyau : halo r22 (#splash-core-halo) + point r6",
+      "act": 1,
+      "act_label": "1 · noyau",
+      "z": 24,
+      "in_rig": true,
+      "transform_origin": {
+        "x": 124,
+        "y": 124,
+        "unit": "u",
+        "note": "centre du mark (svgOrigin '124 124' dans GSAP)"
+      },
+      "start": 0.15,
+      "end": 1.22,
+      "size_bytes": 998,
+      "tweens": [
+        {
+          "start": 0.15,
+          "end": 1.15,
+          "props": {
+            "#splash-core-halo.scale": [0.6, 1]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 0.15,
+          "end": 0.35,
+          "props": {
+            "opacity": [0, 0.12]
+          },
+          "ease": "none"
+        },
+        {
+          "start": 0.4,
+          "end": 0.54,
+          "props": {
+            "opacity": [0.12, 1, 0.12]
+          },
+          "ease": "none",
+          "note": "flash 1"
+        },
+        {
+          "start": 0.74,
+          "end": 0.88,
+          "props": {
+            "opacity": [0.12, 1, 0.12]
+          },
+          "ease": "none",
+          "note": "flash 2 (≈2,9 Hz)"
+        },
+        {
+          "start": 1.08,
+          "end": 1.22,
+          "props": {
+            "opacity": [0.12, 1]
+          },
+          "ease": "power1.out",
+          "note": "allumage"
+        }
+      ]
+    },
+    {
+      "file": "splash-scan.svg",
+      "id": "splash-scan",
+      "role": "Ligne de scan horizontale (voile .06 + trait .32)",
+      "act": 3,
+      "act_label": "3 · scan et verrou",
+      "z": 25,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 2.2,
+      "end": 3.1,
+      "size_bytes": 1138,
+      "tweens": [
+        {
+          "start": 2.2,
+          "end": 3.1,
+          "props": {
+            "opacity": [1, 1],
+            "y_px": [-64, 900],
+            "y_u": [-42.667, 600]
+          },
+          "ease": "inOutSoft",
+          "note": "opacity 1 posée à 2,2 s, 0 à 3,1 s"
+        }
+      ]
+    },
+    {
+      "file": "splash-title.svg",
+      "id": "splash-title",
+      "role": "Titre J A R V I S en texte (Plex Sans 600 32 px, text#splash-letter-*)",
+      "act": 5,
+      "act_label": "5 · titre",
+      "z": 26,
+      "in_rig": false,
+      "transform_origin": {
+        "x": "50%",
+        "y": "50%",
+        "box": "fill-box"
+      },
+      "start": 3.7,
+      "end": 4.95,
+      "size_bytes": 1128,
+      "tweens": [
+        {
+          "start": 3.7,
+          "end": 4.2,
+          "props": {
+            "opacity": [0, 0.82],
+            "y_px": [14, 0],
+            "y_u": [9.333, 0]
+          },
+          "ease": "outSoft",
+          "note": "lettre i à 3,7 + 0,08·i s"
+        },
+        {
+          "start": 4.45,
+          "end": 4.7,
+          "props": {
+            "opacity": [0.82, 1]
+          },
+          "ease": "power1.out",
+          "note": "lettre i à 4,45 + 0,05·i s (fin 4,95 s)"
+        }
+      ],
+      "stagger": 0.08
+    },
+    {
+      "file": "splash-title-outlined.svg",
+      "id": "splash-title",
+      "role": "Titre en contours (sans police)",
+      "act": 5,
+      "act_label": "5 · titre",
+      "z": 26,
+      "in_rig": false,
+      "transform_origin": {
+        "x": "50%",
+        "y": "50%",
+        "box": "fill-box"
+      },
+      "start": 3.7,
+      "end": 4.95,
+      "size_bytes": 3086,
+      "tweens": [],
+      "variant_of": "title",
+      "note": "mêmes tweens que splash-title.svg (path#splash-letter-*)"
+    },
+    {
+      "file": "splash-title-sheen.svg",
+      "id": "splash-title-sheen",
+      "role": "Reflet nacré : bande 56 px dégradée masquée par les lettres",
+      "act": 5,
+      "act_label": "5 · titre",
+      "z": 27,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 4.15,
+      "end": 4.85,
+      "size_bytes": 3479,
+      "tweens": [
+        {
+          "start": 4.15,
+          "end": 4.85,
+          "props": {
+            "#splash-sheen-band.x_px": [0, 305.2],
+            "x_u": [0, 203.467]
+          },
+          "ease": "inOutSoft"
+        }
+      ]
+    },
+    {
+      "file": "splash-status.svg",
+      "id": "splash-status",
+      "role": "• Systèmes en ligne (Plex Sans 500 14 px, muted)",
+      "act": 6,
+      "act_label": "6 · en ligne",
+      "z": 28,
+      "in_rig": false,
+      "transform_origin": {
+        "note": "translation seule"
+      },
+      "start": 4.6,
+      "end": 5.2,
+      "size_bytes": 897,
+      "tweens": [
+        {
+          "start": 4.6,
+          "end": 4.95,
+          "props": {
+            "opacity": [0, 1],
+            "y_px": [6, 0],
+            "y_u": [4.0, 0]
+          },
+          "ease": "outSoft"
+        },
+        {
+          "start": 4.9,
+          "end": 5.2,
+          "props": {
+            "opacity": [1, 0]
+          },
+          "ease": "power1.out",
+          "note": "fondu du décor au passage vers la Home"
+        }
+      ]
+    },
+    {
+      "file": "splash-status-outlined.svg",
+      "id": "splash-status",
+      "role": "Ligne de statut en contours",
+      "act": 6,
+      "act_label": "6 · en ligne",
+      "z": 28,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 4.6,
+      "end": 5.2,
+      "size_bytes": 10613,
+      "tweens": [],
+      "variant_of": "status",
+      "note": "mêmes tweens que splash-status.svg"
+    },
+    {
+      "file": "splash-skip.svg",
+      "id": "splash-skip",
+      "role": "Repère du bouton Passer + Échap (à garder en <button> HTML)",
+      "act": 0,
+      "act_label": "tout le splash",
+      "z": 29,
+      "in_rig": false,
+      "transform_origin": null,
+      "start": 0.0,
+      "end": 5.6,
+      "size_bytes": 1068,
+      "tweens": [],
+      "visible": "0 → fin"
+    }
+  ]
+}

@@ -18,6 +18,27 @@ describe("createMockPorts", () => {
     expect(await memory.listMessages()).toHaveLength(0);
   });
 
+  it("MemoryPort pagine les messages récents et older", async () => {
+    const { memory } = createMockPorts();
+    for (let i = 0; i < 5; i += 1) {
+      await memory.appendMessage({
+        id: `m${i}`,
+        role: "user",
+        text: `t${i}`,
+        createdAt: `2026-01-01T1${i}:00:00.000Z`,
+      });
+    }
+
+    const recent = await memory.listMessages({ limit: 3 });
+    expect(recent.map((m) => m.id)).toEqual(["m2", "m3", "m4"]);
+
+    const older = await memory.listMessages({
+      limit: 2,
+      before: { createdAt: recent[0]!.createdAt, id: recent[0]!.id },
+    });
+    expect(older.map((m) => m.id)).toEqual(["m0", "m1"]);
+  });
+
   it("MailPort mock est vide (données = Gmail live)", async () => {
     const { mail } = createMockPorts();
     expect(await mail.listRecent(3)).toHaveLength(0);

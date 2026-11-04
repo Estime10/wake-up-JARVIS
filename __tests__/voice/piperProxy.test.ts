@@ -9,10 +9,10 @@ import {
 describe("piperProxyConfig", () => {
   it("autorise uniquement le loopback", () => {
     expect(
-      getPiperUpstreamUrl({ PIPER_HTTP_URL: "http://127.0.0.1:5000" }),
-    ).toBe("http://127.0.0.1:5000");
+      getPiperUpstreamUrl({ PIPER_HTTP_URL: "http://127.0.0.1:5911" }),
+    ).toBe("http://127.0.0.1:5911");
     expect(() =>
-      getPiperUpstreamUrl({ PIPER_HTTP_URL: "http://8.8.8.8:5000" }),
+      getPiperUpstreamUrl({ PIPER_HTTP_URL: "http://8.8.8.8:5911" }),
     ).toThrow("piper_url_not_loopback");
   });
 

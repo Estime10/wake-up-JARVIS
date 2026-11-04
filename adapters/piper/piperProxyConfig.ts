@@ -1,6 +1,7 @@
 import { PIPER_PROXY_MAX_BYTES } from "@/adapters/piper/piperHttpSchemas";
 
-const DEFAULT_PIPER_URL = "http://127.0.0.1:5000";
+/** Pas 5000 : sur macOS AirPlay Receiver (Control Center) occupe déjà ce port. */
+const DEFAULT_PIPER_URL = "http://127.0.0.1:5911";
 
 type EnvMap = Record<string, string | undefined>;
 

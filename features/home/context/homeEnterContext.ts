@@ -10,6 +10,8 @@ export type HomeEnterContextValue = {
   briefingReady: boolean;
   /** Après le TTS briefing — lance shrink mark + Flip JARVIS + reveal UI. */
   beginSettle: () => void;
+  /** Splash SVG v1 déjà vu — pas de mark géant centré (2e splash). */
+  skipCenteredBriefing: boolean;
 };
 
 const HomeEnterContext = createContext<HomeEnterContextValue | null>(null);

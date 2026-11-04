@@ -33,8 +33,9 @@ import { t } from "@/lib/i18n";
 export function HomeScreen() {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   useHomeChromeReveal(chromeRef);
-  const { phase } = useHomeEnter();
-  const briefing = phase === "briefing";
+  const { phase, skipCenteredBriefing } = useHomeEnter();
+  // Après splash v1 : layout home tout de suite (pas de mark géant centré).
+  const briefing = phase === "briefing" && !skipCenteredBriefing;
   const settled = phase === "ready";
 
   const {
@@ -54,6 +55,9 @@ export function HomeScreen() {
     state,
     messages,
     memoryStatus,
+    hasMoreOlder,
+    loadingOlder,
+    loadOlderMessages,
     retryMemory,
     listenSeed,
     toggleListen,
@@ -86,7 +90,12 @@ export function HomeScreen() {
         ref={chromeRef}
         data-home="chrome"
         className={cn(
-          "pointer-events-none absolute inset-0 opacity-0",
+          // Opacity pilotée par GSAP / phase — pas de `opacity-0` Tailwind
+          // (sinon clearProps au settle ramène le HUD invisible).
+          "pointer-events-none absolute inset-0",
+          skipCenteredBriefing || phase === "ready"
+            ? "opacity-100"
+            : "opacity-0",
           terminalOpen && TERMINAL_LAYER_CLASS.chrome,
         )}
       >
@@ -124,14 +133,16 @@ export function HomeScreen() {
         <div
           className={cn(
             "flex min-h-0 flex-1 flex-col items-center px-6",
-            briefing ? "justify-center" : "pt-10 sm:pt-12",
+            briefing ? "justify-center" : "pt-16 sm:pt-20",
           )}
         >
           <AssistantStage />
 
+          {/* Messages : flex-1 jusqu’au composer ; 10px sous le pad chrome du mark. */}
           <div
             className={cn(
-              "relative flex min-h-0 w-full flex-1 flex-col",
+              "relative z-20 flex min-h-0 w-full flex-1 flex-col",
+              !briefing && "mt-2.5",
               briefing &&
                 "pointer-events-none max-h-0 overflow-hidden opacity-0",
             )}
@@ -152,13 +163,16 @@ export function HomeScreen() {
                   onRetry={retryMemory}
                 />
               ) : showThread ? (
-                <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-end pt-8 sm:pt-10">
+                <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-end">
                   <ConversationThread
                     messages={messages}
                     onConfirmAction={confirmAction}
                     onCancelAction={cancelAction}
                     scrollLock={homeContentHidden}
                     animateEntrance
+                    hasMoreOlder={hasMoreOlder}
+                    loadingOlder={loadingOlder}
+                    onLoadOlder={loadOlderMessages}
                   />
                 </div>
               ) : (

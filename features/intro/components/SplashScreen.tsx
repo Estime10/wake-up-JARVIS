@@ -2,11 +2,8 @@
 
 import { useEffect, useEffectEvent, useRef } from "react";
 
-import { SplashBackdrop } from "@/features/intro/components/SplashBackdrop";
-import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
-import { SplashMarkStage } from "@/features/intro/components/SplashMarkStage";
-import { WakeContinueHint } from "@/features/intro/components/WakeContinueHint";
-import { useIntroTimeline } from "@/features/intro/hooks/useIntroTimeline";
+import { SplashV1Scene } from "@/features/intro/components/SplashV1Scene";
+import { useSplashV1Timeline } from "@/features/intro/hooks/useSplashV1Timeline";
 import { isPlayableIntroMode, type IntroModeState } from "@/lib/intro/modes";
 
 export type SplashScreenProps = {
@@ -15,28 +12,10 @@ export type SplashScreenProps = {
   onComplete: () => void;
 };
 
-function SplashScreenPlaying({
-  mode,
-  onComplete,
-}: {
-  mode: "full" | "short";
-  onComplete: () => void;
-}) {
-  const { scopeRef, awaitingWake } = useIntroTimeline({
-    mode,
-    onComplete,
-  });
+function SplashScreenPlaying({ onComplete }: { onComplete: () => void }) {
+  const { hostRef, onSvgReady } = useSplashV1Timeline({ onComplete });
 
-  return (
-    <SplashBackdrop scopeRef={scopeRef}>
-      <WakeContinueHint visible={awaitingWake} />
-      {/* Splash minimal : wake text only (pas d'équerres / méta HUD). */}
-      <SplashHudChrome wakeOnly />
-      <div className="relative z-10 flex flex-col items-center gap-8 px-6 sm:gap-10">
-        <SplashMarkStage />
-      </div>
-    </SplashBackdrop>
-  );
+  return <SplashV1Scene hostRef={hostRef} onSvgReady={onSvgReady} />;
 }
 
 function SplashScreenNone({ onComplete }: { onComplete: () => void }) {
@@ -57,8 +36,8 @@ function SplashScreenNone({ onComplete }: { onComplete: () => void }) {
 }
 
 /**
- * Écran d'intro JARVIS — composition UI + hooks.
- * Pas de skip : la timeline va toujours jusqu’au bout.
+ * Écran d'intro JARVIS — UI splash-v1 (SVG = vidéo référence).
+ * Muet : le greeting TTS démarre uniquement sur /home.
  */
 export function SplashScreen({ mode, onComplete }: SplashScreenProps) {
   if (mode === null) {
@@ -73,5 +52,5 @@ export function SplashScreen({ mode, onComplete }: SplashScreenProps) {
     return null;
   }
 
-  return <SplashScreenPlaying key={mode} mode={mode} onComplete={onComplete} />;
+  return <SplashScreenPlaying key={mode} onComplete={onComplete} />;
 }

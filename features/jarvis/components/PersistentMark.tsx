@@ -23,7 +23,6 @@ function placeMarkOnSlot(
   slotName: MarkSlotName,
   opts?: { visible?: boolean },
 ): boolean {
-  // Slots rendus par les routes (hors sous-arbre du mark) : scope = document.
   const slot = queryMarkSlot(mark.ownerDocument, slotName);
   if (!slot) {
     return false;
@@ -37,7 +36,7 @@ function placeMarkOnSlot(
 
 /**
  * Unique mark de session — toujours le même nœud DOM (fixed).
- * `opacity-0` CSS par défaut : jamais de flash top-left avant placeOnRect.
+ * Dessin = splash (JarvisMark v2 + chrome boot).
  */
 export function PersistentMark() {
   const pathname = usePathname();
@@ -57,14 +56,16 @@ export function PersistentMark() {
       x: 0,
       y: 0,
       maxWidth: "none",
-      zIndex: 60,
+      zIndex: 30,
       pointerEvents: "none",
     });
 
     if (home && handoff.hasPending()) {
+      // Déjà posé au capture splash — Flip géré par playHomeBriefingHold.
+      phaseRef.current = "home";
       showMark(mark);
+      mark.style.visibility = "";
       return handoff.onComplete(() => {
-        phaseRef.current = "home";
         placeMarkOnSlot(mark, "home", { visible: true });
       });
     }
@@ -75,18 +76,13 @@ export function PersistentMark() {
       return undefined;
     }
 
-    // Refresh /home : ne pas poser ici — `playHomeDirectEnter` mesure le slot
-    // après layout panneau et révèle (évite flash gauche → centre).
     if (home) {
       phaseRef.current = "home";
       return undefined;
     }
 
-    // Splash : ne pas forcer opacity — la timeline GSAP gère l’apparition.
-    const placed = placeMarkOnSlot(mark, "splash");
-    if (placed) {
-      phaseRef.current = "splash";
-    }
+    phaseRef.current = "splash";
+    gsap.set(mark, { opacity: 0, visibility: "hidden" });
     return undefined;
   }, [handoff, home, markRef, pathname]);
 
@@ -96,10 +92,10 @@ export function PersistentMark() {
       data-intro="mark"
       data-jarvis-mark="ring"
       data-flip-id={FLIP_ID.mark}
-      className="pointer-events-none fixed z-[60] text-accent opacity-0"
+      className="pointer-events-none fixed z-30 overflow-visible text-accent opacity-0"
       aria-hidden
     >
-      <JarvisMark className="size-full" />
+      <JarvisMark className="size-full overflow-visible" />
     </div>
   );
 }

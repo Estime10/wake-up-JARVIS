@@ -1,5 +1,4 @@
-import { isElement } from "@/features/jarvis/model/markDom";
-import { Flip, type FlipState } from "@/lib/gsap/flip";
+import type { FlipState } from "@/lib/gsap/flip";
 import { resetWelcomeSpeakSession } from "@/lib/voice/welcomeSpeak";
 
 /** État Flip du splash (mark seul), rejoué par `Flip.from` sur /home. */
@@ -24,18 +23,6 @@ export type HomeEnterHandoff = {
   /** Signale la fin d’entrée (idempotent). Appelé aussi par `end()`. */
   notifyEnterComplete: () => void;
 };
-
-/**
- * `Flip.getState` du mark persistant seul (splash = mark + wake).
- * Wordmark hors Flip — révélé en briefing home.
- */
-export function captureSplashSnapshot(
-  mark: HTMLElement | null,
-  _splashRoot: ParentNode,
-): SplashEnterSnapshot {
-  void _splashRoot;
-  return Flip.getState([mark].filter(isElement));
-}
 
 /**
  * Une instance par coquille app (créée par JarvisShell, partagée par
@@ -63,6 +50,7 @@ export function createHomeEnterHandoff(): HomeEnterHandoff {
     begin(snapshot) {
       pending = snapshot;
       enterSettled = false;
+      // Reset aussi dans SplashEntry.onComplete (reduced motion sans Flip).
       resetWelcomeSpeakSession();
     },
     hasPending() {

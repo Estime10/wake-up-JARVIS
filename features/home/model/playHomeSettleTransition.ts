@@ -59,7 +59,8 @@ export function playHomeSettleTransition({
       gsap.set(composer, { clearProps: "opacity,transform" });
     }
     if (chrome) {
-      gsap.set(chrome, { clearProps: "opacity" });
+      // Garder visible — clearProps ferait revenir un éventuel opacity-0 CSS.
+      gsap.set(chrome, { opacity: 1 });
     }
     if (wordmark) {
       gsap.set(wordmark, { clearProps: "opacity,transform", opacity: 1, y: 0 });
