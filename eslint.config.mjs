@@ -41,7 +41,13 @@ const eslintConfig = defineConfig([
     rules: { "no-console": "off" },
   },
   eslintConfigPrettier,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    ".venv-piper/**",
+  ]),
 ]);
 
 export default eslintConfig;

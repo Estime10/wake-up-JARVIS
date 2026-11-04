@@ -1,12 +1,19 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: { tsconfigPaths: true },
   test: {
     environment: "node",
-    include: ["__tests__/**/*.test.{ts,tsx}"],
     setupFiles: ["./vitest.setup.ts"],
+    exclude: ["**/node_modules/**", "**/e2e/**", "**/.next/**"],
+  },
+  resolve: {
+    alias: {
+      "@": rootDir,
+      "server-only": path.resolve(rootDir, "./test/shims/server-only.ts"),
+    },
   },
 });
