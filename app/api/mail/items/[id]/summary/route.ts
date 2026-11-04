@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   return NextResponse.json({ error: "not_implemented" }, { status: 501 });
 }
 
-/** Refuse le résumé — journalise seulement, aucun fetch Gmail. */
+/** Refuse le résumé — journalise seulement si l’item existe (DEV-7). */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   const access = await requireOwnerAccess();
   if (!access.ok) {
@@ -95,6 +95,16 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: item, error: itemError } = await supabase
+    .from("mail_items")
+    .select("id")
+    .eq("id", idResult.data)
+    .maybeSingle();
+
+  if (itemError || !item) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
   const { error } = await supabase.from("mail_reads").insert({
     user_id: access.user.id,
     mail_item_id: idResult.data,

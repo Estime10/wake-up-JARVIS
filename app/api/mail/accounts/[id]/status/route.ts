@@ -3,11 +3,13 @@ import { z } from "zod";
 
 import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
 import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
+import { canSetMailAccountStatus } from "@/features/mail/model/canSetMailAccountStatus";
 import {
   createSupabaseAdminClient,
   hasSupabaseServiceRole,
 } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { mailAccountStatusSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 
@@ -19,7 +21,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-/** Interrupteur active / disabled (pas needs_reauth ici). */
+/** Interrupteur active / disabled — needs_reauth → active interdit (OAuth). */
 export async function PATCH(request: NextRequest, context: RouteContext) {
   if (!hasSupabaseServiceRole()) {
     return NextResponse.json({ ok: false }, { status: 503 });
@@ -46,12 +48,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const supabase = await createSupabaseServerClient();
   const { data: account, error: loadError } = await supabase
     .from("mail_accounts")
-    .select("id")
+    .select("id, status")
     .eq("id", idResult.data)
     .maybeSingle();
 
   if (loadError || !account) {
     return NextResponse.json({ ok: false }, { status: 404 });
+  }
+
+  const current = mailAccountStatusSchema.safeParse(account.status);
+  if (!current.success) {
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+
+  if (!canSetMailAccountStatus(current.data, parsed.status)) {
+    return NextResponse.json(
+      { ok: false, error: "needs_reauth" },
+      { status: 409 },
+    );
   }
 
   const admin = createSupabaseAdminClient();
@@ -62,6 +76,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   if (error) {
+    if (error.message.includes("mail_account_needs_reauth")) {
+      return NextResponse.json(
+        { ok: false, error: "needs_reauth" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
