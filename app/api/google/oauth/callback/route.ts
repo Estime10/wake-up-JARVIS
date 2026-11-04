@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { exchangeGoogleCode, fetchGoogleUserEmail } from "@/lib/google/oauth";
 import { pushOAuthDebug } from "@/lib/google/oauthDebugRing";
 import { hasGoogleOAuthEnv } from "@/lib/google/env";
@@ -11,7 +12,6 @@ import { mailboxShortLabel } from "@/features/mail/model/mailboxShortLabel";
 import { createLogger } from "@/lib/logger";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -78,15 +78,16 @@ export async function GET(request: NextRequest) {
     return homeRedirect(request, "state");
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    pushOAuthDebug("callback.no_session");
-    log.warn("no_jarvis_session");
-    return NextResponse.redirect(new URL(ROUTES.login, request.url));
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    if (access.status === 401) {
+      pushOAuthDebug("callback.no_session");
+      log.warn("no_jarvis_session");
+      return NextResponse.redirect(new URL(ROUTES.login, request.url));
+    }
+    pushOAuthDebug("callback.forbidden", access.error);
+    log.warn("forbidden", { error: access.error });
+    return homeRedirect(request, "forbidden");
   }
 
   try {
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
     const admin = createSupabaseAdminClient();
 
     const { error } = await admin.rpc("admin_mail_account_store_token", {
-      p_user_id: user.id,
+      p_user_id: access.user.id,
       p_email: profile.email,
       p_label: label,
       p_refresh_token: tokens.refresh_token,

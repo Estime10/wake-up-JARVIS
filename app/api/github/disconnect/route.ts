@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { createLogger } from "@/lib/logger";
 import {
   createSupabaseAdminClient,
@@ -20,15 +22,12 @@ export async function POST() {
     return NextResponse.json({ ok: false, error: "config" }, { status: 503 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ ok: false, error: "auth" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
+  const supabase = await createSupabaseServerClient();
   const { data: existing } = await supabase
     .from("github_connections")
     .select("id")
@@ -40,7 +39,7 @@ export async function POST() {
 
   const admin = createSupabaseAdminClient();
   const { error } = await admin.rpc("admin_github_connection_delete", {
-    p_user_id: user.id,
+    p_user_id: access.user.id,
   });
 
   if (error) {

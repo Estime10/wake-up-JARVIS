@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { buildGoogleAuthorizeUrl } from "@/lib/google/oauth";
 import { pushOAuthDebug } from "@/lib/google/oauthDebugRing";
 import { hasGoogleOAuthEnv } from "@/lib/google/env";
@@ -18,7 +19,7 @@ export const runtime = "nodejs";
 
 const log = createLogger("gmail-oauth.connect");
 
-/** Démarre OAuth Gmail — session JARVIS requise. */
+/** Démarre OAuth Gmail — propriétaire (OWNER_EMAILS) requis. */
 export async function GET(request: NextRequest) {
   pushOAuthDebug("connect.hit");
   log.info("hit");
@@ -35,17 +36,21 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    pushOAuthDebug("connect.no_session");
-    log.warn("no_jarvis_session");
-    return NextResponse.redirect(new URL(ROUTES.login, request.url));
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    if (access.status === 401) {
+      pushOAuthDebug("connect.no_session");
+      log.warn("no_jarvis_session");
+      return NextResponse.redirect(new URL(ROUTES.login, request.url));
+    }
+    pushOAuthDebug("connect.forbidden", access.error);
+    log.warn("forbidden", { error: access.error });
+    return NextResponse.redirect(
+      new URL(`${ROUTES.home}?mail_oauth=forbidden`, request.url),
+    );
   }
 
+  const supabase = await createSupabaseServerClient();
   const { count, error } = await supabase
     .from("mail_accounts")
     .select("id", { count: "exact", head: true });

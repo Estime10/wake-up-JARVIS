@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
 import type { GithubTokenLoad } from "@/lib/github/connectionToken";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 
 export function githubTokenErrorResponse(
   load: Extract<GithubTokenLoad, { ok: false }>,
@@ -12,7 +13,7 @@ export function githubTokenErrorResponse(
     vault: 500,
     config: 503,
   } as const;
-  return NextResponse.json(
+  return jsonNoStore(
     { ok: false, error: load.reason },
     { status: map[load.reason] },
   );
@@ -29,5 +30,5 @@ export function githubUpstreamErrorResponse(
         : reason === "not_found"
           ? 404
           : 502;
-  return NextResponse.json({ ok: false, error: reason }, { status });
+  return jsonNoStore({ ok: false, error: reason }, { status });
 }

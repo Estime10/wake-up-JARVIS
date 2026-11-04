@@ -1,11 +1,15 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import {
   githubTokenErrorResponse,
   githubUpstreamErrorResponse,
 } from "@/lib/github/apiError";
 import { loadGithubConnectionToken } from "@/lib/github/connectionToken";
 import { listGithubPulls } from "@/lib/github/listPulls";
+import { githubOwnerRepoSchema } from "@/lib/github/repoParams";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { hasSupabaseServiceRole } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -17,12 +21,17 @@ type RouteContext = {
 /** Pull requests ouvertes. */
 export async function GET(_request: NextRequest, context: RouteContext) {
   if (!hasSupabaseServiceRole()) {
-    return NextResponse.json({ ok: false, error: "config" }, { status: 503 });
+    return jsonNoStore({ ok: false, error: "config" }, { status: 503 });
   }
 
-  const { owner, repo } = await context.params;
-  if (!owner || !repo) {
-    return NextResponse.json({ ok: false, error: "params" }, { status: 400 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
+  }
+
+  const parsed = githubOwnerRepoSchema.safeParse(await context.params);
+  if (!parsed.success) {
+    return jsonNoStore({ ok: false, error: "params" }, { status: 400 });
   }
 
   const tokenLoad = await loadGithubConnectionToken();
@@ -30,10 +39,14 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return githubTokenErrorResponse(tokenLoad);
   }
 
-  const listed = await listGithubPulls(tokenLoad.token, owner, repo);
+  const listed = await listGithubPulls(
+    tokenLoad.token,
+    parsed.data.owner,
+    parsed.data.repo,
+  );
   if (!listed.ok) {
     return githubUpstreamErrorResponse(listed.reason);
   }
 
-  return NextResponse.json({ ok: true, pulls: listed.pulls });
+  return jsonNoStore({ ok: true, pulls: listed.pulls });
 }

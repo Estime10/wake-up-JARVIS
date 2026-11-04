@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { githubConnectionSchema, type GithubConnection } from "@/lib/schemas";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -17,15 +19,12 @@ type Row = {
  * Statut connexion GitHub (sans PAT / sans vault_secret_id).
  */
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ ok: false, error: "auth" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("github_connections")
     .select("id, github_login, status, expires_at, connected_at")

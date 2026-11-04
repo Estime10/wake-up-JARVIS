@@ -1,17 +1,18 @@
-import { NextResponse } from "next/server";
-
 import {
   loadMailRulesForUser,
   pollMailAccount,
   type PollAccountRow,
 } from "@/features/mail/services/pollMailAccount";
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { hasGoogleOAuthEnv } from "@/lib/google/env";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { createLogger } from "@/lib/logger";
+import { consumeMailPollSlot } from "@/lib/mail/pollRateLimit";
 import {
   createSupabaseAdminClient,
   hasSupabaseServiceRole,
 } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -19,41 +20,45 @@ const log = createLogger("mail.poll.route");
 
 /**
  * Relève Gmail des boîtes actives de l’utilisateur connecté.
- * Cron global (pg_cron) : à brancher plus tard via secret dédié.
+ * Rate-limité (~1 / min / user) — M2.
  */
 export async function POST() {
   if (!hasGoogleOAuthEnv() || !hasSupabaseServiceRole()) {
-    return NextResponse.json({ error: "config" }, { status: 503 });
+    return jsonNoStore({ error: "config" }, { status: 503 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
+  }
 
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const slot = consumeMailPollSlot(access.user.id);
+  if (!slot.ok) {
+    return jsonNoStore(
+      { error: "rate_limited", retryAfterMs: slot.retryAfterMs },
+      { status: 429 },
+    );
   }
 
   const admin = createSupabaseAdminClient();
   const { data: accounts, error } = await admin
     .from("mail_accounts")
-    .select("id, user_id, vault_secret_id, gmail_history_id, status")
-    .eq("user_id", user.id)
+    .select("id, user_id, gmail_history_id, status")
+    .eq("user_id", access.user.id)
     .eq("status", "active");
 
   if (error) {
     log.error("list_accounts_failed", { message: error.message });
-    return NextResponse.json({ error: "list" }, { status: 500 });
+    return jsonNoStore({ error: "list" }, { status: 500 });
   }
 
-  const rules = await loadMailRulesForUser(user.id);
+  const rules = await loadMailRulesForUser(access.user.id);
   const results = [];
 
   for (const row of (accounts ?? []) as PollAccountRow[]) {
     results.push(await pollMailAccount(row, rules));
   }
 
-  log.info("poll_done", { user: user.id, accounts: results.length });
-  return NextResponse.json({ results });
+  log.info("poll_done", { user: access.user.id, accounts: results.length });
+  return jsonNoStore({ results });
 }

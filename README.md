@@ -194,6 +194,11 @@ cp .env.example .env.local
 Dans le dashboard Supabase : Provider **Email** ON ; en local sans SMTP, **Confirm email** OFF.  
 Flux : `/` (splash) → `/login` si anonyme → `/home` si session.
 
+**Sécurité compte unique (M7)** — actions **manuelles** sur le projet Supabase distant (non vérifiables depuis le repo) :
+
+1. **Authentication → Providers / settings** : désactiver les inscriptions publiques (`enable_signup`).
+2. Renseigner `OWNER_EMAILS` dans `.env.local` (CSV). Les routes Gmail / mail / GitHub exigent un e-mail allowlisté (403 sinon). Pas de MFA.
+
 ## 8) Arborescence (résumée)
 
 ```

@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import { fetchGithubUser } from "@/lib/github/user";
 import { createLogger } from "@/lib/logger";
 import {
   createSupabaseAdminClient,
   hasSupabaseServiceRole,
 } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -29,13 +30,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "config" }, { status: 503 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ ok: false, error: "auth" }, { status: 401 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
   }
 
   let parsed: z.infer<typeof bodySchema>;
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await admin.rpc(
     "admin_github_connection_store_token",
     {
-      p_user_id: user.id,
+      p_user_id: access.user.id,
       p_github_user_id: github.user.id,
       p_github_login: github.user.login,
       p_token: token,

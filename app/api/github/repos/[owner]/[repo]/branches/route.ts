@@ -1,11 +1,15 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
+import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
+import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
 import {
   githubTokenErrorResponse,
   githubUpstreamErrorResponse,
 } from "@/lib/github/apiError";
 import { loadGithubConnectionToken } from "@/lib/github/connectionToken";
 import { listGithubBranches } from "@/lib/github/listBranches";
+import { githubOwnerRepoSchema, parseGithubRef } from "@/lib/github/repoParams";
+import { jsonNoStore } from "@/lib/http/jsonNoStore";
 import { hasSupabaseServiceRole } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -17,16 +21,23 @@ type RouteContext = {
 /** Liste toutes les branches. Query `default` = nom branche par défaut. */
 export async function GET(request: NextRequest, context: RouteContext) {
   if (!hasSupabaseServiceRole()) {
-    return NextResponse.json({ ok: false, error: "config" }, { status: 503 });
+    return jsonNoStore({ ok: false, error: "config" }, { status: 503 });
   }
 
-  const { owner, repo } = await context.params;
-  if (!owner || !repo) {
-    return NextResponse.json({ ok: false, error: "params" }, { status: 400 });
+  const access = await requireOwnerAccess();
+  if (!access.ok) {
+    return ownerAccessDeniedResponse(access);
+  }
+
+  const parsed = githubOwnerRepoSchema.safeParse(await context.params);
+  if (!parsed.success) {
+    return jsonNoStore({ ok: false, error: "params" }, { status: 400 });
   }
 
   const defaultBranch =
-    request.nextUrl.searchParams.get("default")?.trim() || "main";
+    parseGithubRef(
+      request.nextUrl.searchParams.get("default")?.trim() || "main",
+    ) ?? "main";
 
   const tokenLoad = await loadGithubConnectionToken();
   if (!tokenLoad.ok) {
@@ -35,13 +46,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const listed = await listGithubBranches(
     tokenLoad.token,
-    owner,
-    repo,
+    parsed.data.owner,
+    parsed.data.repo,
     defaultBranch,
   );
   if (!listed.ok) {
     return githubUpstreamErrorResponse(listed.reason);
   }
 
-  return NextResponse.json({ ok: true, branches: listed.branches });
+  return jsonNoStore({ ok: true, branches: listed.branches });
 }
