@@ -114,11 +114,6 @@ export function SideWebBrowser({ className }: SideWebBrowserProps) {
           </p>
         )}
       </div>
-      {src ? (
-        <p className="t-mono shrink-0 text-dial text-text-muted">
-          {t("home.sideBrowserBlocked")}
-        </p>
-      ) : null}
     </div>
   );
 }
