@@ -155,7 +155,11 @@ export function StudioBrowserSplit({
           studioOpen ? { flex: `${1 - studioShare} 1 0%` } : { flex: "1 1 0%" }
         }
       >
-        <p className="t-mono shrink-0 text-dial tracking-wide text-text-muted uppercase">
+        {/* Réserve la hauteur du libellé (retiré) pour ne pas remonter le browser. */}
+        <p
+          className="t-mono invisible shrink-0 text-dial tracking-wide text-text-muted uppercase select-none"
+          aria-hidden
+        >
           {t("home.sideBrowserLabel")}
         </p>
         <SideWebBrowser className="min-h-0 flex-1" />

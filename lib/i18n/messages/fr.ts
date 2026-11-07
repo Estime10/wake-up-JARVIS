@@ -334,8 +334,6 @@ export const fr = {
     supabaseDockerEnsuring: "Vérification Docker… démarrage si besoin.",
     supabaseStudioStart: "Lancer Studio (supabase start)",
     supabaseStudioStarting: "Démarrage Studio…",
-    supabaseStudioHint:
-      "Clic projet → Docker. Puis Studio via supabase start (:54323).",
     supabaseStudioBack: "← projets",
     supabaseStudioBrowserTitle: "Studio",
     sideBrowserLabel: "Navigateur libre",
@@ -345,8 +343,6 @@ export const fr = {
     sideBrowserReload: "Recharger",
     sideBrowserFrameTitle: "Navigateur",
     sideBrowserEmpty: "Entre une URL pour naviguer ici.",
-    sideBrowserBlocked:
-      "Aperçu iframe : beaucoup de sites restent blancs — WebView Tauri à venir.",
     sideBrowserStudioLabel: "Studio",
     sideBrowserSplitLabel: "Studio et navigateur",
     supabaseStudioErrorDisabled:

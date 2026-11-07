@@ -189,49 +189,51 @@ export function ConversationThread({
       ref={listRef}
       data-scroll-lock-target
       className={cn(
-        // Pleine largeur section (ex. 70 % gauche) + padding pour ne pas coller aux bords.
-        "flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-5",
+        // Pleine largeur section + padding. `mt-auto` sur le corps : fil collé en bas.
+        "flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 py-4 sm:px-5",
       )}
       role="log"
       aria-label={t("home.conversationLabel")}
       aria-live="polite"
       aria-busy={loadingOlder || undefined}
     >
-      {hasMoreOlder || loadingOlder ? (
-        <div
-          className="t-mono flex min-h-8 items-center justify-center text-xs text-text-muted"
-          aria-live="polite"
-        >
-          {loadingOlder ? (
-            t("home.conversationLoadingOlder")
-          ) : (
-            <button
-              type="button"
-              className="text-text-muted underline-offset-2 hover:text-text hover:underline"
-              onClick={() => {
-                requestOlder();
-              }}
-            >
-              {t("home.conversationLoadOlder")}
-            </button>
-          )}
-        </div>
-      ) : null}
-      {messages.map((message) => {
-        const entranceIndex =
-          entranceLive && entranceIds ? entranceIds.indexOf(message.id) : -1;
-        const useEntrance = entranceIndex >= 0;
+      <div className="mt-auto flex flex-col gap-4">
+        {hasMoreOlder || loadingOlder ? (
+          <div
+            className="t-mono flex min-h-8 items-center justify-center text-xs text-text-muted"
+            aria-live="polite"
+          >
+            {loadingOlder ? (
+              t("home.conversationLoadingOlder")
+            ) : (
+              <button
+                type="button"
+                className="text-text-muted underline-offset-2 hover:text-text hover:underline"
+                onClick={() => {
+                  requestOlder();
+                }}
+              >
+                {t("home.conversationLoadOlder")}
+              </button>
+            )}
+          </div>
+        ) : null}
+        {messages.map((message) => {
+          const entranceIndex =
+            entranceLive && entranceIds ? entranceIds.indexOf(message.id) : -1;
+          const useEntrance = entranceIndex >= 0;
 
-        return (
-          <MemoConversationMessageBubble
-            key={message.id}
-            message={message}
-            onConfirmAction={onConfirmAction}
-            onCancelAction={onCancelAction}
-            {...(useEntrance ? { entranceIndex } : {})}
-          />
-        );
-      })}
+          return (
+            <MemoConversationMessageBubble
+              key={message.id}
+              message={message}
+              onConfirmAction={onConfirmAction}
+              onCancelAction={onCancelAction}
+              {...(useEntrance ? { entranceIndex } : {})}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
