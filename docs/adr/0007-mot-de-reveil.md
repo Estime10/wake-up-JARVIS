@@ -2,11 +2,12 @@
 
 - **Statut** : Proposé
 - **Date** : 2026-11-01
+- **Révisé** : 2026-11-07 (produit = E.L.S.A. ; phrase de réveil inchangée jusqu’à nouvel ADR)
 - **Relecteurs** : HACKER (obligatoire), PIXEL
 
 ## Contexte
 
-En V3, DevinChat veut dire « Wake up, JARVIS » pour réveiller son Mac. L'écoute doit rester **locale** (vie privée), gratuite pour un projet perso, et ne doit **jamais** permettre d'ouvrir le Mac à la voix (une voix s'enregistre ou s'imite). L'UI prévoit déjà un indicateur permanent « Réveil actif » avec un bouton pour le couper.
+En V3, DevinChat veut dire « Wake up, JARVIS » pour réveiller son Mac (phrase historique ; le produit UI s’appelle **E.L.S.A.**). L'écoute doit rester **locale** (vie privée), gratuite pour un projet perso, et ne doit **jamais** permettre d'ouvrir le Mac à la voix (une voix s'enregistre ou s'imite). L'UI prévoit déjà un indicateur permanent « Réveil actif » avec un bouton pour le couper.
 
 ## Décision (cadre)
 

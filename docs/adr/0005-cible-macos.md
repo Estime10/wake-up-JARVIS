@@ -6,7 +6,7 @@
 
 ## Contexte
 
-DevinChat n'utilise **que des Mac** (Apple Silicon). JARVIS pilotera plus tard ces Mac (agent, réveil de l'écran, Touch ID). Prévoir Windows ou Linux doublerait les tests et les cas de sécurité sans aucun utilisateur.
+DevinChat n'utilise **que des Mac** (Apple Silicon). E.L.S.A. pilotera plus tard ces Mac (agent, réveil de l'écran, Touch ID). Prévoir Windows ou Linux doublerait les tests et les cas de sécurité sans aucun utilisateur.
 
 ## Décision
 

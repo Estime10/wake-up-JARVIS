@@ -8,16 +8,16 @@
 
 ## Contexte
 
-DevinChat veut que JARVIS lui signale ce qui compte dans ses **3 boîtes Gmail** (`estimevangu`, `estimevangu.pro`, `estimedev10`), **sans IA pour trier** et **sans jamais rien modifier** dans Gmail.
+DevinChat veut qu’E.L.S.A. lui signale ce qui compte dans ses **3 boîtes Gmail** (`estimevangu`, `estimevangu.pro`, `estimedev10`), **sans IA pour trier** et **sans jamais rien modifier** dans Gmail.
 
-Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)) ; il n’y a ni `app/api`, ni client `service_role`, ni cron. POSTMAN range déjà les boîtes chaque soir à 22h30 ; JARVIS ne fait que **lire**, donc aucun conflit de libellés.
+Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)) ; il n’y a ni `app/api`, ni client `service_role`, ni cron. POSTMAN range déjà les boîtes chaque soir à 22h30 ; E.L.S.A. ne fait que **lire**, donc aucun conflit de libellés.
 
 ## Décision
 
 - **Lecture seule** : OAuth Google, scope `gmail.readonly` **uniquement**, un compte Google connecté par boîte (`prompt=select_account`).
 - **Tri déterministe, sans IA** : règles de POSTMAN, appliquées dans l’ordre **expéditeur → objet → sinon « DIVERS/À trier »**.
 - **Signalement de l’inhabituel** (règle DevinChat du 31/10) : phishing, impayé, avocat ou recouvrement, paiement échoué, alerte sécurité, réponse attendue, humain qui demande une action, échéance.
-- **Résumé sur demande** : JARVIS demande « je te le résume ? ». Seulement après le **oui**, le serveur récupère le mail complet, l’envoie à l’IA de résumé (derrière un `SummaryPort`), **garde le résumé** et **jette le contenu**. Oui et non sont journalisés.
+- **Résumé sur demande** : E.L.S.A. demande « je te le résume ? ». Seulement après le **oui**, le serveur récupère le mail complet, l’envoie à l’IA de résumé (derrière un `SummaryPort`), **garde le résumé** et **jette le contenu**. Oui et non sont journalisés.
 - **Données gardées** : métadonnées (boîte, expéditeur, objet, date, catégorie, motif du signalement) et résumés. **Jamais** le corps complet. Pas d’effacement (choix DevinChat).
 - **Schéma (Supabase, [ADR 0008](./0008-auth-email-memoire-supabase.md))** :
   - `mail_accounts` — référence Vault (`secret_id`), **jamais** le jeton en colonne ;
@@ -49,14 +49,14 @@ Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-
 
 1. **Tri déterministe + résumé au oui** — retenu : prévisible, gratuit, aucun mail envoyé à une IA sans accord.
 2. **Tri par IA** — non : coût, résultats variables, et tout le courrier partirait chez un fournisseur.
-3. **Réutiliser les connecteurs Gmail des bots** — non : ils appartiennent aux bots, pas à l’app JARVIS.
+3. **Réutiliser les connecteurs Gmail des bots** — non : ils appartiennent aux bots, pas à l’app E.L.S.A.
 4. **Cron Vercel** — non sur Hobby (une exécution par jour).
 5. **Jeton en colonne chiffrée `mailboxes`** — non : une erreur de RLS suffit à fuiter ; **Vault + référence** uniquement.
 6. **Activer seulement 2 boîtes sur 3** — écarté (2026-11-02) : les 3 sont connectées et actives.
 
 ## Points à trancher par DevinChat
 
-1. **Projet Supabase JARVIS** : org Free (2 projets actifs max). Créer / réveiller le projet JARVIS, ou passer Pro.
+1. **Projet Supabase E.L.S.A.** : org Free (2 projets actifs max). Créer / réveiller le projet, ou passer Pro.
 2. **App Google In production** sans vérification — HACKER confirme.
 3. **Pause Free + cron** : rien ne garantit qu’un cron interne compte comme activité (non vérifié). L’ADR 0008 prévoit déjà Pro dès que l’agent tourne vraiment.
 4. **IA de résumé** : quel fournisseur derrière `SummaryPort`, de préférence sans conservation des données.
@@ -64,7 +64,7 @@ Aujourd’hui `ports/mail-port.ts` ne sert qu’un mock ([ADR 0001](./0001-ui-d-
 ## Conséquences
 
 - **Gain** : signalement utile sans tri IA ; lecture seule compatible POSTMAN ; étape 1 isole le risque OAuth/Vault avant tout corps de mail.
-- **Risque** : données personnelles de tiers gardées sans limite de durée (choix assumé, à revoir si JARVIS sort de l’usage perso) ; jeton révoqué / `invalid_grant` → boîte `needs_reauth`, sans retry en boucle.
+- **Risque** : données personnelles de tiers gardées sans limite de durée (choix assumé, à revoir si E.L.S.A. sort de l’usage perso) ; jeton révoqué / `invalid_grant` → boîte `needs_reauth`, sans retry en boucle.
 - **Coût** : Vault + Edge Functions + `pg_cron`/`pg_net` ; règles en base à synchroniser avec POSTMAN (`mail_rules`).
 - **N2 / DEV-8 (2026-11-04)** : inventaire distant `mail_rules` = **0 ligne** — aucune conversion regex→littéral à faire. Motifs futurs : sous-chaînes littérales, `length(pattern) ≤ 200` (DEV-10, contrainte déjà validée sur table vide).
 - **Process** : zéro commit d’implémentation étape 1 sans validation DevinChat **et** relecture HACKER (niveau 3).
