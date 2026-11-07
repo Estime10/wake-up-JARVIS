@@ -1,0 +1,11 @@
+# pgTAP — SHA b21c984 (b21c984450fd870a2d4cbd18f0733b31cb32f1ce)
+# UTC 2026-11-07T18:54:52Z
+# after: supabase db reset --yes
+
+Connecting to local database...
+/Users/estimevangu/Desktop/REPOSITORIES/creativity/wake-up-JARVIS/supabase/tests/database/h1_dev1_invariants.sql .. ok
+All tests successful.
+Files=1, Tests=5,  0 wallclock secs ( 0.01 usr +  0.00 sys =  0.01 CPU)
+Result: PASS
+A new version of Supabase CLI is available: v3.0.0 (currently installed v2.95.4)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

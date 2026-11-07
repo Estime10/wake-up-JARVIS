@@ -19,7 +19,7 @@ describe("IV2-03 path traversal", () => {
   });
 });
 
-describe("IV2-07 unicode invisible", () => {
+describe("IV2-07 unicode / obfuscation", () => {
   it("normalise les espaces zero-width", () => {
     expect(normalizeIntentTextV2("ouvre la corbe\u200bille")).toBe(
       "ouvre la corbeille",
@@ -28,6 +28,17 @@ describe("IV2-07 unicode invisible", () => {
 
   it("refuse la corbeille même avec U+200B", () => {
     const intent = parseAssistantIntent("ouvre la corbe\u200bille");
+    expect(intent?.kind).toBe("refuse.write");
+  });
+
+  it("refuse corbeille en homoglyphes cyrilliques", () => {
+    // с о р → c o p… ; « сorbeille » avec с cyrillique
+    const intent = parseAssistantIntent("ouvre la сorbeille");
+    expect(intent?.kind).toBe("refuse.write");
+  });
+
+  it("refuse corbeille lettres espacées", () => {
+    const intent = parseAssistantIntent("ouvre la c o r b e i l l e");
     expect(intent?.kind).toBe("refuse.write");
   });
 });
