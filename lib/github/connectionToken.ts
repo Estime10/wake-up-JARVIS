@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetchGithubUser } from "@/lib/github/user";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -7,7 +8,8 @@ export type GithubTokenLoad =
   | { ok: true; token: string; login: string; connectionId: string }
   | {
       ok: false;
-      reason: "auth" | "missing" | "needs_reauth" | "vault" | "config";
+      reason:
+        "auth" | "missing" | "needs_reauth" | "vault" | "config" | "scopes";
     };
 
 type GithubConnectionRow = {
@@ -62,10 +64,22 @@ export async function loadGithubConnectionToken(): Promise<GithubTokenLoad> {
     return { ok: false, reason: "vault" };
   }
 
+  // IV2-06 — revérifier scopes / validité à chaque usage, pas seulement à la connexion.
+  const live = await fetchGithubUser(token);
+  if (!live.ok) {
+    if (live.reason === "scopes") {
+      return { ok: false, reason: "scopes" };
+    }
+    if (live.reason === "unauthorized" || live.reason === "forbidden") {
+      return { ok: false, reason: "needs_reauth" };
+    }
+    return { ok: false, reason: "config" };
+  }
+
   return {
     ok: true,
     token,
-    login: typed.github_login,
+    login: live.user.login || typed.github_login,
     connectionId: typed.id,
   };
 }

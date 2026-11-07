@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3000;
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3000);
 const baseURL = `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
@@ -18,7 +18,7 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    command: "pnpm build && pnpm start",
+    command: `pnpm build && PORT=${PORT} pnpm start`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

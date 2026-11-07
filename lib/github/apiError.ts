@@ -10,6 +10,7 @@ export function githubTokenErrorResponse(
     auth: 401,
     missing: 404,
     needs_reauth: 401,
+    scopes: 403,
     vault: 500,
     config: 503,
   } as const;

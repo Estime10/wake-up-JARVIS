@@ -39,7 +39,7 @@ async function requireGithubToken(): Promise<
     if (loaded.reason === "missing" || loaded.reason === "auth") {
       return { ok: false, reply: t("assistant.githubNotConnected") };
     }
-    if (loaded.reason === "needs_reauth") {
+    if (loaded.reason === "needs_reauth" || loaded.reason === "scopes") {
       return { ok: false, reply: t("assistant.githubNeedsReauth") };
     }
     return { ok: false, reply: t("assistant.githubUnavailable") };

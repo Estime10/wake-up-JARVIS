@@ -2,7 +2,10 @@ import "server-only";
 
 import { z } from "zod";
 
-import { assertReadOnlyPatScopes } from "@/lib/github/assertReadOnlyPatScopes";
+import {
+  assertFineGrainedPatShape,
+  assertReadOnlyPatScopes,
+} from "@/lib/github/assertReadOnlyPatScopes";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("github");
@@ -26,18 +29,22 @@ export type GithubUserResult =
 
 /**
  * Valide un PAT via GET /user — lecture seule, aucun autre endpoint.
+ * Revérifie les scopes à chaque appel (connexion + usage).
  * Le token ne doit jamais être loggé.
  */
 export async function fetchGithubUser(
   token: string,
 ): Promise<GithubUserResult> {
+  const trimmed = token.trim();
+  const isFineGrained = assertFineGrainedPatShape(trimmed);
+
   let response: Response;
   try {
     response = await fetch(`${GITHUB_API}/user`, {
       method: "GET",
       headers: {
         Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${trimmed}`,
         "X-GitHub-Api-Version": API_VERSION,
         "User-Agent": "wake-up-JARVIS",
       },
@@ -59,7 +66,19 @@ export async function fetchGithubUser(
     return { ok: false, reason: "upstream" };
   }
 
-  if (!assertReadOnlyPatScopes(token, response.headers.get("x-oauth-scopes"))) {
+  const scopesHeader = response.headers.get("x-oauth-scopes");
+
+  if (isFineGrained) {
+    // FG : pas de scopes OAuth classic ; si un header apparaît, allowlist stricte.
+    if (
+      scopesHeader &&
+      scopesHeader.trim().length > 0 &&
+      !assertReadOnlyPatScopes(trimmed, scopesHeader)
+    ) {
+      log.error("github_user_fg_scopes_denied");
+      return { ok: false, reason: "scopes" };
+    }
+  } else if (!assertReadOnlyPatScopes(trimmed, scopesHeader)) {
     log.error("github_user_scopes_denied");
     return { ok: false, reason: "scopes" };
   }

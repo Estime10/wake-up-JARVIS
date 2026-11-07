@@ -481,6 +481,9 @@ export const fr = {
     mailPolling: "relève…",
     mailConnectFirst: "Connecte une boîte Gmail pour commencer.",
     conversationLoading: "Chargement de la conversation…",
+    conversationEmptyTitle: "Aucun message pour l’instant",
+    conversationEmptyHint:
+      "Écris à E.L.S.A. — mails, GitHub ou fichiers. Dis « aide » pour les phrases.",
     conversationError: "Impossible de charger la mémoire.",
     conversationRetry: "Réessayer",
     composerLabel: "Message à E.L.S.A.",

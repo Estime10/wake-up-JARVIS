@@ -265,6 +265,13 @@ export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
       }
       case "files.open": {
         const file = slot(slots, "file");
+        // Filet : « ouvre {file} » ne doit pas voler l’ouverture des mails.
+        if (
+          file &&
+          /^(?:mails?|boites? mail|boîtes? mail|messagerie)$/iu.test(file)
+        ) {
+          return { kind: "ui.panel_mail" };
+        }
         return file
           ? { kind: "files.open", query: file }
           : { kind: "files.open" };
