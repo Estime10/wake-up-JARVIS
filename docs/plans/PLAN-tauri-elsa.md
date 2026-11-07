@@ -1,0 +1,293 @@
+# Plan — Shell macOS Tauri v2 pour E.L.S.A.
+
+**Branche :** `feat/tauri`  
+**Statut :** plan prêt — **zéro code shell tant que l’étape 0 n’est pas cochée**  
+**Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
+**Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
+
+---
+
+## Pourquoi maintenant
+
+1. L’app **tourne en prod Vercel** (auth, mail, GitHub, Studio web, mémoire).
+2. Les limites **web** sont atteintes et documentées :
+   - navigateur libre = iframe → pages blanches (anti-frame) — ADR **0013** ;
+   - Studio = reverse-proxy local `:54332` — workaround Next ;
+   - Piper / agent Mac / Touch ID = hors navigateur — ADR **0012**, **0005**, **0006**.
+3. Checklist GO § Après le GO : **4. Tauri**.
+
+**Ordre produit validé :** Vercel d’abord → **Tauri ensuite** (ce plan).
+
+---
+
+## Objectif
+
+Livrer une **app macOS Apple Silicon** (Tauri **v2**) qui :
+
+| Capacité                                                           | Remplace / complète                     |
+| ------------------------------------------------------------------ | --------------------------------------- |
+| Fenêtre unique E.L.S.A.                                            | Safari / Chrome                         |
+| WebView **Studio** top-level                                       | iframe + proxy `:54332`                 |
+| WebView **navigateur libre** top-level                             | iframe `SideWebBrowser`                 |
+| Sidecar **Piper** (salut + TTS)                                    | `speechSynthesis` / proxy Next loopback |
+| Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                        |
+
+La **logique métier Next** (routes API, Supabase, intents) **ne bouge pas** au début : le shell charge l’UI déjà déployée (ou le `next dev` local), puis on bascule les surfaces « natives » une par une.
+
+---
+
+## Non-objectifs (V0 shell)
+
+- Windows / Linux (ADR **0005** — macOS only).
+- Agent terminal niveaux 2–3 / shell libre LLM (ADR **0006** — hors catalogue = refusé).
+- Port HTTP ouvert sur le Mac pour piloter l’agent (interdit — pull file uniquement).
+- Capabilities Tauri accordées à une **origine distante** arbitraire (CA-T5).
+- Réécriture GraphQL / nouveau backend.
+
+---
+
+## Contexte repo aujourd’hui
+
+| Élément          | État                                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| UI / API         | Next.js 16 App Router · React 19 · prod Vercel `wake-up-jarvis`                              |
+| Auth / mémoire   | Supabase · ADR 0008                                                                          |
+| Studio + browser | `StudioBrowserSplit` + iframe · ADR 0013                                                     |
+| Voix web         | Piper via proxy loopback (dev) + `speechSynthesis` · ADR 0012 · plan voix étapes 4–5 = Tauri |
+| Terminal UI      | mock / surface home · exécution réelle = ADR 0006 (pas encore d’agent)                       |
+| Shell Mac        | **absent** de ce dépôt                                                                       |
+| ADR 0009         | numéro réservé capabilities — **fichier absent** ; à créer avant IPC large                   |
+
+---
+
+## Architecture cible (V0 → V1)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  App Tauri v2 (macOS, Apple Silicon)                        │
+│  ┌─────────────────────┐  ┌──────────────────────────────┐  │
+│  │ WebView principal   │  │ WebViews secondaires         │  │
+│  │ = UI E.L.S.A.       │  │ (Studio · navigateur libre)  │  │
+│  │ charge URL app      │  │ top-level, pas iframe        │  │
+│  └─────────┬───────────┘  └──────────────▲───────────────┘  │
+│            │ invoke (allowlist stricte)   │ embed / navigate │
+│  ┌─────────▼───────────┐  ┌──────────────┴───────────────┐  │
+│  │ Rust core           │  │ Sidecar Piper (stdin JSON)   │  │
+│  │ · fenêtres / WV     │  │ sha256 modèle · repli `say`  │  │
+│  │ · LaunchAgent later │  └──────────────────────────────┘  │
+│  └─────────┬───────────┘                                    │
+└────────────┼────────────────────────────────────────────────┘
+             │ (V1) lecture seule
+             ▼
+      File Supabase (ordres signés) — ADR 0006
+```
+
+### Décision d’hébergement UI (à figer en étape 0)
+
+| Option               | Description                                        | Verdict provisoire                                         |
+| -------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| **A. URL prod**      | WebView charge `https://wake-up-jarvis.vercel.app` | **Retenu pour V0** : un seul build UI, déjà GO             |
+| **B. Static export** | `next export` / assets dans le bundle              | Reporté : App Router + API server incompatibles tels quels |
+| **C. Next local**    | Shell ouvre `http://127.0.0.1:3000` en dev         | **Oui pour DX** (`tauri dev` + `next dev`)                 |
+
+**Invariant sécu :** même en chargeant l’URL prod, **aucune** capability Rust sensible (`shell`, `fs` large, `http` générique) n’est exposée au front distant. Bridge = commandes Rust **nommées**, args Zod/serde, allowlist.
+
+---
+
+## Structure monorepo proposée
+
+```
+/
+  app/ … features/ …          # Next (inchangé au début)
+  src-tauri/                  # crate Tauri v2
+    tauri.conf.json
+    capabilities/             # allowlists par fenêtre
+    src/lib.rs | main.rs
+  sidecars/
+    piper/                    # binaire / script lancé par Rust (pas par Next)
+  docs/plans/PLAN-tauri-elsa.md
+  docs/adr/0009-….md          # à créer (capabilities)
+  docs/adr/0014-….md          # shell Tauri (nouveau)
+```
+
+Pas de second `package.json` npm pour l’UI : le front reste ce repo. Scripts racine :
+
+- `pnpm tauri:dev` → Next + Tauri
+- `pnpm tauri:build` → `.app` / `.dmg` Apple Silicon
+
+---
+
+## Étapes d’exécution
+
+### Étape 0 — Cadre & baseline (doc + go)
+
+1. Relire ADR **0005**, **0006**, **0012**, **0013** ; checklist GO.
+2. Rédiger / faire valider :
+   - `docs/adr/0014-shell-tauri-macos.md` (décision A URL prod + bridge allowlist) ;
+   - `docs/adr/0009-…` **capabilities** (ou fusion dans 0014 si ARCHITECT tranche) — **bloquant** avant tout `invoke` non trivial.
+3. Go **HACKER** sur le modèle de menaces V0 (WebView + URL distante + sidecar).
+4. Baseline : `pnpm check` vert sur `main` / branche.
+
+**Done when :** ADR 0014 (+ 0009) proposés · go DevinChat · baseline verte.  
+**Commit :** `docs(tauri): ADR shell macOS et plan d’exécution.`
+
+---
+
+### Étape 1 — Scaffold Tauri v2 (fenêtre vide)
+
+**Scope :** crate `src-tauri/`, fenêtre unique, charge `about:blank` ou page locale minimale.
+
+- Tauri **2.x**, cible `aarch64-apple-darwin` uniquement.
+- Capabilities **minimales** (core window + event).
+- CI : job optionnel `tauri build` **macOS** (pas sur Linux CI actuel) — documenter ; ne pas casser le CI main-only existant.
+
+**Done when :** `tauri build` produit une `.app` qui s’ouvre sur Mac Apple Silicon.  
+**Commit :** `feat(tauri): scaffold app macOS Apple Silicon.`
+
+---
+
+### Étape 2 — Brancher l’UI E.L.S.A. (URL)
+
+- Dev : WebView → `http://127.0.0.1:3000` (script compose `next dev` + `tauri dev`).
+- Release : WebView → `https://wake-up-jarvis.vercel.app` (configurable via env build / `tauri.conf`).
+- Deep-link / deep path : respecter `/login` → `/home` (comportement Next actuel).
+- Cookies / auth Supabase : vérifier stockage WebView (ITP) ; documenter login dans le shell.
+
+**Done when :** login + home utilisables **dans** la fenêtre Tauri (même parcours que le navigateur).  
+**Commit :** `feat(tauri): charger l’UI E.L.S.A. dans le WebView principal.`
+
+---
+
+### Étape 3 — Feature detection + ports desktop
+
+- Introduire `isTauri()` / `runtime = web | tauri` (sans casser le web).
+- `createAppPorts()` : branche `createTauriVoice` (stub → étape 5), garder adapters web sinon.
+- UI : flags pour masquer les hints « iframe » / activer chrome natif.
+
+**Done when :** build web Vercel inchangé · shell détecte Tauri.  
+**Commit :** `feat(tauri): runtime detection et branchement ports.`
+
+---
+
+### Étape 4 — WebViews Studio + navigateur libre
+
+**Remplace** (dans le shell uniquement) :
+
+- `SupabaseStudioBrowser` iframe + proxy `:54332` → **WebView** vers `http://127.0.0.1:54323` (ou URL Studio réelle) ;
+- `SideWebBrowser` iframe → **WebView** avec barre d’URL (réutiliser `normalizeSideBrowserUrl` côté front ; navigation via commande Rust).
+
+Layout : conserver le split 50/50 (chrome React) ; les surfaces média sont des WebViews enfants / labels Tauri positionnés — **spike UI** en sous-tâche (mesure bbox DOM → `set_position`).
+
+**Interdit :** proxy open générique ; strip CSP arbitraire ; `shell.open` non borné.
+
+**Done when :** CA-T3, CA-T4 · sites anti-frame navigables dans le WV libre.  
+**Commit :** `feat(tauri): WebViews Studio et navigateur libre.`
+
+---
+
+### Étape 5 — Sidecar Piper (voix)
+
+Reprendre le plan voix étapes **4** (et décision **5**) :
+
+- Sidecar lancé par Rust, args fixes, texte stdin JSON ;
+- modèle `fr_FR-siwis-medium` + **sha256** (sinon refus + repli `say` / `speechSynthesis`) ;
+- commandes `speak` / `stop` only ;
+- **aucune** capability pour origine distante (CA-T5 / CA-A5).
+
+**Done when :** salut + réponses Piper dans le shell · stop immédiat · Piper down → repli.  
+**Commit :** `feat(tauri): sidecar Piper pour TTS local.`
+
+---
+
+### Étape 6 — Packaging & distribution perso
+
+- Signing Apple (Developer ID) + notarization — compte DevinChat ;
+- DMG / install user-level ;
+- Auto-update : **décision** (Tauri updater vs manuel V0) ;
+- `CREDITS.md` / licences Piper-SIWIS (plan voix étape 6).
+
+**Done when :** install sur le Mac de DevinChat hors machine de build.  
+**Commit :** `chore(tauri): packaging macOS et crédits.`
+
+---
+
+### Étape 7 — Agent lecture seule (V1) — **gate HACKER**
+
+**Ne pas démarrer** sans revue ADR **0006** + menaces (clés, nonce, expiration, liaison Mac).
+
+- LaunchAgent session user ;
+- pull file Supabase ;
+- catalogue niveau **1** uniquement ;
+- C1 ordres signés ; pas de C2 encore si niveau 1 strict.
+
+**Commit :** `feat(agent): LaunchAgent lecture seule (catalogue N1).`  
+**Done when :** CA agent ADR 0006 (sous-ensemble N1) + CRASH TEST.
+
+---
+
+## Critères d’acceptation (shell)
+
+| ID    | Critère                                                                |
+| ----- | ---------------------------------------------------------------------- |
+| CA-T1 | `.app` Apple Silicon s’ouvre ; UI login/home via WebView.              |
+| CA-T2 | `pnpm build` / déploiement Vercel **non régressés**.                   |
+| CA-T3 | Studio visible **sans** iframe proxy `:54332` dans le shell.           |
+| CA-T4 | Navigateur libre charge un site qui refuse l’iframe web.               |
+| CA-T5 | Aucune capability Rust exposée à une origine distante non allowlistée. |
+| CA-T6 | Piper (ou repli documenté) pour le salut dans le shell.                |
+| CA-T7 | Pas de port d’écoute agent ; file pull uniquement (quand V1).          |
+
+---
+
+## Sécurité — invariants
+
+1. **Allowlist invoke** : chaque commande Rust = un type d’args + validation ; pas de `eval` / shell string.
+2. **Navigation WebView** : schémas `http(s)` (+ `http://127.0.0.1` Studio) ; refus `file:`, `javascript:`, etc. (aligné normalizer web).
+3. **Secrets** : toujours Vault / env serveur ; le shell ne lit pas `SUPABASE_SERVICE_ROLE`.
+4. **Prod URL** : CSP / cookies ; pas d’injection de script native dans la page distante.
+5. **ADR 0006** : confirmation vocale **jamais** pour action risquée.
+6. Revue **HACKER** avant étapes 5 (si IPC élargi) et **7** (agent).
+
+---
+
+## Risques & mitigations
+
+| Risque                               | Impact    | Mitigation                                              |
+| ------------------------------------ | --------- | ------------------------------------------------------- |
+| Auth Supabase cassée dans WKWebView  | 🔴 High   | Spike étape 2 ; fallback ouvrir login système si besoin |
+| Positionnement multi-WebView fragile | 🟡 Medium | Spike bbox ; sinon fenêtre Studio séparée V0.1          |
+| Bundle Piper (~60 Mo+)               | 🟡 Medium | Sidecar optionnel / download au premier lancement       |
+| Confusion web vs desktop features    | 🟡 Medium | `runtime` explicite + tests ports                       |
+| Scope creep agent terminal           | 🔴 High   | Gate étape 7 ; catalogue N1 only                        |
+
+---
+
+## Ordre d’exécution Cursor
+
+```
+0 (ADR + go) → 1 (scaffold) → 2 (URL UI) → 3 (runtime ports)
+    → 4 (WebViews) → 5 (Piper) → 6 (packaging) → 7 (agent, gate HACKER)
+```
+
+**Prompt type :**
+
+> Exécute uniquement l’étape N du plan `docs/plans/PLAN-tauri-elsa.md`. Ne touche pas aux étapes suivantes. Commit seulement si je le demande.
+
+---
+
+## Liens
+
+- ADR 0005 cible macOS · 0006 terminal · 0012 voix · 0013 Studio/browser
+- Plan voix : `docs/plans/PLAN-voix-piper-jarvis.md` (étapes 4–5)
+- Prod web : https://wake-up-jarvis.vercel.app
+- Checklist GO : `docs/CHECKLIST-GO-JARVIS.md` (§ Après le GO → Tauri)
+
+---
+
+## Suivi
+
+| Étape | Branche / commit | Statut          |
+| ----- | ---------------- | --------------- |
+| Plan  | `feat/tauri`     | **ce document** |
+| 0 ADR | —                | à faire         |
+| 1–7   | —                | à faire         |
