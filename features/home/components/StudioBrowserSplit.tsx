@@ -5,6 +5,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from "react";
 
 import { SideWebBrowser } from "@/features/home/components/SideWebBrowser";
@@ -22,7 +23,9 @@ import { t } from "@/lib/i18n";
 const SPLIT_KEY = "elsa.studioBrowserSplit.v1";
 
 type StudioBrowserSplitProps = {
-  studioUrl: string;
+  /** Studio ouvert → panneau haut. `null` → `topFallback` (comptes), browser toujours bas. */
+  studioUrl: string | null;
+  topFallback?: ReactNode;
 };
 
 function initialShare(): number {
@@ -33,10 +36,14 @@ function initialShare(): number {
 }
 
 /**
- * Split vertical Studio (haut) / navigateur libre (bas), redimensionnable.
- * Ratio dynamique → flex inline (même pattern que RepoFileTree depth).
+ * Colonne droite : haut = Studio **ou** comptes ; bas = navigateur libre (toujours).
+ * Studio et browser sont indépendants — fermer Studio ne démonte pas le browser.
  */
-export function StudioBrowserSplit({ studioUrl }: StudioBrowserSplitProps) {
+export function StudioBrowserSplit({
+  studioUrl,
+  topFallback = null,
+}: StudioBrowserSplitProps) {
+  const studioOpen = Boolean(studioUrl);
   const [studioShare, setStudioShare] = useState(initialShare);
   const shareRef = useRef(studioShare);
   const splitRef = useRef<HTMLDivElement | null>(null);
@@ -108,34 +115,45 @@ export function StudioBrowserSplit({ studioUrl }: StudioBrowserSplitProps) {
       className="flex min-h-0 flex-1 flex-col"
       aria-label={t("home.sideBrowserSplitLabel")}
     >
+      {studioOpen && studioUrl ? (
+        <>
+          <div
+            className="flex min-h-0 flex-col gap-1"
+            style={{ flex: `${studioShare} 1 0%` }}
+          >
+            <p className="t-mono shrink-0 text-dial tracking-wide text-text-muted uppercase">
+              {t("home.sideBrowserStudioLabel")}
+            </p>
+            <SupabaseStudioBrowser studioUrl={studioUrl} />
+          </div>
+          <div
+            role="separator"
+            aria-orientation="horizontal"
+            aria-valuemin={Math.round(STUDIO_BROWSER_SHARE_MIN * 100)}
+            aria-valuemax={Math.round(STUDIO_BROWSER_SHARE_MAX * 100)}
+            aria-valuenow={Math.round(studioShare * 100)}
+            tabIndex={0}
+            className="my-1 flex h-3 shrink-0 cursor-row-resize items-center justify-center"
+            onPointerDown={onSplitPointerDown}
+            onPointerMove={onSplitPointerMove}
+            onPointerUp={onSplitPointerUp}
+            onPointerCancel={onSplitPointerUp}
+            onKeyDown={onSplitKeyDown}
+          >
+            <span className="h-px w-16 bg-line" aria-hidden />
+          </div>
+        </>
+      ) : topFallback ? (
+        <div className="flex max-h-[42%] min-h-0 shrink-0 flex-col overflow-y-auto overscroll-y-contain">
+          {topFallback}
+        </div>
+      ) : null}
+
       <div
         className="flex min-h-0 flex-col gap-1"
-        style={{ flex: `${studioShare} 1 0%` }}
-      >
-        <p className="t-mono shrink-0 text-dial tracking-wide text-text-muted uppercase">
-          {t("home.sideBrowserStudioLabel")}
-        </p>
-        <SupabaseStudioBrowser studioUrl={studioUrl} />
-      </div>
-      <div
-        role="separator"
-        aria-orientation="horizontal"
-        aria-valuemin={Math.round(STUDIO_BROWSER_SHARE_MIN * 100)}
-        aria-valuemax={Math.round(STUDIO_BROWSER_SHARE_MAX * 100)}
-        aria-valuenow={Math.round(studioShare * 100)}
-        tabIndex={0}
-        className="my-1 flex h-3 shrink-0 cursor-row-resize items-center justify-center"
-        onPointerDown={onSplitPointerDown}
-        onPointerMove={onSplitPointerMove}
-        onPointerUp={onSplitPointerUp}
-        onPointerCancel={onSplitPointerUp}
-        onKeyDown={onSplitKeyDown}
-      >
-        <span className="h-px w-16 bg-line" aria-hidden />
-      </div>
-      <div
-        className="flex min-h-0 flex-col gap-1"
-        style={{ flex: `${1 - studioShare} 1 0%` }}
+        style={
+          studioOpen ? { flex: `${1 - studioShare} 1 0%` } : { flex: "1 1 0%" }
+        }
       >
         <p className="t-mono shrink-0 text-dial tracking-wide text-text-muted uppercase">
           {t("home.sideBrowserLabel")}

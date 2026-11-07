@@ -2,6 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 
+describe("parseAssistantIntent — ouvre mails ≠ files.open", () => {
+  it("route ouvre mes mails / mail vers le panneau", () => {
+    expect(parseAssistantIntent("ouvre mes mails")).toEqual({
+      kind: "ui.panel_mail",
+    });
+    expect(parseAssistantIntent("ouvre mails")).toEqual({
+      kind: "ui.panel_mail",
+    });
+    expect(parseAssistantIntent("ouvre mail")).toEqual({
+      kind: "ui.panel_mail",
+    });
+    expect(parseAssistantIntent("ouvre le panneau mails")).toEqual({
+      kind: "ui.panel_mail",
+    });
+  });
+});
+
 describe("parseAssistantIntent — registre phrases v2", () => {
   it("help / chat / refus", () => {
     expect(parseAssistantIntent("aide")).toEqual({ kind: "help" });
