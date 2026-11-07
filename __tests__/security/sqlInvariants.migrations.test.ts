@@ -31,4 +31,12 @@ describe("SQL invariants (DEV-16 — file-level CI)", () => {
     );
     expect(sql).toContain("mail_account_needs_reauth");
   });
+
+  it("DEV-2 extension : garde vs.name platform Vault", () => {
+    const sql = readMigration(
+      "20261104178000_platform_vault_secret_name_guard.sql",
+    );
+    expect(sql).toContain("supabase_platform_' || spc.id::text");
+    expect(sql).toMatch(/vs\.name = 'supabase_platform_'/);
+  });
 });

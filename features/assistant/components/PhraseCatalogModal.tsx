@@ -35,7 +35,7 @@ type PhraseCatalogModalProps = {
   onClose: () => void;
 };
 
-function kindLabel(kind: IntentKind): string {
+function kindLabel(kind: CatalogEntry["kind"]): string {
   const option = INTENT_KIND_OPTIONS.find((item) => item.kind === kind);
   return option ? t(option.labelKey) : kind;
 }

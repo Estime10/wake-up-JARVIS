@@ -4,7 +4,7 @@
  */
 export const fr = {
   app: {
-    name: "E.L.S.A.",
+    name: "E.L.S.A. | Estime Logiciel Système Assistant",
     shortName: "E.L.S.A.",
     /** Déploiement du sigle sous le mark, au-dessus du composer. */
     expansion: "Estime Logiciel Système Assistant",
@@ -95,9 +95,11 @@ export const fr = {
     dialogLabel: "Connexion E.L.S.A.",
   },
   assistant: {
-    help: "Je peux :\n• Mails : récents, résumé, compte, label, envoyés, importants\n• GitHub : statut, repos, PR, commits, branches\n• Supabase : projets, lancer / arrêter Studio\n• Terminal, fichiers, GitHub drawer\nDis « aide », « mails label DEV », « liste mes repos »…",
+    help: "Je lis tes 3 boîtes mail (d'avant-hier à aujourd'hui), ton GitHub (repos, PR, commits, branches, fichiers) et ton dossier perso du Mac. J'ouvre les fichiers sans risque, je montre le reste dans le Finder et j'ouvre un terminal dans un dossier. Dis « aide mails », « aide GitHub » ou « aide fichiers ». Supabase : « lance le studio », « arrête le studio ».",
     fallbackCapability:
       "Je n'ai pas la ref de cette phrase. Cherche dans la liste.",
+    v2StubHint:
+      "Cette commande est reconnue, mais pas encore branchée dans l'app.",
     phraseCatalogTitle: "Phrases reconnues",
     phraseCatalogSearch: "Rechercher une phrase",
     phraseCatalogSearchLabel: "Filtrer le catalogue",
@@ -135,11 +137,11 @@ export const fr = {
     kindFilesFind: "Trouver un fichier",
     kindFilesOpen: "Ouvrir / révéler un fichier",
     kindRefuseWrite: "Hors périmètre",
-    chatGreeting: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
-    chatHowAreYou: "Ça va, merci. Mails, GitHub ou fichiers, je t'écoute.",
-    chatThanks: "Avec plaisir.",
+    chatGreeting: "Salut DevinChat. Mails, GitHub ou fichiers ?",
+    chatHowAreYou: "Tout roule, DevinChat. Je t'écoute.",
+    chatThanks: "Avec plaisir, DevinChat.",
     refuseWrite:
-      "Je ne peux pas faire ça. Dis-moi plutôt ce que tu veux voir ou ouvrir.",
+      "Je ne peux pas faire ça, DevinChat : je suis en lecture seule. Dis « aide » pour ce que je sais faire.",
     terminalOpen: "J'ouvre le terminal.",
     terminalOpenFolder: "J'ouvre le terminal sur « {folder} ».",
     githubOpenPanel: "J'ouvre GitHub.",

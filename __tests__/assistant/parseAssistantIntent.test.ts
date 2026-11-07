@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 
-describe("parseAssistantIntent — registre phrases", () => {
+describe("parseAssistantIntent — registre phrases v2", () => {
   it("help / chat / refus", () => {
     expect(parseAssistantIntent("aide")).toEqual({ kind: "help" });
     expect(parseAssistantIntent("what can you do")).toEqual({ kind: "help" });
@@ -21,10 +21,10 @@ describe("parseAssistantIntent — registre phrases", () => {
     expect(parseAssistantIntent("merci beaucoup")).toEqual({
       kind: "chat.thanks",
     });
-    expect(parseAssistantIntent("supprime tous mes mails")).toEqual({
+    expect(parseAssistantIntent("supprime tous mes mails")).toMatchObject({
       kind: "refuse.write",
     });
-    expect(parseAssistantIntent("force push")).toEqual({
+    expect(parseAssistantIntent("force push")).toMatchObject({
       kind: "refuse.write",
     });
   });
@@ -117,10 +117,27 @@ describe("parseAssistantIntent — registre phrases", () => {
     expect(parseAssistantIntent("ouvre le premier")).toEqual({
       kind: "files.open",
     });
-    // goto reste prioritaire sur « ouvre {file} »
     expect(parseAssistantIntent("ouvre le dossier Documents")).toEqual({
       kind: "files.goto",
       folder: "documents",
+    });
+  });
+
+  it("nouveaux intents locaux v2", () => {
+    expect(parseAssistantIntent("au revoir")).toEqual({
+      kind: "v2.local",
+      id: "chat.goodbye",
+      slots: {},
+    });
+    expect(parseAssistantIntent("quelle heure est-il")).toEqual({
+      kind: "v2.local",
+      id: "time.now",
+      slots: {},
+    });
+    expect(parseAssistantIntent("aide mails")).toEqual({
+      kind: "v2.local",
+      id: "help.mail",
+      slots: {},
     });
   });
 });

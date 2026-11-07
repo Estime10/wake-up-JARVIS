@@ -104,8 +104,10 @@ export async function applyAssistantUiIntent(args: {
       return { pending: "supabase.studio", intent };
     }
     const launched = await launchSupabaseStudioForQuery(intent.projectQuery);
-    if (launched.ok && launched.studioUrl) {
-      ui.onStudioLaunched(launched.studioUrl);
+    if (launched.ok) {
+      if (launched.studioUrl) {
+        ui.onStudioLaunched(launched.studioUrl);
+      }
       return {
         pending: null,
         intent,

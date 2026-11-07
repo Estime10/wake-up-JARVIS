@@ -1,6 +1,6 @@
 /**
- * Intents déterministes JARVIS — registre lecture seule.
- * Match local = phrases d’exemple (rapide, pas de LLM).
+ * Intents déterministes E.L.S.A. — registre lecture seule.
+ * Match local = catalogue v2 (+ Supabase / phrases perso).
  */
 export type AssistantIntent =
   | { kind: "help" }
@@ -28,4 +28,8 @@ export type AssistantIntent =
   | { kind: "files.goto"; folder: string }
   | { kind: "files.find"; query: string; folder?: string }
   | { kind: "files.open"; query?: string; revealInFinder?: boolean }
-  | { kind: "refuse.write" };
+  | { kind: "refuse.write"; topic?: string }
+  /** Réponse texte locale catalogue v2 (chat/help/system/time…). */
+  | { kind: "v2.local"; id: string; slots: Record<string, string> }
+  /** Intent reconnu mais handler / port pas encore branché. */
+  | { kind: "v2.stub"; id: string; slots: Record<string, string> };

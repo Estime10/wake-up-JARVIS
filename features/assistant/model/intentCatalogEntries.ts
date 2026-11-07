@@ -1,32 +1,5 @@
 import type { IntentKind } from "@/features/assistant/model/intentKindOptions";
 import {
-  GREETING_PHRASES,
-  GREETING_SHORTCUTS,
-  HOW_ARE_YOU_PHRASES,
-  HOW_ARE_YOU_SHORTCUTS,
-  THANKS_PHRASES,
-  THANKS_SHORTCUTS,
-} from "@/features/assistant/model/intents/chatPhrases";
-import {
-  FILES_FIND_PHRASES,
-  FILES_GOTO_PHRASES,
-  FILES_OPEN_PHRASES,
-  TERMINAL_OPEN_PHRASES,
-  TERMINAL_OPEN_SHORTCUTS,
-} from "@/features/assistant/model/intents/filesPhrases";
-import {
-  GITHUB_BRANCHES_PHRASES,
-  GITHUB_BRANCHES_SHORTCUTS,
-  GITHUB_COMMITS_PHRASES,
-  GITHUB_COMMITS_SHORTCUTS,
-  GITHUB_PRS_PHRASES,
-  GITHUB_PRS_SHORTCUTS,
-  GITHUB_REPOS_PHRASES,
-  GITHUB_REPOS_SHORTCUTS,
-  GITHUB_STATUS_PHRASES,
-  GITHUB_STATUS_SHORTCUTS,
-} from "@/features/assistant/model/intents/githubPhrases";
-import {
   GITHUB_OPEN_PANEL_PHRASES,
   GITHUB_OPEN_PANEL_SHORTCUTS,
   GITHUB_OPEN_REPO_PHRASES,
@@ -39,35 +12,17 @@ import {
   SUPABASE_STUDIO_STOP_PHRASES,
   SUPABASE_STUDIO_STOP_SHORTCUTS,
 } from "@/features/assistant/model/intents/supabasePhrases";
-import {
-  HELP_PHRASES,
-  HELP_SHORTCUTS,
-} from "@/features/assistant/model/intents/helpPhrases";
-import {
-  MAIL_COUNT_PHRASES,
-  MAIL_COUNT_SHORTCUTS,
-  MAIL_FLAGGED_PHRASES,
-  MAIL_FLAGGED_SHORTCUTS,
-  MAIL_LABEL_PHRASES,
-  MAIL_OVERVIEW_PHRASES,
-  MAIL_OVERVIEW_SHORTCUTS,
-  MAIL_RECENT_PHRASES,
-  MAIL_RECENT_SHORTCUTS,
-  MAIL_SENT_BY_LABEL_PHRASES,
-  MAIL_SENT_PHRASES,
-  MAIL_SENT_SHORTCUTS,
-} from "@/features/assistant/model/intents/mailPhrases";
-import { REFUSE_WRITE_PHRASES } from "@/features/assistant/model/intents/refusePhrases";
+import { INTENTS_V2 } from "@/features/assistant/model/intents/v2/index.v2";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 
 export type CatalogEntry = {
   phrase: string;
-  kind: IntentKind;
+  kind: IntentKind | "v2.local" | "v2.stub";
   source: "builtin" | "custom";
 };
 
 function pack(
-  kind: IntentKind,
+  kind: CatalogEntry["kind"],
   phrases: readonly string[],
   source: CatalogEntry["source"] = "builtin",
 ): CatalogEntry[] {
@@ -84,52 +39,70 @@ function pack(
   return out;
 }
 
-/** Catalogue builtin aplati (phrases + raccourcis). */
+function catalogKindForV2(
+  id: string,
+  appKind: string | null,
+): CatalogEntry["kind"] {
+  if (appKind && isKnownKind(appKind)) {
+    return appKind;
+  }
+  if (id.startsWith("refuse.")) {
+    return "refuse.write";
+  }
+  if (id === "ui.panel_repos") {
+    return "github.open_panel";
+  }
+  if (id === "files.reveal_file") {
+    return "files.open";
+  }
+  if (id === "files.list" || id === "files.reveal_folder") {
+    return "files.goto";
+  }
+  if (id === "mail.count_label") {
+    return "mail.count";
+  }
+  return "v2.local";
+}
+
+function isKnownKind(value: string): value is IntentKind {
+  return (
+    value === "help" ||
+    value === "chat.greeting" ||
+    value === "chat.how_are_you" ||
+    value === "chat.thanks" ||
+    value === "mail.list_recent" ||
+    value === "mail.overview" ||
+    value === "mail.count" ||
+    value === "mail.list_by_label" ||
+    value === "mail.list_sent" ||
+    value === "mail.list_sent_by_label" ||
+    value === "mail.list_flagged" ||
+    value === "github.status" ||
+    value === "github.list_repos" ||
+    value === "github.list_pulls" ||
+    value === "github.list_commits" ||
+    value === "github.list_branches" ||
+    value === "github.open_panel" ||
+    value === "github.open_repo" ||
+    value === "terminal.open" ||
+    value === "files.goto" ||
+    value === "files.find" ||
+    value === "files.open" ||
+    value === "refuse.write"
+  );
+}
+
+/** Catalogue builtin : phrases v2 + Supabase + GitHub UI legacy. */
 export function listBuiltinCatalogEntries(): CatalogEntry[] {
+  const fromV2 = INTENTS_V2.flatMap((intent) =>
+    pack(catalogKindForV2(intent.id, intent.appKind), [
+      ...intent.shortcuts,
+      ...intent.phrases,
+    ]),
+  );
+
   return [
-    ...pack("help", [...HELP_SHORTCUTS, ...HELP_PHRASES]),
-    ...pack("chat.greeting", [...GREETING_SHORTCUTS, ...GREETING_PHRASES]),
-    ...pack("chat.how_are_you", [
-      ...HOW_ARE_YOU_SHORTCUTS,
-      ...HOW_ARE_YOU_PHRASES,
-    ]),
-    ...pack("chat.thanks", [...THANKS_SHORTCUTS, ...THANKS_PHRASES]),
-    ...pack("mail.list_recent", [
-      ...MAIL_RECENT_SHORTCUTS,
-      ...MAIL_RECENT_PHRASES,
-    ]),
-    ...pack("mail.overview", [
-      ...MAIL_OVERVIEW_SHORTCUTS,
-      ...MAIL_OVERVIEW_PHRASES,
-    ]),
-    ...pack("mail.count", [...MAIL_COUNT_SHORTCUTS, ...MAIL_COUNT_PHRASES]),
-    ...pack("mail.list_by_label", MAIL_LABEL_PHRASES),
-    ...pack("mail.list_sent", [...MAIL_SENT_SHORTCUTS, ...MAIL_SENT_PHRASES]),
-    ...pack("mail.list_sent_by_label", MAIL_SENT_BY_LABEL_PHRASES),
-    ...pack("mail.list_flagged", [
-      ...MAIL_FLAGGED_SHORTCUTS,
-      ...MAIL_FLAGGED_PHRASES,
-    ]),
-    ...pack("github.status", [
-      ...GITHUB_STATUS_SHORTCUTS,
-      ...GITHUB_STATUS_PHRASES,
-    ]),
-    ...pack("github.list_repos", [
-      ...GITHUB_REPOS_SHORTCUTS,
-      ...GITHUB_REPOS_PHRASES,
-    ]),
-    ...pack("github.list_pulls", [
-      ...GITHUB_PRS_SHORTCUTS,
-      ...GITHUB_PRS_PHRASES,
-    ]),
-    ...pack("github.list_commits", [
-      ...GITHUB_COMMITS_SHORTCUTS,
-      ...GITHUB_COMMITS_PHRASES,
-    ]),
-    ...pack("github.list_branches", [
-      ...GITHUB_BRANCHES_SHORTCUTS,
-      ...GITHUB_BRANCHES_PHRASES,
-    ]),
+    ...fromV2,
     ...pack("github.open_panel", [
       ...GITHUB_OPEN_PANEL_SHORTCUTS,
       ...GITHUB_OPEN_PANEL_PHRASES,
@@ -147,14 +120,6 @@ export function listBuiltinCatalogEntries(): CatalogEntry[] {
       ...SUPABASE_STUDIO_STOP_SHORTCUTS,
       ...SUPABASE_STUDIO_STOP_PHRASES,
     ]),
-    ...pack("terminal.open", [
-      ...TERMINAL_OPEN_SHORTCUTS,
-      ...TERMINAL_OPEN_PHRASES,
-    ]),
-    ...pack("files.goto", FILES_GOTO_PHRASES),
-    ...pack("files.find", FILES_FIND_PHRASES),
-    ...pack("files.open", FILES_OPEN_PHRASES),
-    ...pack("refuse.write", REFUSE_WRITE_PHRASES),
   ];
 }
 

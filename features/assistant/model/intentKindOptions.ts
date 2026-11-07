@@ -1,7 +1,11 @@
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import type { MessageKey } from "@/lib/i18n/types";
 
-export type IntentKind = AssistantIntent["kind"];
+/** Kinds proposés au catalogue / phrases perso (hors v2.local / v2.stub). */
+export type IntentKind = Exclude<
+  AssistantIntent["kind"],
+  "v2.local" | "v2.stub"
+>;
 
 export type IntentKindOption = {
   kind: IntentKind;

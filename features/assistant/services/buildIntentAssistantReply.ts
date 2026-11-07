@@ -1,6 +1,10 @@
 import type { CustomPhraseRule } from "@/features/assistant/model/customPhraseRules";
 import { formatMailOverviewReply } from "@/features/assistant/model/formatMailOverviewReply";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
+import {
+  formatV2LocalReply,
+  formatV2StubReply,
+} from "@/features/assistant/model/formatV2Reply";
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
 import { t } from "@/lib/i18n";
 import type { MailPort } from "@/ports/mail-port";
@@ -15,8 +19,8 @@ function toMailItems(
 }
 
 /**
- * Réponses mail + chat + fichiers (sans LLM).
- * GitHub est exécuté côté serveur dans `buildAssistantReply`.
+ * Réponses mail + chat + fichiers + gabarits v2 (sans LLM).
+ * GitHub / Supabase serveur : `buildAssistantReply`.
  */
 export async function buildIntentAssistantReply(
   text: string,
@@ -31,15 +35,21 @@ export async function buildIntentAssistantReply(
 
   switch (intent.kind) {
     case "help":
-      return t("assistant.help");
+      return formatV2LocalReply("help");
     case "chat.greeting":
-      return t("assistant.chatGreeting");
+      return formatV2LocalReply("chat.greeting");
     case "chat.how_are_you":
-      return t("assistant.chatHowAreYou");
+      return formatV2LocalReply("chat.how_are_you");
     case "chat.thanks":
-      return t("assistant.chatThanks");
+      return formatV2LocalReply("chat.thanks");
     case "refuse.write":
-      return t("assistant.refuseWrite");
+      return intent.topic
+        ? formatV2LocalReply(intent.topic)
+        : t("assistant.refuseWrite");
+    case "v2.local":
+      return formatV2LocalReply(intent.id, intent.slots);
+    case "v2.stub":
+      return formatV2StubReply(intent.id);
     case "terminal.open":
       return intent.folder
         ? t("assistant.terminalOpenFolder", { folder: intent.folder })
