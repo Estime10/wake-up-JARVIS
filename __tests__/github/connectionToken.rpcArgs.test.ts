@@ -22,6 +22,13 @@ vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: () => ({ rpc }),
 }));
 
+vi.mock("@/lib/github/user", () => ({
+  fetchGithubUser: vi.fn(async () => ({
+    ok: true as const,
+    user: { id: 1, login: "devin" },
+  })),
+}));
+
 describe("loadGithubConnectionToken RPC args (H1)", () => {
   beforeEach(() => {
     rpc.mockReset();

@@ -67,6 +67,37 @@ const WRAPPERS =
 const TRAILING_SOFT =
   /(?: cote (?:mails?|github|fichiers)| (?:aujourd'hui|maintenant|actuellement|en ce moment|stp|svp))$/u;
 
+/** Homoglyphes cyrilliques → latin (IV2-07). */
+const CYRILLIC_HOMOGLYPHS: Readonly<Record<string, string>> = {
+  а: "a",
+  е: "e",
+  о: "o",
+  р: "p",
+  с: "c",
+  у: "y",
+  х: "x",
+  і: "i",
+  ј: "j",
+  ѕ: "s",
+  һ: "h",
+  ԁ: "d",
+  ɡ: "g",
+  ӑ: "a",
+};
+
+function foldHomoglyphs(raw: string): string {
+  return [...raw].map((ch) => CYRILLIC_HOMOGLYPHS[ch] ?? ch).join("");
+}
+
+/**
+ * « c o r b e i l l e » → « corbeille » (lettres isolées séparées par espaces).
+ */
+function collapseSpacedLetters(raw: string): string {
+  return raw.replace(/\b(?:[a-z]\s+){2,}[a-z]\b/gu, (chunk) =>
+    chunk.replace(/\s+/gu, ""),
+  );
+}
+
 export function normalizeIntentTextV2(text: string): string {
   let s = text
     .normalize("NFKD")
@@ -74,7 +105,9 @@ export function normalizeIntentTextV2(text: string): string {
     .replace(/\p{M}+/gu, "")
     .replace(/\p{Cf}+/gu, "")
     .trim()
-    .toLowerCase()
+    .toLowerCase();
+  s = foldHomoglyphs(s);
+  s = s
     .replace(/['’`]/gu, "'")
     .replace(
       /-(moi|toi|nous|vous|le|la|les|lui|leur|je|tu|il|elle|on|ils|elles)(?![a-z0-9])/gu,
@@ -84,6 +117,7 @@ export function normalizeIntentTextV2(text: string): string {
     .replace(/\.+$/u, "")
     .replace(/\s+/gu, " ")
     .trim();
+  s = collapseSpacedLetters(s);
   const whole = s;
   s = s.replace(LEADING, "").replace(TRAILING, "").trim();
   if (s.length === 0) s = whole;
