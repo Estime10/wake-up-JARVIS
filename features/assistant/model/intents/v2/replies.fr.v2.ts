@@ -147,7 +147,7 @@ export const REPLIES_FR_V2: Readonly<Record<string, ReplyV2>> = {
     ok: "Je ne vois que tes mails d'avant-hier à aujourd'hui, DevinChat. Pour plus ancien, ouvre Gmail directement.",
   },
   "mail.overview": {
-    ok: "Voici le résumé de tes mails {window} : {summary}",
+    ok: "Voici la liste de tes mails {window} (titres seulement, pas un résumé de contenu) : {summary}",
     empty: "Rien dans tes boîtes d'avant-hier à aujourd'hui.",
   },
   "mail.count": {

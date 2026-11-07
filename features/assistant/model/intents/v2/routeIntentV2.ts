@@ -70,7 +70,9 @@ const TRAILING_SOFT =
 export function normalizeIntentTextV2(text: string): string {
   let s = text
     .normalize("NFKD")
+    // Marques + caractères de format (ex. U+200B) — IV2-07.
     .replace(/\p{M}+/gu, "")
+    .replace(/\p{Cf}+/gu, "")
     .trim()
     .toLowerCase()
     .replace(/['’`]/gu, "'")
@@ -132,11 +134,35 @@ export type RouteV2 =
 export function sanitizeCaptureV2(raw: string): string {
   return (
     raw
+      .replace(/\p{Cf}+/gu, "")
       // `\s+` obligatoire — sinon « de » mange le début de « dev ».
       .replace(/^(?:les|des|du|de|la|le|mes|mon|ma|un|une|l')\s+/u, "")
       .replace(/[»"'«.,!?]+$/gu, "")
       .trim()
   );
+}
+
+/**
+ * IV2-03 — refuse les captures de chemin dangereuses (`..`, absolu, etc.).
+ */
+export function isUnsafePathCapture(raw: string): boolean {
+  const value = raw.trim();
+  if (value.length === 0) {
+    return false;
+  }
+  if (value.includes("..")) {
+    return true;
+  }
+  if (value.startsWith("/") || value.startsWith("~")) {
+    return true;
+  }
+  if (/^[a-z]:[\\/]/i.test(value)) {
+    return true;
+  }
+  if (/(^|[\\/])(?:etc|proc|sys|dev|var)([\\/]|$)/i.test(value)) {
+    return true;
+  }
+  return false;
 }
 
 /** Valeurs connues (fournies par l'app : MailPort, GitHub, alias de dossiers). Si un slot de ce type ne correspond pas, le motif est ignoré. */
@@ -240,7 +266,20 @@ export function createRouterV2(
       p.slots.forEach((s, i) => {
         slots[s] = values[i]!;
       });
-      for (const v of values) {
+      for (let i = 0; i < p.slots.length; i++) {
+        const slotName = p.slots[i]!;
+        const v = values[i]!;
+        if (
+          (slotName === "folder" || slotName === "file") &&
+          isUnsafePathCapture(v)
+        ) {
+          return {
+            kind: "match",
+            id: "refuse.write",
+            via: "slot-guard",
+            slots,
+          };
+        }
         // une valeur de slot ne doit jamais faire passer une action interdite (« … et lance npm install », « .env »)
         for (const g of VALUE_GUARDS)
           if (g.pattern.test(v))
