@@ -24,15 +24,69 @@
 
 Livrer une **app macOS Apple Silicon** (Tauri **v2**) qui :
 
-| Capacité                                                           | Remplace / complète                     |
-| ------------------------------------------------------------------ | --------------------------------------- |
-| Fenêtre unique E.L.S.A.                                            | Safari / Chrome                         |
-| WebView **Studio** top-level                                       | iframe + proxy `:54332`                 |
-| WebView **navigateur libre** top-level                             | iframe `SideWebBrowser`                 |
-| Sidecar **Piper** (salut + TTS)                                    | `speechSynthesis` / proxy Next loopback |
-| Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                        |
+| Capacité                                                           | Remplace / complète                       |
+| ------------------------------------------------------------------ | ----------------------------------------- |
+| Fenêtre unique E.L.S.A.                                            | Safari / Chrome                           |
+| WebView **Studio** top-level                                       | iframe + proxy `:54332`                   |
+| WebView **navigateur libre** top-level                             | iframe `SideWebBrowser`                   |
+| **Piper TTS local** (`127.0.0.1:5911` + bridge Tauri)              | proxy Next (dev only) / `speechSynthesis` |
+| Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                          |
 
 La **logique métier Next** (routes API, Supabase, intents) **ne bouge pas** au début : le shell charge l’UI déjà déployée (ou le `next dev` local), puis on bascule les surfaces « natives » une par une.
+
+---
+
+## Piper en « prod » — clarifications (besoin DevinChat)
+
+Le log actuel (`./scripts/run-piper.sh`) :
+
+```
+Piper écoute sur http://127.0.0.1:5911
+* Serving Flask app 'http_server' · Debug mode: off
+WARNING: This is a development server…
+```
+
+### Ce que « prod » veut dire ici
+
+| Surface                                  | Piper tourne où ?                         | Comment l’UI parle                                                                                                                                                                                 |
+| ---------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vercel** (`wake-up-jarvis.vercel.app`) | **Nulle part** sur le serveur Vercel      | Pas de `:5911` cloud. Proxy `POST /api/voice/piper` **off** en prod (sauf flag) — et même activé, il frapperait le loopback **Vercel**, pas le Mac. Repli = `speechSynthesis`.                     |
+| **Shell Tauri (prod Mac)**               | **Sur le Mac**, loopback `127.0.0.1:5911` | UI (souvent chargée depuis l’URL Vercel) **ne fetch pas** `127.0.0.1` depuis une origine `https://` (bloqué / fragile). Chemin obligatoire : **front → `invoke` Tauri → Rust → HTTP Piper local**. |
+
+**Invariant :** Piper reste **toujours local au Mac** (ADR 0012). La « prod voix » = **app desktop**, pas un WSGI sur Vercel.
+
+### Décision retenue pour le plan (étape 5)
+
+1. **Conserver le protocole HTTP** `http://127.0.0.1:5911` (aligné `PIPER_HTTP_URL`, scripts, schémas déjà en place) — DevinChat en a besoin.
+2. **Tauri possède le cycle de vie** du process Piper :
+   - spawn au démarrage de l’app (ou au premier `speak`) ;
+   - healthcheck `GET`/`POST` loopback ;
+   - kill propre à la fermeture.
+3. **Remplacer le serveur de dev Flask** en usage shell par un serveur **WSGI de prod locale**, toujours borné à `127.0.0.1` (jamais `0.0.0.0`) :
+   - candidat : **Waitress** (ou équivalent) devant `piper.http_server` / app WSGI Piper ;
+   - script type `scripts/run-piper-prod.sh` + binaire/venv empaqueté sous `sidecars/piper/`.
+4. **Bridge Rust** (allowlist) :
+   - `voice_speak { text }` → POST loopback Piper → WAV → lecture (WebAudio via front **ou** playback natif) ;
+   - `voice_stop` → abort ;
+   - **pas** d’exposition du port 5911 au réseau LAN.
+5. **Option B (plan voix étape 4)** sidecar stdin JSON **reste un plan B** si Waitress/HTTP s’avère trop lourd — même modèle `fr_FR-siwis-medium` + sha256. Ne pas implémenter les deux en parallèle sans besoin.
+
+### Warnings observés (non bloquants V0)
+
+| Message                         | Traitement                                                                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `onnx` / `piper-tts[alignment]` | Optionnel (alignements). V0 : **ignorer** ou installer extras seulement si on affiche des timings phonème.        |
+| `python-dotenv` / `.env`        | Optionnel. Ne pas exiger dotenv pour le sidecar.                                                                  |
+| Flask « development server »    | **Interdit** comme process longue durée du `.app` → Waitress (ou sidecar JSON). OK pour `pnpm voice:piper` en DX. |
+
+### DX vs shell
+
+| Mode         | Commande                              | Serveur                                    |
+| ------------ | ------------------------------------- | ------------------------------------------ |
+| Dev web Next | `./scripts/run-piper.sh` + `next dev` | Flask Piper actuel (acceptable)            |
+| Prod shell   | process géré par Tauri                | Waitress (ou sidecar) sur `127.0.0.1:5911` |
+
+Amendement ADR **0012** à prévoir en étape 0/5 : « en shell Tauri, TTS via loopback géré par le runtime ; proxy Next reste **dev web only**. »
 
 ---
 
@@ -68,14 +122,15 @@ La **logique métier Next** (routes API, Supabase, intents) **ne bouge pas** au 
 │  ┌─────────────────────┐  ┌──────────────────────────────┐  │
 │  │ WebView principal   │  │ WebViews secondaires         │  │
 │  │ = UI E.L.S.A.       │  │ (Studio · navigateur libre)  │  │
-│  │ charge URL app      │  │ top-level, pas iframe        │  │
+│  │ (souvent URL prod)  │  │ top-level, pas iframe        │  │
 │  └─────────┬───────────┘  └──────────────▲───────────────┘  │
-│            │ invoke (allowlist stricte)   │ embed / navigate │
+│            │ invoke voice_* / window_*    │ embed / navigate │
 │  ┌─────────▼───────────┐  ┌──────────────┴───────────────┐  │
-│  │ Rust core           │  │ Sidecar Piper (stdin JSON)   │  │
-│  │ · fenêtres / WV     │  │ sha256 modèle · repli `say`  │  │
-│  │ · LaunchAgent later │  └──────────────────────────────┘  │
-│  └─────────┬───────────┘                                    │
+│  │ Rust core           │  │ Piper HTTP 127.0.0.1:5911    │  │
+│  │ · spawn / health    │  │ Waitress (pas Flask debug)   │  │
+│  │ · POST → WAV        │  │ modèle siwis + sha256        │  │
+│  │ · LaunchAgent later │  │ (plan B : sidecar stdin JSON)│  │
+│  └─────────┬───────────┘  └──────────────────────────────┘  │
 └────────────┼────────────────────────────────────────────────┘
              │ (V1) lecture seule
              ▼
@@ -185,17 +240,23 @@ Layout : conserver le split 50/50 (chrome React) ; les surfaces média sont des 
 
 ---
 
-### Étape 5 — Sidecar Piper (voix)
+### Étape 5 — Piper local prod (`127.0.0.1:5911` + bridge)
 
-Reprendre le plan voix étapes **4** (et décision **5**) :
+Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (étapes 4–5) pour normalisation / stop / repli.
 
-- Sidecar lancé par Rust, args fixes, texte stdin JSON ;
-- modèle `fr_FR-siwis-medium` + **sha256** (sinon refus + repli `say` / `speechSynthesis`) ;
-- commandes `speak` / `stop` only ;
-- **aucune** capability pour origine distante (CA-T5 / CA-A5).
+**Livrables :**
 
-**Done when :** salut + réponses Piper dans le shell · stop immédiat · Piper down → repli.  
-**Commit :** `feat(tauri): sidecar Piper pour TTS local.`
+1. `sidecars/piper/` (ou `scripts/run-piper-prod.sh`) : venv + modèle + **Waitress** sur `127.0.0.1:${PIPER_HTTP_PORT:-5911}` — **pas** le warning « development server ».
+2. Rust : spawn / ready / `voice_speak` / `voice_stop` ; timeout ; never bind `0.0.0.0`.
+3. Front Tauri : `createTauriVoice` → invoke (pas `fetch('http://127.0.0.1:5911')` depuis l’origine Vercel).
+4. Modèle `fr_FR-siwis-medium` + **sha256** (sinon refus + repli `say` / `speechSynthesis`).
+5. Amendement ADR **0012** (shell vs proxy Next).
+6. Plan B documenté : sidecar stdin JSON si HTTP trop fragile.
+
+**Interdit :** Piper sur Vercel ; ouvrir `:5911` sur le LAN ; laisser Flask debug comme process du `.app`.
+
+**Done when :** CA-T6, CA-T8 · salut + réponses dans le shell · stop immédiat · Piper down → repli · `lsof` montre listen **uniquement** 127.0.0.1:5911.  
+**Commit :** `feat(tauri): Piper HTTP local géré par le shell (5911).`
 
 ---
 
@@ -227,15 +288,16 @@ Reprendre le plan voix étapes **4** (et décision **5**) :
 
 ## Critères d’acceptation (shell)
 
-| ID    | Critère                                                                |
-| ----- | ---------------------------------------------------------------------- |
-| CA-T1 | `.app` Apple Silicon s’ouvre ; UI login/home via WebView.              |
-| CA-T2 | `pnpm build` / déploiement Vercel **non régressés**.                   |
-| CA-T3 | Studio visible **sans** iframe proxy `:54332` dans le shell.           |
-| CA-T4 | Navigateur libre charge un site qui refuse l’iframe web.               |
-| CA-T5 | Aucune capability Rust exposée à une origine distante non allowlistée. |
-| CA-T6 | Piper (ou repli documenté) pour le salut dans le shell.                |
-| CA-T7 | Pas de port d’écoute agent ; file pull uniquement (quand V1).          |
+| ID    | Critère                                                                                                                                     |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-T1 | `.app` Apple Silicon s’ouvre ; UI login/home via WebView.                                                                                   |
+| CA-T2 | `pnpm build` / déploiement Vercel **non régressés**.                                                                                        |
+| CA-T3 | Studio visible **sans** iframe proxy `:54332` dans le shell.                                                                                |
+| CA-T4 | Navigateur libre charge un site qui refuse l’iframe web.                                                                                    |
+| CA-T5 | Aucune capability Rust exposée à une origine distante non allowlistée.                                                                      |
+| CA-T6 | Piper (ou repli documenté) pour le salut dans le shell.                                                                                     |
+| CA-T7 | Pas de port d’écoute agent ; file pull uniquement (quand V1).                                                                               |
+| CA-T8 | Piper prod shell écoute **seulement** `127.0.0.1:5911` (WSGI, pas Flask debug) ; bridge via `invoke`, pas fetch cross-origin depuis Vercel. |
 
 ---
 
@@ -246,7 +308,8 @@ Reprendre le plan voix étapes **4** (et décision **5**) :
 3. **Secrets** : toujours Vault / env serveur ; le shell ne lit pas `SUPABASE_SERVICE_ROLE`.
 4. **Prod URL** : CSP / cookies ; pas d’injection de script native dans la page distante.
 5. **ADR 0006** : confirmation vocale **jamais** pour action risquée.
-6. Revue **HACKER** avant étapes 5 (si IPC élargi) et **7** (agent).
+6. Revue **HACKER** avant étapes 5 (bridge voix + process Piper) et **7** (agent).
+7. **Piper** : bind loopback only ; pas de proxy Next en prod Vercel pour atteindre le Mac.
 
 ---
 
@@ -256,7 +319,9 @@ Reprendre le plan voix étapes **4** (et décision **5**) :
 | ------------------------------------ | --------- | ------------------------------------------------------- |
 | Auth Supabase cassée dans WKWebView  | 🔴 High   | Spike étape 2 ; fallback ouvrir login système si besoin |
 | Positionnement multi-WebView fragile | 🟡 Medium | Spike bbox ; sinon fenêtre Studio séparée V0.1          |
-| Bundle Piper (~60 Mo+)               | 🟡 Medium | Sidecar optionnel / download au premier lancement       |
+| Bundle Piper (~60 Mo+)               | 🟡 Medium | Download au premier lancement / venv empaqueté          |
+| Fetch `127.0.0.1` depuis UI https    | 🔴 High   | Interdit ; toujours `invoke` → Rust → loopback          |
+| Flask debug laissé en prod shell     | 🟡 Medium | Waitress (ou sidecar JSON) obligatoire étape 5          |
 | Confusion web vs desktop features    | 🟡 Medium | `runtime` explicite + tests ports                       |
 | Scope creep agent terminal           | 🔴 High   | Gate étape 7 ; catalogue N1 only                        |
 
