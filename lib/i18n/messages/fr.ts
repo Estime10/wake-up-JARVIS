@@ -192,7 +192,8 @@ export const fr = {
     mailCount: "Tu as {count} mails dans la fenêtre récente.",
     mailCountLabel: "Tu as {count} mails avec le label {label}.",
     mailOverviewEmpty: "Tu n'as pas de nouveau mail.",
-    mailOverviewHeader: "Voici le résumé de ta boîte, {count} mails :",
+    mailOverviewHeader:
+      "Voici la liste de ta boîte (titres seulement), {count} mails :",
     mailRecentEmpty: "Tu n'as pas de nouveau mail.",
     githubNeedsLive:
       "Les commandes GitHub passent par le serveur. Réessaie depuis l'app home.",

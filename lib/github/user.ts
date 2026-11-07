@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { assertReadOnlyPatScopes } from "@/lib/github/assertReadOnlyPatScopes";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("github");
@@ -18,7 +19,10 @@ export type GithubUser = z.infer<typeof githubUserSchema>;
 
 export type GithubUserResult =
   | { ok: true; user: GithubUser }
-  | { ok: false; reason: "unauthorized" | "forbidden" | "upstream" };
+  | {
+      ok: false;
+      reason: "unauthorized" | "forbidden" | "upstream" | "scopes";
+    };
 
 /**
  * Valide un PAT via GET /user — lecture seule, aucun autre endpoint.
@@ -53,6 +57,11 @@ export async function fetchGithubUser(
   if (!response.ok) {
     log.error("github_user_http", { status: response.status });
     return { ok: false, reason: "upstream" };
+  }
+
+  if (!assertReadOnlyPatScopes(token, response.headers.get("x-oauth-scopes"))) {
+    log.error("github_user_scopes_denied");
+    return { ok: false, reason: "scopes" };
   }
 
   let json: unknown;

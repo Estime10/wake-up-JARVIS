@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const status =
       github.reason === "unauthorized"
         ? 401
-        : github.reason === "forbidden"
+        : github.reason === "forbidden" || github.reason === "scopes"
           ? 403
           : 502;
     return NextResponse.json({ ok: false, error: github.reason }, { status });

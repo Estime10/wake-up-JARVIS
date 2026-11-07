@@ -380,11 +380,11 @@ export const MAIL_OUT_OF_WINDOW_PHRASES = [
   "pouvez-vous voir mes mails de la semaine s'il vous plait",
 ] as const;
 
-/** mail.overview — résumé de tous les mails (« montre-moi tout ») (corrigé, kind app : mail.overview). */
+/** mail.overview — liste titres (pas résumé de contenu) ; kind app : mail.overview. */
 export const MAIL_OVERVIEW_SHORTCUTS = [
   "/tout",
   "/recap",
-  "/resume",
+  "/liste-mails",
   "/overview",
 ] as const;
 
@@ -393,9 +393,13 @@ export const MAIL_OVERVIEW_PHRASES = [
   "montre tout",
   "affiche tout",
   "tout",
+  "la liste de mes mails",
+  "liste de mes mails",
+  "liste mes mails",
+  "montre la liste de mes mails",
+  "résume mes mails",
   "le résumé de mes mails",
   "résumé de mes mails",
-  "résume mes mails",
   "fais moi un résumé de mes mails",
   "un récap de mes mails",
   "récap mails",
