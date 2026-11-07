@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
@@ -75,7 +76,7 @@ describe("POST /api/google/oauth/disconnect (DEV-1)", () => {
     });
 
     const response = await POST(
-      new Request("http://localhost/api/google/oauth/disconnect", {
+      new NextRequest("http://localhost/api/google/oauth/disconnect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -108,7 +109,7 @@ describe("POST /api/google/oauth/disconnect (DEV-1)", () => {
 
     const { POST } = await import("@/app/api/google/oauth/disconnect/route");
     const response = await POST(
-      new Request("http://localhost/api/google/oauth/disconnect", {
+      new NextRequest("http://localhost/api/google/oauth/disconnect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

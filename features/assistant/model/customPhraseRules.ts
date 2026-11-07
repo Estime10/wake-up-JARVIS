@@ -221,6 +221,9 @@ export function ruleToIntent(rule: CustomPhraseRule): AssistantIntent | null {
         : { kind: "files.open" };
     case "refuse.write":
       return { kind: "refuse.write" };
+    default:
+      // Kinds hors formulaire catalogue (mail.* étendus, ui.*, github.*…) — pas de mapping.
+      return null;
   }
 }
 

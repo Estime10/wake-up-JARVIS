@@ -60,7 +60,7 @@ describe("createMockPorts", () => {
         chunks.push(chunk.text);
       }
     }
-    expect(chunks.join("")).toMatch(/Aucun mail/i);
+    expect(chunks.join("")).toMatch(/pas de nouveau mail/i);
   });
 
   it("LlmPort streame une réponse texte puis done", async () => {

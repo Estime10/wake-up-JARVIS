@@ -63,6 +63,6 @@ describe("FS mock", () => {
 
   it("lit un fichier", () => {
     const content = readFile(`${TERMINAL_HOME}/Desktop/notes.txt`);
-    expect(content).toContain("JARVIS");
+    expect(content).toContain("E.L.S.A.");
   });
 });

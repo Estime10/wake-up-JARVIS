@@ -27,6 +27,7 @@ import type { ActionProposal, Message } from "@/lib/schemas";
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import type { AssistantUiPending } from "@/features/assistant/services/applyAssistantUiIntent";
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
+import { shouldPersistAssistantReply } from "@/features/assistant/model/shouldPersistAssistantReply";
 import { prepareConversationSpeakText } from "@/features/home/model/prepareConversationSpeakText";
 import { markWelcomeSpeakPlayed } from "@/lib/voice/welcomeSpeak";
 
@@ -455,13 +456,17 @@ export function useAssistantSession(
   }
 
   /** Réponse figée (ex. Studio lancé) — sans re-parse LLM. */
-  async function runDirectReply(fullText: string): Promise<void> {
+  async function runDirectReply(
+    fullText: string,
+    options?: { persistReply?: boolean },
+  ): Promise<void> {
     const trimmedReply = fullText.trim();
     if (trimmedReply.length === 0) {
       dispatch({ type: "REPLY_DONE" });
       return;
     }
 
+    const persistReply = options?.persistReply !== false;
     const ac = new AbortController();
     abortRef.current = ac;
     const id = createMessageId();
@@ -492,12 +497,14 @@ export function useAssistantSession(
           : Promise.resolve();
 
       await Promise.all([
-        persist({
-          id,
-          role: "assistant",
-          text: trimmedReply,
-          createdAt,
-        }),
+        persistReply
+          ? persist({
+              id,
+              role: "assistant",
+              text: trimmedReply,
+              createdAt,
+            })
+          : Promise.resolve(),
         speakPromise,
       ]);
 
@@ -518,7 +525,11 @@ export function useAssistantSession(
     }
   }
 
-  async function runReply(userText: string): Promise<void> {
+  async function runReply(
+    userText: string,
+    options?: { persistReply?: boolean },
+  ): Promise<void> {
+    const persistReply = options?.persistReply !== false;
     const ac = new AbortController();
     abortRef.current = ac;
     const id = createMessageId();
@@ -600,12 +611,14 @@ export function useAssistantSession(
             : Promise.resolve();
 
         await Promise.all([
-          persist({
-            id,
-            role: "assistant",
-            text: fullText,
-            createdAt,
-          }),
+          persistReply
+            ? persist({
+                id,
+                role: "assistant",
+                text: fullText,
+                createdAt,
+              })
+            : Promise.resolve(),
           speakPromise,
         ]);
       }
@@ -697,6 +710,7 @@ export function useAssistantSession(
 
     void (async () => {
       let replyText = trimmed;
+      let replyIntent: AssistantIntent | null = parsed;
       if (onUiIntent) {
         const result = await onUiIntent({
           intent: parsed,
@@ -704,8 +718,10 @@ export function useAssistantSession(
           pending: uiPendingRef.current,
         });
         uiPendingRef.current = result.pending;
+        replyIntent = result.intent ?? parsed;
+        const persistReply = shouldPersistAssistantReply(replyIntent);
         if (result.spokenReply !== undefined) {
-          await runDirectReply(result.spokenReply);
+          await runDirectReply(result.spokenReply, { persistReply });
           return;
         }
         if (result.intent?.kind === "supabase.studio_stop") {
@@ -715,8 +731,12 @@ export function useAssistantSession(
             ? `lance supabase studio sur ${result.intent.projectQuery}`
             : "lance le studio";
         }
+        await runReply(replyText, { persistReply });
+        return;
       }
-      await runReply(replyText);
+      await runReply(replyText, {
+        persistReply: shouldPersistAssistantReply(parsed),
+      });
     })();
   }
 

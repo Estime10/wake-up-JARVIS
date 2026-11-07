@@ -30,7 +30,7 @@ describe("runShellCommand", () => {
       { cwd: `${TERMINAL_HOME}/Desktop` },
       "cat notes.txt",
     );
-    expect(cat.lines.join("\n")).toContain("JARVIS");
+    expect(cat.lines.join("\n")).toContain("E.L.S.A.");
   });
 
   it("commande inconnue", () => {
