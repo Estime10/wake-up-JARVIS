@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
 
 import { usePorts } from "@/app/ports-context";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type ActionStatus, transitionAction } from "@/lib/actions/lifecycle";
 import { requiresSignature } from "@/lib/actions/risk";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/features/home/model/conversationPagination";
 import { useLatestRef } from "@/lib/hooks/useLatestRef";
 import { t } from "@/lib/i18n";
+import { createLogger } from "@/lib/logger";
 import type { ActionProposal, Message } from "@/lib/schemas";
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import type { AssistantUiPending } from "@/features/assistant/services/applyAssistantUiIntent";
@@ -30,6 +32,8 @@ import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantI
 import { shouldPersistAssistantReply } from "@/features/assistant/model/shouldPersistAssistantReply";
 import { prepareConversationSpeakText } from "@/features/home/model/prepareConversationSpeakText";
 import { markWelcomeSpeakPlayed } from "@/lib/voice/welcomeSpeak";
+
+const log = createLogger("assistant.session");
 
 /** Probe limit+1 pour savoir s’il reste de l’historique. */
 function takePageTail<T>(
@@ -98,6 +102,7 @@ export function useAssistantSession(
   args: UseAssistantSessionArgs = {},
 ): UseAssistantSessionResult {
   const { onUnrecognized, onUiIntent } = args;
+  const { status: authStatus } = useAuth();
   const { llm, memory, voice, action } = usePorts();
   const [assistant, dispatch] = useReducer(sessionReducer, "idle");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -118,10 +123,30 @@ export function useAssistantSession(
   const uiPendingRef = useRef<AssistantUiPending>(null);
 
   useEffect(() => {
+    // Attendre la session : sinon list/append tournent sans user → fil fantôme.
+    if (authStatus === "loading") {
+      return;
+    }
+
     let cancelled = false;
-    void memory
-      .listMessages({ limit: CONVERSATION_INITIAL_PAGE + 1 })
-      .then((list) => {
+    void (async () => {
+      // Différé : évite setState sync dans le corps de l’effect (react-hooks).
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+      if (authStatus !== "authenticated") {
+        setMessages([]);
+        setHasMoreOlder(false);
+        setMemoryStatus("ready");
+        return;
+      }
+
+      setMemoryStatus("loading");
+      try {
+        const list = await memory.listMessages({
+          limit: CONVERSATION_INITIAL_PAGE + 1,
+        });
         if (cancelled) {
           return;
         }
@@ -129,17 +154,18 @@ export function useAssistantSession(
         setMessages(page.map(toConversationMessage));
         setHasMoreOlder(hasMore);
         setMemoryStatus("ready");
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setHasMoreOlder(false);
           setMemoryStatus("error");
         }
-      });
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [memory, memoryAttempt]);
+  }, [memory, memoryAttempt, authStatus]);
 
   const welcomeInFlightRef = useRef(false);
 
@@ -296,8 +322,12 @@ export function useAssistantSession(
   async function persist(message: Message): Promise<void> {
     try {
       await memory.appendMessage(message);
-    } catch {
-      // Écriture mémoire : ne pas faire planter la session UI.
+    } catch (error) {
+      // UI garde le fil local ; sans log on croit à tort que c’est enregistré.
+      log.error("persist_failed", {
+        role: message.role,
+        message: error instanceof Error ? error.message : "unknown",
+      });
     }
   }
 

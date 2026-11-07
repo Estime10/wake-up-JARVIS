@@ -493,8 +493,9 @@ export const APP_UNSUPPORTED_PHRASES = [
   "ouvre l'app store",
   "ouvre photos",
   "ouvre musique",
-  "ouvre mail",
+  // Pas « ouvre mail » ici — réservé à ui.panel_mail (liste E.L.S.A.).
   "ouvre l'app mail",
+  "ouvre mail.app",
   "ouvre messages",
   "ouvre facetime",
   "ouvre une app",

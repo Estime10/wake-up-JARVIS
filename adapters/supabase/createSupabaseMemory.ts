@@ -1,7 +1,20 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
+import { createLogger } from "@/lib/logger";
 import { messageSchema, type Message } from "@/lib/schemas";
 import type { ListMessagesQuery, MemoryPort } from "@/ports/memory-port";
+
+const log = createLogger("memory");
+
+async function requireAuthUser(client: SupabaseClient): Promise<User | null> {
+  const { data: userData } = await client.auth.getUser();
+  if (userData.user) {
+    return userData.user;
+  }
+  // Session cookie déjà là, getUser parfois encore froid au 1er tick.
+  const { data: sessionData } = await client.auth.getSession();
+  return sessionData.session?.user ?? null;
+}
 
 type MessageRow = {
   id: string;
@@ -37,9 +50,7 @@ function olderThanFilter(createdAt: string, id: string): string {
 export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
   return {
     async listMessages(query?: ListMessagesQuery) {
-      const {
-        data: { user },
-      } = await client.auth.getUser();
+      const user = await requireAuthUser(client);
 
       if (!user) {
         return [];
@@ -98,13 +109,11 @@ export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
 
     async appendMessage(message: Message) {
       const parsed = messageSchema.parse(message);
-      const {
-        data: { user },
-      } = await client.auth.getUser();
+      const user = await requireAuthUser(client);
 
       if (!user) {
-        // Pas encore connecté : la session UI garde le fil en mémoire locale.
-        return;
+        log.error("append_no_user", { role: parsed.role });
+        throw new Error("MemoryPort.appendMessage: no authenticated user");
       }
 
       const { error } = await client.from("messages").insert({
@@ -116,6 +125,11 @@ export function createSupabaseMemory(client: SupabaseClient): MemoryPort {
       });
 
       if (error) {
+        log.error("append_failed", {
+          role: parsed.role,
+          code: error.code,
+          message: error.message,
+        });
         throw new Error(`MemoryPort.appendMessage: ${error.message}`);
       }
     },

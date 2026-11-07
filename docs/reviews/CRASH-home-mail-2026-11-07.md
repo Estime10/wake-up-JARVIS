@@ -1,31 +1,30 @@
 # CRASH TEST — home → mails → disconnect
 
-- **Date** : 2026-11-07
-- **SHA candidat** : `b21c984`
-- **Spec** : `e2e/home-mail-flow.spec.ts`
+- **Date** : 2026-11-07T19:26Z
+- **SHA candidat** : `93ba7fd` (+ spec e2e locale)
+- **Commande** : `PLAYWRIGHT_PORT=3001 pnpm exec playwright test e2e/home-mail-flow.spec.ts --project=chromium`
+- **Serveur** : `next start` prod sur `:3001` (évite HMR `pnpm dev` qui bloque le boot)
 
-## Parcours prévu
+## Parcours
 
-1. Accueil / login
-2. `/home`
-3. Composer : « liste mes mails »
-4. Bouton déconnecter / révoquer boîte (si compte présent)
+1. Auth admin (OWNER_EMAILS + service role → cookies `tokens-only`)
+2. `/home` — boot reduced-motion → composer prêt
+3. « liste mes mails » → réponse titres (50 mails)
+4. « Ouvrir les mails » → **retirer** une boîte → compte décrémenté
 
-## Exécution
+## Résultat
 
-| Condition                    | Statut                                       |
-| ---------------------------- | -------------------------------------------- |
-| Spec Playwright ajoutée      | ✅                                           |
-| `E2E_EMAIL` / `E2E_PASSWORD` | ❌ absents dans l’environnement agent        |
-| Run authentifié              | **SKIP** (`test.skip` si pas de credentials) |
+```
+✓  [chromium] › e2e/home-mail-flow.spec.ts › accueil → home → liste mails → retirer boîte (4.8s)
+1 passed (15.2s)
+```
 
-## Preuve partielle
+Log : `/tmp/elsa-crash-e2e13.log`
 
-- Spec skippe explicitement sans secrets (pas de faux vert).
-- Pour clore §10 checklist : lancer localement  
-  `E2E_EMAIL=… E2E_PASSWORD=… pnpm e2e e2e/home-mail-flow.spec.ts`  
-  après `pnpm build && pnpm start` (selon `playwright.config`).
+## Effet de bord
+
+Une boîte Gmail a été **retirée** (preuve disconnect). À reconnecter via OAuth si besoin (`+ compte`).
 
 ## Verdict CRASH
 
-**INCOMPLET** — instrumentation OK ; preuve runtime authentifiée à fournir par DevinChat / machine avec comptes.
+**PASS**

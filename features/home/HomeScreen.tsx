@@ -5,6 +5,7 @@ import { useCallback, useState, useRef } from "react";
 import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalogModal";
 import { AssistantExpansionLabel } from "@/features/home/components/AssistantExpansionLabel";
 import { AssistantStage } from "@/features/home/components/AssistantStage";
+import { ConversationEmptyState } from "@/features/home/components/ConversationEmptyState";
 import { ConversationLoadState } from "@/features/home/components/ConversationLoadState";
 import { ConversationThread } from "@/features/home/components/ConversationThread";
 import { HomeComposer } from "@/features/home/components/HomeComposer";
@@ -188,17 +189,17 @@ function HomeScreenBody() {
   const composerLocked =
     state === "thinking" || memoryStatus !== "ready" || !settled;
   const memoryBlocked = memoryStatus !== "ready";
-  const showIdleBrand =
-    memoryStatus === "ready" && state === "idle" && messages.length === 0;
-  const homeContentHidden = terminalOpen || repoOpen || mailOpen;
-  const showThread = settled && !memoryBlocked && !showIdleBrand;
+  const conversationEmpty = memoryStatus === "ready" && messages.length === 0;
+  /** Conversation gauche seulement — mark + composer restent pour enchaîner des actions. */
+  const conversationObscured = terminalOpen || repoOpen || mailOpen;
+  const showThread = settled && !memoryBlocked && !conversationEmpty;
 
   useScrollLock(terminalOpen || repoOpen || mailOpen || phraseCatalogOpen);
 
   return (
     <div
       className="relative h-full w-full overflow-hidden"
-      data-scroll-lock-target={homeContentHidden ? "true" : undefined}
+      data-scroll-lock-target={conversationObscured ? "true" : undefined}
     >
       <div
         ref={chromeRef}
@@ -246,22 +247,24 @@ function HomeScreenBody() {
             className={cn(
               "relative flex min-h-0 min-w-0 flex-col pl-6 sm:pl-8",
               PANEL_CONTENT_MOTION_CLASS,
-              homeContentHidden && "pointer-events-none opacity-0",
+              conversationObscured && "pointer-events-none opacity-0",
             )}
-            aria-hidden={homeContentHidden || undefined}
+            aria-hidden={conversationObscured || undefined}
           >
             {!settled ? null : memoryBlocked ? (
               <ConversationLoadState
                 status={memoryStatus === "error" ? "error" : "loading"}
                 onRetry={retryMemory}
               />
+            ) : conversationEmpty ? (
+              <ConversationEmptyState />
             ) : showThread ? (
               <div className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-end">
                 <ConversationThread
                   messages={messages}
                   onConfirmAction={confirmAction}
                   onCancelAction={cancelAction}
-                  scrollLock={homeContentHidden}
+                  scrollLock={conversationObscured}
                   animateEntrance
                   hasMoreOlder={hasMoreOlder}
                   loadingOlder={loadingOlder}
@@ -279,9 +282,7 @@ function HomeScreenBody() {
               className={cn(
                 "relative flex min-h-0 w-full flex-1 flex-col items-center justify-center px-2",
                 PANEL_CONTENT_MOTION_CLASS,
-                homeContentHidden && "pointer-events-none opacity-0",
               )}
-              aria-hidden={homeContentHidden || undefined}
             >
               <AssistantStage />
 

@@ -47,6 +47,14 @@ export const UI_PANEL_MAIL_PHRASES = [
   "passe sur les mails",
   "va sur les mails",
   "onglet mails",
+  // Exact — sinon « ouvre {file} » (files.open) capture « mes mails ».
+  "ouvre mes mails",
+  "ouvre mails",
+  "ouvre mail",
+  "ouvre mes boites mail",
+  "ouvre mes boîtes mail",
+  "ouvre ma messagerie",
+  "ouvre la messagerie",
 ] as const;
 
 /** ui.panel_repos — afficher le panneau dépôts (à-brancher). */
