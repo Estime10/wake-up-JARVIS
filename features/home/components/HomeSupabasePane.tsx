@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { StudioBrowserSplit } from "@/features/home/components/StudioBrowserSplit";
 import { SupabaseConnectModal } from "@/features/home/components/SupabaseConnectModal";
-import { SupabaseStudioBrowser } from "@/features/home/components/SupabaseStudioBrowser";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
 import { useSupabasePlatformContext } from "@/features/supabase/context/supabasePlatformContext";
 import { cn } from "@/lib/cn";
@@ -87,7 +87,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                 {t("home.supabaseUnavailable")}
               </p>
             ) : studioOpen && platform.studioUrl ? (
-              <SupabaseStudioBrowser studioUrl={platform.studioUrl} />
+              <StudioBrowserSplit studioUrl={platform.studioUrl} />
             ) : !hasAccounts ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-3">
                 <Button

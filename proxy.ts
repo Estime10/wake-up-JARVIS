@@ -19,8 +19,10 @@ export async function proxy(request: NextRequest) {
     "font-src 'self'",
     // Supabase : Auth + Data API.
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-    // Studio embed (:54332) — uniquement en dev (DEV-12).
-    isDev ? "frame-src 'self' http://127.0.0.1:54332" : "frame-src 'self'",
+    // Studio embed (:54332) + navigateur libre (placeholder iframe) — dev only (DEV-12 / Tauri plus tard).
+    isDev
+      ? "frame-src 'self' http://127.0.0.1:54332 https: http:"
+      : "frame-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -337,6 +337,17 @@ export const fr = {
       "Clic projet → Docker. Puis Studio via supabase start (:54323).",
     supabaseStudioBack: "← projets",
     supabaseStudioBrowserTitle: "Studio",
+    sideBrowserLabel: "Navigateur libre",
+    sideBrowserUrlLabel: "Adresse web",
+    sideBrowserUrlPlaceholder: "https://… ou recherche",
+    sideBrowserGo: "Aller",
+    sideBrowserReload: "Recharger",
+    sideBrowserFrameTitle: "Navigateur",
+    sideBrowserEmpty: "Entre une URL pour naviguer ici.",
+    sideBrowserBlocked:
+      "Aperçu iframe : beaucoup de sites restent blancs — WebView Tauri à venir.",
+    sideBrowserStudioLabel: "Studio",
+    sideBrowserSplitLabel: "Studio et navigateur",
     supabaseStudioErrorDisabled:
       "Lancement local désactivé hors développement.",
     supabaseStudioErrorDockerMissing: "Docker Desktop introuvable.",
