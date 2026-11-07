@@ -189,43 +189,42 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                     {t(dockerErrorKey)}
                   </p>
                 ) : null}
-                {platform.connection.selectedProjectName ? (
-                  <p className="t-mono text-sm text-text-muted">
-                    {t("home.supabaseActiveProject", {
-                      name: platform.connection.selectedProjectName,
-                    })}
-                  </p>
-                ) : (
-                  <p className="t-mono text-sm text-text-muted">
-                    {t("home.supabasePickProject")}
-                  </p>
-                )}
-                <Button
-                  type="button"
-                  variant="hud"
-                  size="bare"
-                  className="w-fit"
-                  disabled={
-                    platform.studioStarting ||
-                    platform.dockerEnsuring ||
-                    !platform.connection.selectedProjectRef
-                  }
-                  onClick={() => {
-                    void platform.startStudio();
-                  }}
-                >
-                  {platform.studioStarting
-                    ? t("home.supabaseStudioStarting")
-                    : t("home.supabaseStudioStart")}
-                </Button>
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  {platform.connection.selectedProjectName ? (
+                    <p className="t-mono min-w-0 truncate text-sm text-text-muted">
+                      {t("home.supabaseActiveProject", {
+                        name: platform.connection.selectedProjectName,
+                      })}
+                    </p>
+                  ) : (
+                    <p className="t-mono min-w-0 truncate text-sm text-text-muted">
+                      {t("home.supabasePickProject")}
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    variant="hud"
+                    size="bare"
+                    className="w-fit shrink-0"
+                    disabled={
+                      platform.studioStarting ||
+                      platform.dockerEnsuring ||
+                      !platform.connection.selectedProjectRef
+                    }
+                    onClick={() => {
+                      void platform.startStudio();
+                    }}
+                  >
+                    {platform.studioStarting
+                      ? t("home.supabaseStudioStarting")
+                      : t("home.supabaseStudioStart")}
+                  </Button>
+                </div>
                 {studioErrorKey ? (
                   <p className="t-mono text-sm text-danger" role="alert">
                     {t(studioErrorKey)}
                   </p>
                 ) : null}
-                <p className="t-mono text-dial text-text-muted sm:text-sm">
-                  {t("home.supabaseStudioHint")}
-                </p>
               </div>
             </>
           ) : null}
