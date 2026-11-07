@@ -1,6 +1,10 @@
 import type { CustomPhraseRule } from "@/features/assistant/model/customPhraseRules";
-import { collectMailAccountIds } from "@/features/assistant/model/filterMailItems";
+import {
+  collectMailAccountIds,
+  filterToday,
+} from "@/features/assistant/model/filterMailItems";
 import { formatMailOverviewReply } from "@/features/assistant/model/formatMailOverviewReply";
+import { formatMailSendersReply } from "@/features/assistant/model/formatMailSendersReply";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
 import {
   formatV2LocalReply,
@@ -12,10 +16,11 @@ import {
   isMailV2Intent,
 } from "@/features/assistant/services/executeMailV2Intent";
 import { t } from "@/lib/i18n";
+import { pickUserHonorific } from "@/lib/user/userHonorific";
 import type { MailPort } from "@/ports/mail-port";
 
 const MAIL_LIMIT = 50;
-const RECENT_LIMIT = 20;
+const RECENT_LIMIT = 100;
 
 function toMailItems(
   items: Awaited<ReturnType<MailPort["listRecent"]>>,
@@ -50,7 +55,7 @@ export async function buildIntentAssistantReply(
     case "refuse.write":
       return intent.topic
         ? formatV2LocalReply(intent.topic)
-        : t("assistant.refuseWrite");
+        : t("assistant.refuseWrite", { name: pickUserHonorific() });
     case "v2.local":
       return formatV2LocalReply(intent.id, intent.slots);
     case "v2.stub":
@@ -137,11 +142,8 @@ export async function buildIntentAssistantReply(
       );
     }
     case "mail.list_recent": {
-      const items = await mail.listRecent(RECENT_LIMIT);
-      return formatMailTitlesReply(
-        t("assistant.mailRecentLabel"),
-        toMailItems(items),
-      );
+      const items = filterToday(await mail.listRecent(RECENT_LIMIT));
+      return formatMailSendersReply(items);
     }
     case "mail.list_sent": {
       const items = await mail.listSent(MAIL_LIMIT);

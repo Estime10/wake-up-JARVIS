@@ -1,5 +1,5 @@
 import { spokenGreeting } from "@/lib/greeting";
-import { t } from "@/lib/i18n";
+import { pickUserHonorific } from "@/lib/user/userHonorific";
 
 /**
  * Salut TTS partagé — déclenché après l’entrée home (sans geste requis).
@@ -8,7 +8,7 @@ import { t } from "@/lib/i18n";
  * onend/onerror, sinon speak() est silencieux (utterance collectée).
  */
 
-let cachedText = spokenGreeting(new Date().getHours(), t("user.displayName"));
+let cachedText = spokenGreeting(new Date().getHours(), pickUserHonorific());
 /** Incrémenté à chaque nouveau speak — ignore les callbacks périmés. */
 let generation = 0;
 let active = false;

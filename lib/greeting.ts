@@ -1,4 +1,5 @@
 import { t } from "@/lib/i18n";
+import { pickUserHonorific } from "@/lib/user/userHonorific";
 
 function assertHour(hour: number): void {
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
@@ -23,7 +24,7 @@ function isMorning(hour: number): boolean {
  */
 export function spokenGreeting(
   hour: number,
-  name: string = t("user.displayName"),
+  name: string = pickUserHonorific(),
 ): string {
   assertHour(hour);
   const key = isMorning(hour)

@@ -386,6 +386,7 @@ export const TERMINAL_OPEN_PHRASES = [
   "ouvre terminal",
   "lance un terminal",
   "lance le terminal",
+  "lance terminal",
   "un terminal",
   "terminal",
   "nouveau terminal",

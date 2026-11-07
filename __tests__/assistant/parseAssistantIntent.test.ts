@@ -91,6 +91,12 @@ describe("parseAssistantIntent — registre phrases v2", () => {
     expect(parseAssistantIntent("ouvre un terminal")).toEqual({
       kind: "terminal.open",
     });
+    expect(parseAssistantIntent("lance terminal")).toEqual({
+      kind: "terminal.open",
+    });
+    expect(parseAssistantIntent("lance le terminal")).toEqual({
+      kind: "terminal.open",
+    });
     expect(parseAssistantIntent("ouvre un terminal dans Desktop")).toEqual({
       kind: "terminal.open",
       folder: "desktop",

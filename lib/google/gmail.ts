@@ -213,6 +213,22 @@ export async function listGmailHistoryAdded(
   };
 }
 
+/** Snippet Gmail (extrait) — métadonnées seules, jamais à persister. */
+export async function fetchGmailMessageSnippet(
+  accessToken: string,
+  messageId: string,
+): Promise<string | null> {
+  const detail = await gmailFetch<GmailMessageResponse>(
+    accessToken,
+    `/messages/${encodeURIComponent(messageId)}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
+  );
+  if (!detail.ok) {
+    return null;
+  }
+  const snippet = detail.data.snippet?.trim() ?? "";
+  return snippet.length > 0 ? snippet : null;
+}
+
 /** Corps texte brut — uniquement après consentement résumé. */
 export async function fetchGmailMessagePlainText(
   accessToken: string,

@@ -227,16 +227,6 @@ export const REPLIES_FR_V2: Readonly<Record<string, ReplyV2>> = {
     ok: "Voici les mails avec une pièce jointe.",
     empty: "Aucun mail avec pièce jointe d'avant-hier à aujourd'hui.",
   },
-  "mail.read": {
-    ok: "Mail {n} : de {from}, « {subject} », reçu à {time}.",
-    empty: "Il n'y a pas de mail numéro {n}.",
-    missing: { n: "Lequel ? Dis par exemple « lis le mail 2 »." },
-  },
-  "mail.summary": {
-    ok: "En bref, le mail {n} : {summary}",
-    empty: "Il n'y a pas de mail numéro {n}.",
-    missing: { n: "Quel mail ? Dis par exemple « résume le mail 1 »." },
-  },
   "github.status": {
     ok: "GitHub connecté en tant que {login}, en lecture seule.",
     empty: "GitHub n'est pas connecté. Branche-le dans les réglages.",

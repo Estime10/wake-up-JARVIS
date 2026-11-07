@@ -4,10 +4,10 @@
  */
 export const fr = {
   app: {
-    name: "E.L.S.A. | Estime Logiciel Système Assistant",
+    name: "E.L.S.A. | Estime Logiciel Systeme Assistant",
     shortName: "E.L.S.A.",
     /** Déploiement du sigle sous le mark, au-dessus du composer. */
-    expansion: "Estime Logiciel Système Assistant",
+    expansion: "Estime Logiciel Systeme Assistant",
     description: "Assistant E.L.S.A.",
   },
   user: {
@@ -51,7 +51,8 @@ export const fr = {
     /** Alertes proactives mask (sans clic). */
     spokenMailNewOne: "Nouveau mail de {name}.",
     spokenMailNewGeneric: "Nouveau mail reçu.",
-    spokenMailNewMany: "Tu as {count} nouveaux mails.",
+    spokenMailNewMany: "Tu as {count} nouveaux mails, {fromList}.",
+    spokenMailNewManyPlain: "Tu as {count} nouveaux mails.",
     spokenSysNominal: "Charge processeur nominale.",
     spokenSysFair: "Charge processeur modérée.",
     spokenSysSerious: "Attention : charge processeur élevée.",
@@ -137,13 +138,18 @@ export const fr = {
     kindFilesFind: "Trouver un fichier",
     kindFilesOpen: "Ouvrir / révéler un fichier",
     kindRefuseWrite: "Hors périmètre",
-    chatGreeting: "Salut DevinChat. Mails, GitHub ou fichiers ?",
-    chatHowAreYou: "Tout roule, DevinChat. Je t'écoute.",
-    chatThanks: "Avec plaisir, DevinChat.",
+    chatGreeting: "Salut {name}. Mails, GitHub ou fichiers ?",
+    chatHowAreYou: "Tout roule, {name}. Je t'écoute.",
+    chatThanks: "Avec plaisir, {name}.",
     refuseWrite:
-      "Je ne peux pas faire ça, DevinChat : je suis en lecture seule. Dis « aide » pour ce que je sais faire.",
+      "Je ne peux pas faire ça, {name} : je suis en lecture seule. Dis « aide » pour ce que je sais faire.",
     terminalOpen: "J'ouvre le terminal.",
     terminalOpenFolder: "J'ouvre le terminal sur « {folder} ».",
+    terminalClosed: "J'ai fermé le terminal.",
+    mailPanelClosed: "J'ai fermé les mails.",
+    githubPanelClosed: "J'ai fermé GitHub.",
+    panelsClosed: "C'est fermé.",
+    panelAlreadyClosed: "Aucun panneau ouvert.",
     githubOpenPanel: "J'ouvre GitHub.",
     githubOpenRepo: "J'ouvre le dépôt « {repo} ».",
     githubOpenRepoMissing:
@@ -252,10 +258,9 @@ export const fr = {
     mailFromEmpty: "Aucun mail de « {text} ».",
     mailSearchEmpty: "Aucun mail pour « {text} ».",
     mailSearchLabel: "recherche « {text} »",
-    mailReadMissing: "Pas de mail n°{n} dans la liste.",
-    mailReadOk: "Mail {n} — de {from} : {subject} ({time}).",
-    mailSummaryEmpty: "Pas de résumé pour le mail n°{n}.",
-    mailSummaryOk: "Résumé du mail {n} : {summary}",
+    mailSendersEmpty: "Aucun mail reçu aujourd'hui.",
+    mailSendersOne: "Tu as un mail aujourd'hui, {fromList}.",
+    mailSendersMany: "Tu as {count} mails aujourd'hui, {fromList}.",
   },
   home: {
     /** Titre de page sr-only (h1 unique) — nom accessible de `main`. */
@@ -279,6 +284,7 @@ export const fr = {
     mailClose: "Fermer",
     mailCloseLabel: "Fermer le tiroir mails",
     mailNoSubject: "(sans objet)",
+    mailExcerptPending: "Extrait en cours de chargement…",
     mailOpenLabel: "Ouvrir le mail {subject}",
     mailPreviewLabel: "Aperçu : {subject}",
     mailPreviewCloseLabel: "Fermer l’aperçu du mail",

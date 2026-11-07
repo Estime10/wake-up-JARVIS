@@ -2,6 +2,7 @@ import "server-only";
 
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import { formatSupabaseProjectsReply } from "@/features/assistant/model/formatSupabaseProjectsReply";
+import { resolveSupabaseProjectQuery } from "@/features/assistant/model/resolveSupabaseProjectQuery";
 import { t } from "@/lib/i18n";
 import { loadSupabasePlatformToken } from "@/lib/supabase/platform/connectionToken";
 import { listSupabasePlatformProjects } from "@/lib/supabase/platform/managementApi";
@@ -109,13 +110,9 @@ export async function executeSupabaseIntent(
     return t("assistant.supabaseStudioAsk", { list: listText });
   }
 
-  const query = intent.projectQuery.trim().toLowerCase();
-  const match = listed.entries.find(
-    (entry) =>
-      entry.name.toLowerCase() === query ||
-      entry.ref.toLowerCase() === query ||
-      entry.name.toLowerCase().includes(query) ||
-      entry.ref.toLowerCase().includes(query),
+  const match = resolveSupabaseProjectQuery(
+    intent.projectQuery,
+    listed.entries,
   );
 
   if (!match) {

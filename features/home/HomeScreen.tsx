@@ -103,10 +103,23 @@ function HomeScreenBody() {
           openGithubPanel,
           focusGithubRepo: focusRepo,
           openMailPanel,
-          closePanels: () => {
-            closeMail();
-            closeRepo();
-            closeTerminal();
+          closePanels: (target = "all") => {
+            const closed: Array<"terminal" | "mail" | "repo"> = [];
+            const want = (id: "terminal" | "mail" | "repo") =>
+              target === "all" || target === id;
+            if (want("mail") && mailOpen) {
+              closeMail();
+              closed.push("mail");
+            }
+            if (want("repo") && repoOpen) {
+              closeRepo();
+              closed.push("repo");
+            }
+            if (want("terminal") && terminalOpen) {
+              closeTerminal();
+              closed.push("terminal");
+            }
+            return closed;
           },
           openPhraseCatalog: () => openPhraseCatalog(""),
           focusRepoTab: (tab, repoQuery) => {
@@ -131,6 +144,9 @@ function HomeScreenBody() {
       openGithubPanel,
       focusRepo,
       openMailPanel,
+      mailOpen,
+      repoOpen,
+      terminalOpen,
       closeMail,
       closeRepo,
       closeTerminal,
@@ -168,7 +184,9 @@ function HomeScreenBody() {
   });
 
   const listening = state === "listening";
-  const busy = state === "thinking" || state === "speaking";
+  /** Pendant la parole : saisie OK (barge-in). Bloqué seulement en réflexion / boot / mémoire. */
+  const composerLocked =
+    state === "thinking" || memoryStatus !== "ready" || !settled;
   const memoryBlocked = memoryStatus !== "ready";
   const showIdleBrand =
     memoryStatus === "ready" && state === "idle" && messages.length === 0;
@@ -284,7 +302,7 @@ function HomeScreenBody() {
                     onSubmit={submit}
                     listening={listening}
                     onToggleListening={toggleListen}
-                    disabled={busy || memoryBlocked || !settled}
+                    disabled={composerLocked}
                     ghost={state === "speaking"}
                     listenSeed={listenSeed}
                   />

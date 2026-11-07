@@ -157,14 +157,6 @@ export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
     const text = slot(slots, "text");
     return text ? { kind: "mail.search", text } : null;
   }
-  if (id === "mail.read") {
-    const n = parseN(slots);
-    return n ? { kind: "mail.read", n } : null;
-  }
-  if (id === "mail.summary") {
-    const n = parseN(slots);
-    return n ? { kind: "mail.summary_local", n } : null;
-  }
 
   if (id === "github.prs_closed") {
     const repo = slot(slots, "repo");

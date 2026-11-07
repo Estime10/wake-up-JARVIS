@@ -1,5 +1,6 @@
 import { REPLIES_FR_V2 } from "@/features/assistant/model/intents/v2/replies.fr.v2";
 import { t } from "@/lib/i18n";
+import { withUserHonorific } from "@/lib/user/userHonorific";
 
 function fillTemplate(
   template: string,
@@ -11,9 +12,9 @@ function fillTemplate(
 }
 
 function brandElsa(text: string): string {
-  return text
-    .replace(/\bJARVIS\b/g, "E.L.S.A.")
-    .replace(/\bJarvis\b/g, "E.L.S.A.");
+  return withUserHonorific(
+    text.replace(/\bJARVIS\b/g, "E.L.S.A.").replace(/\bJarvis\b/g, "E.L.S.A."),
+  );
 }
 
 /**

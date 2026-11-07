@@ -18,7 +18,7 @@ export function MailPreview({ mail, onClose }: MailPreviewProps) {
   const labelColor = resolveMailLabelColor(
     mail.category ?? mail.flagReason ?? undefined,
   );
-  const body = mail.summary?.trim() || mail.excerpt;
+  const body = mail.excerpt.trim();
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -60,7 +60,7 @@ export function MailPreview({ mail, onClose }: MailPreviewProps) {
         className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-4"
       >
         <p className="t-mono whitespace-pre-wrap text-sm leading-relaxed text-text">
-          {body}
+          {body || t("home.mailExcerptPending")}
         </p>
       </div>
     </div>

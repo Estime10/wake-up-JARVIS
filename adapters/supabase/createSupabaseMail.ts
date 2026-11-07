@@ -15,7 +15,6 @@ type MailItemRow = {
   is_sent: boolean;
   flagged: boolean;
   flag_reason: string | null;
-  summary: string | null;
 };
 
 type MailboxFilter = "inbox" | "sent";
@@ -39,7 +38,8 @@ function mapRow(row: MailItemRow): MailSummary {
     accountId: row.account_id,
     from: row.from_raw,
     subject: row.subject,
-    excerpt: row.summary?.trim() || "",
+    // H2 — extrait jamais en base ; hydrate live via /api/mail/excerpts.
+    excerpt: "",
     time: formatTime(row.received_at),
     receivedAt: new Date(row.received_at).toISOString(),
     unread: false,
@@ -47,14 +47,13 @@ function mapRow(row: MailItemRow): MailSummary {
     isSent: row.is_sent,
     flagged: row.flagged,
     flagReason: row.flag_reason,
-    summary: row.summary,
   });
 }
 
 const WINDOW_FETCH_CAP = 500;
 
 const SELECT_COLS =
-  "id, account_id, from_raw, subject, received_at, category, is_sent, flagged, flag_reason, summary";
+  "id, account_id, from_raw, subject, received_at, category, is_sent, flagged, flag_reason";
 
 /** MailPort Supabase — lit `mail_items` (RLS), fenêtre J-2 + veille + jour. */
 export function createSupabaseMail(client: SupabaseClient): MailPort {

@@ -16,6 +16,7 @@ import {
   MAIL_POLL_INTERVAL_MS,
   runMailPoll,
 } from "@/features/mail/model/mailPollSchedule";
+import { fetchMailExcerpts } from "@/features/mail/model/fetchMailExcerpts";
 import type { MailSummary } from "@/lib/schemas";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
@@ -29,6 +30,8 @@ type MailFeedValue = {
   status: MailListStatus;
   /** Recharge depuis Supabase (sans appeler Gmail). */
   refreshFromDb: () => void;
+  /** Extraits Gmail éphémères (H2) — mémoire session uniquement. */
+  applyEphemeralExcerpts: (excerpts: Readonly<Record<string, string>>) => void;
 };
 
 const MailFeedContext = createContext<MailFeedValue | null>(null);
@@ -42,6 +45,9 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
   const [mails, setMails] = useState<MailSummary[]>([]);
   const [status, setStatus] = useState<MailListStatus>("loading");
   const [attempt, setAttempt] = useState(0);
+  const [ephemeralExcerpts, setEphemeralExcerpts] = useState<
+    Record<string, string>
+  >({});
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +71,47 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [mail, attempt]);
+
+  const applyEphemeralExcerpts = useCallback(
+    (excerpts: Readonly<Record<string, string>>) => {
+      const entries = Object.entries(excerpts).filter(
+        ([, value]) => value.trim().length > 0,
+      );
+      if (entries.length === 0) {
+        return;
+      }
+      setEphemeralExcerpts((prev) => {
+        const next = { ...prev };
+        for (const [id, value] of entries) {
+          next[id] = value.trim();
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (status !== "ready" || mails.length === 0) {
+      return;
+    }
+    const need = mails
+      .filter((item) => !ephemeralExcerpts[item.id]?.trim())
+      .slice(0, 15)
+      .map((item) => item.id);
+    if (need.length === 0) {
+      return;
+    }
+    let cancelled = false;
+    void fetchMailExcerpts(need).then((excerpts) => {
+      if (!cancelled) {
+        applyEphemeralExcerpts(excerpts);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [status, mails, ephemeralExcerpts, applyEphemeralExcerpts]);
 
   useEffect(() => {
     if (!hasSupabasePublicEnv()) {
@@ -144,9 +191,23 @@ export function MailFeedProvider({ children }: { children: ReactNode }) {
     setAttempt((value) => value + 1);
   }, []);
 
+  const mailsWithExcerpts = useMemo(
+    () =>
+      mails.map((item) => {
+        const excerpt = ephemeralExcerpts[item.id];
+        return excerpt ? { ...item, excerpt } : item;
+      }),
+    [mails, ephemeralExcerpts],
+  );
+
   const value = useMemo<MailFeedValue>(
-    () => ({ mails, status, refreshFromDb }),
-    [mails, status, refreshFromDb],
+    () => ({
+      mails: mailsWithExcerpts,
+      status,
+      refreshFromDb,
+      applyEphemeralExcerpts,
+    }),
+    [mailsWithExcerpts, status, refreshFromDb, applyEphemeralExcerpts],
   );
 
   return (

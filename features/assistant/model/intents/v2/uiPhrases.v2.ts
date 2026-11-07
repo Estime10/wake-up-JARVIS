@@ -161,6 +161,18 @@ export const UI_CLOSE_PANEL_PHRASES = [
   "ferme le tiroir",
   "ferme les panneaux",
   "ferme tout",
+  "ferme le terminal",
+  "ferme terminal",
+  "ferme la console",
+  "ferme le shell",
+  "ferme les mails",
+  "ferme le mail",
+  "ferme les e-mails",
+  "ferme github",
+  "ferme le github",
+  "ferme les repos",
+  "ferme le panneau dépôts",
+  "ferme les dépôts",
   "cache le panneau",
   "cache ça",
   "masque le panneau",
@@ -177,6 +189,8 @@ export const UI_CLOSE_PANEL_PHRASES = [
   "cache ca",
   "retour a l'accueil",
   "reviens a l'accueil",
+  "ferme le panneau depots",
+  "ferme les depots",
 ] as const;
 
 /** ui.stop_speaking — arrêter de parler (voix) (à-brancher). */

@@ -107,8 +107,6 @@ import {
   MAIL_FROM_PHRASES,
   MAIL_SEARCH_PHRASES,
   MAIL_ATTACHMENTS_PHRASES,
-  MAIL_READ_PHRASES,
-  MAIL_SUMMARY_PHRASES,
 } from "./mailPhrases.v2";
 import {
   GITHUB_STATUS_PHRASES,
@@ -977,26 +975,6 @@ export const INTENTS_V2: readonly IntentV2[] = [
     slots: [],
     pseudo: false,
     phrases: MAIL_ATTACHMENTS_PHRASES,
-    shortcuts: [],
-  },
-  {
-    id: "mail.read",
-    domain: "mail",
-    appKind: null,
-    status: "nouveau-filtre",
-    slots: ["n"],
-    pseudo: false,
-    phrases: MAIL_READ_PHRASES,
-    shortcuts: [],
-  },
-  {
-    id: "mail.summary",
-    domain: "mail",
-    appKind: null,
-    status: "à-décider",
-    slots: ["n"],
-    pseudo: false,
-    phrases: MAIL_SUMMARY_PHRASES,
     shortcuts: [],
   },
   {

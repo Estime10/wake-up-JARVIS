@@ -9,6 +9,7 @@ import { resolveDisplayName } from "@/features/profile/model/resolveDisplayName"
 import { spokenBriefing } from "@/lib/greeting";
 import { t } from "@/lib/i18n";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
+import { pickUserHonorific } from "@/lib/user/userHonorific";
 import {
   installOpportunisticAudioUnlock,
   resumeUnlockedAudio,
@@ -82,14 +83,18 @@ export function useHomeVoiceGreeting({
     ranRef.current = true;
 
     const now = new Date();
-    let name = t("user.displayName");
+    let name: string = pickUserHonorific();
     try {
       const row = await profile.getProfile();
       if (row) {
-        name = resolveDisplayName(row.displayName, row.username);
+        const resolved = resolveDisplayName(row.displayName, row.username);
+        // Profil perso prioritaire ; sinon honorifique aléatoire (plus DevinChat).
+        if (resolved !== t("user.displayName")) {
+          name = resolved;
+        }
       }
     } catch {
-      /* fallback */
+      /* fallback honorifique */
     }
 
     const mailReady = mailStatus === "ready";

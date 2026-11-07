@@ -8,8 +8,8 @@ import {
   filterToday,
   filterUnread,
   filterYesterday,
-  pickMailAt,
 } from "@/features/assistant/model/filterMailItems";
+import { formatMailSendersReply } from "@/features/assistant/model/formatMailSendersReply";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
 import { t } from "@/lib/i18n";
 import type { MailPort } from "@/ports/mail-port";
@@ -38,9 +38,7 @@ type MailV2Intent = Extract<
       | "mail.account"
       | "mail.unread_account"
       | "mail.from"
-      | "mail.search"
-      | "mail.read"
-      | "mail.summary_local";
+      | "mail.search";
   }
 >;
 
@@ -59,14 +57,13 @@ export function isMailV2Intent(
     intent.kind === "mail.account" ||
     intent.kind === "mail.unread_account" ||
     intent.kind === "mail.from" ||
-    intent.kind === "mail.search" ||
-    intent.kind === "mail.read" ||
-    intent.kind === "mail.summary_local"
+    intent.kind === "mail.search"
   );
 }
 
 /**
- * Filtres mail v2 sur données déjà lues (listRecent / listFlagged).
+ * Filtres mail v2 — surface produit : compte / noms du jour.
+ * Pas de lecture unitaire ni snippet dans les réponses.
  */
 export async function executeMailV2Intent(
   intent: MailV2Intent,
@@ -87,13 +84,7 @@ export async function executeMailV2Intent(
     }
     case "mail.today": {
       const items = filterToday(recent).slice(0, LIST);
-      if (items.length === 0) {
-        return t("assistant.mailTodayEmpty");
-      }
-      return formatMailTitlesReply(
-        t("assistant.mailTodayLabel"),
-        toItems(items),
-      );
+      return formatMailSendersReply(items);
     }
     case "mail.yesterday": {
       const items = filterYesterday(recent).slice(0, LIST);
@@ -176,31 +167,6 @@ export async function executeMailV2Intent(
         t("assistant.mailSearchLabel", { text: intent.text }),
         toItems(items),
       );
-    }
-    case "mail.read": {
-      const inbox = recent.filter((item) => !item.isSent);
-      const item = pickMailAt(inbox, intent.n);
-      if (!item) {
-        return t("assistant.mailReadMissing", { n: intent.n });
-      }
-      return t("assistant.mailReadOk", {
-        n: intent.n,
-        from: item.from,
-        subject: item.subject,
-        time: item.time,
-      });
-    }
-    case "mail.summary_local": {
-      const inbox = recent.filter((item) => !item.isSent);
-      const item = pickMailAt(inbox, intent.n);
-      if (!item) {
-        return t("assistant.mailReadMissing", { n: intent.n });
-      }
-      const summary = item.summary?.trim() || item.excerpt.trim();
-      if (!summary) {
-        return t("assistant.mailSummaryEmpty", { n: intent.n });
-      }
-      return t("assistant.mailSummaryOk", { n: intent.n, summary });
     }
   }
 }

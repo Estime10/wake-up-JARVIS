@@ -92,14 +92,35 @@ function isKnownKind(value: string): value is IntentKind {
   );
 }
 
+/** Intents mail exposés dans le catalogue UI (le reste reste routable / refus silencieux). */
+const CATALOG_MAIL_IDS = new Set([
+  "mail.recent",
+  "mail.today",
+  "mail.count_today",
+  "ui.panel_mail",
+]);
+
+function includeInCatalog(id: string, domain: string): boolean {
+  if (id.startsWith("refuse.")) {
+    return false;
+  }
+  if (domain === "mail") {
+    return CATALOG_MAIL_IDS.has(id);
+  }
+  return true;
+}
+
 /** Catalogue builtin : phrases v2 + Supabase + GitHub UI legacy. */
 export function listBuiltinCatalogEntries(): CatalogEntry[] {
-  const fromV2 = INTENTS_V2.flatMap((intent) =>
-    pack(catalogKindForV2(intent.id, intent.appKind), [
+  const fromV2 = INTENTS_V2.flatMap((intent) => {
+    if (!includeInCatalog(intent.id, intent.domain)) {
+      return [];
+    }
+    return pack(catalogKindForV2(intent.id, intent.appKind), [
       ...intent.shortcuts,
       ...intent.phrases,
-    ]),
-  );
+    ]);
+  });
 
   return [
     ...fromV2,

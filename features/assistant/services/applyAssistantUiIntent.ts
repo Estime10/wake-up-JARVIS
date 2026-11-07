@@ -7,12 +7,15 @@ import type { RepoTab } from "@/features/home/model/repoTab";
 import { t } from "@/lib/i18n";
 import { setVoiceMuted } from "@/lib/voice/voiceMute";
 
+export type UiPanelId = "terminal" | "mail" | "repo";
+
 export type AssistantUiPorts = {
   openTerminal: () => void;
   openGithubPanel: () => void;
   focusGithubRepo: (query: string) => void;
   openMailPanel: () => void;
-  closePanels: () => void;
+  /** Ferme un panneau ciblé ou tous ; renvoie ceux qui étaient ouverts. */
+  closePanels: (target?: UiPanelId | "all") => UiPanelId[];
   openPhraseCatalog: () => void;
   focusRepoTab: (tab: RepoTab, repoQuery?: string) => void;
   stopSpeaking: () => void;
@@ -21,6 +24,37 @@ export type AssistantUiPorts = {
   /** Ferme l’embed Studio (retour liste projets). */
   onStudioStopped: () => void;
 };
+
+function resolveCloseTarget(text: string): UiPanelId | "all" {
+  const n = normalizeIntentText(text);
+  if (/\b(terminal|console|shell|iterm)\b/.test(n)) {
+    return "terminal";
+  }
+  if (/\b(mails?|e-?mails?|courrier)\b/.test(n)) {
+    return "mail";
+  }
+  if (/\b(github|repos?|depots?)\b/.test(n)) {
+    return "repo";
+  }
+  return "all";
+}
+
+function spokenCloseReply(closed: readonly UiPanelId[]): string {
+  if (closed.length === 0) {
+    return t("assistant.panelAlreadyClosed");
+  }
+  if (closed.length === 1) {
+    const only = closed[0]!;
+    if (only === "terminal") {
+      return t("assistant.terminalClosed");
+    }
+    if (only === "mail") {
+      return t("assistant.mailPanelClosed");
+    }
+    return t("assistant.githubPanelClosed");
+  }
+  return t("assistant.panelsClosed");
+}
 
 export type AssistantUiPending = null | "supabase.studio";
 
@@ -86,17 +120,31 @@ export async function applyAssistantUiIntent(args: {
 
   if (intent.kind === "terminal.open") {
     ui.openTerminal();
-    return { pending: null, intent };
+    return {
+      pending: null,
+      intent,
+      spokenReply: intent.folder
+        ? t("assistant.terminalOpenFolder", { folder: intent.folder })
+        : t("assistant.terminalOpen"),
+    };
   }
 
   if (intent.kind === "github.open_panel") {
     ui.openGithubPanel();
-    return { pending: null, intent };
+    return {
+      pending: null,
+      intent,
+      spokenReply: t("assistant.githubOpenPanel"),
+    };
   }
 
   if (intent.kind === "github.open_repo") {
     ui.focusGithubRepo(intent.repoQuery);
-    return { pending: null, intent };
+    return {
+      pending: null,
+      intent,
+      spokenReply: t("assistant.githubOpenRepo", { repo: intent.repoQuery }),
+    };
   }
 
   if (intent.kind === "ui.phrase_catalog") {
@@ -118,11 +166,12 @@ export async function applyAssistantUiIntent(args: {
   }
 
   if (intent.kind === "ui.close_panel") {
-    ui.closePanels();
+    const target = resolveCloseTarget(trimmed);
+    const closed = ui.closePanels(target);
     return {
       pending: null,
       intent,
-      spokenReply: formatV2LocalReply("ui.close_panel"),
+      spokenReply: spokenCloseReply(closed),
     };
   }
 

@@ -19,7 +19,8 @@ type UseProactiveMarkAlertsArgs = {
   speakAlert: (text: string) => Promise<boolean>;
 };
 
-const CPU_MIN_GAP_MS = 8_000;
+/** Anti-spam entre deux hausses de charge. */
+const CPU_MIN_GAP_MS = 30_000;
 const FLUSH_RETRY_MS = 900;
 
 /**
@@ -109,6 +110,10 @@ export function useProactiveMarkAlerts({
     );
     seenMailIdsRef.current = ids;
 
+    if (newcomers.length === 0) {
+      return;
+    }
+
     const phrase = spokenMailArrival(newcomers);
     if (phrase) {
       enqueue(phrase);
@@ -130,8 +135,9 @@ export function useProactiveMarkAlerts({
       return;
     }
 
+    const previous = lastCpuRef.current;
     lastCpuRef.current = sysPressure;
-    const phrase = spokenSysPressureChange(sysPressure);
+    const phrase = spokenSysPressureChange(sysPressure, previous);
     if (!phrase) {
       return;
     }

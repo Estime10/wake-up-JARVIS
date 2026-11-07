@@ -28,8 +28,6 @@ export type AssistantIntent =
   | { kind: "mail.unread_account"; account: string }
   | { kind: "mail.from"; text: string }
   | { kind: "mail.search"; text: string }
-  | { kind: "mail.read"; n: number }
-  | { kind: "mail.summary_local"; n: number }
   | { kind: "github.status" }
   | { kind: "github.list_repos" }
   | { kind: "github.list_pulls"; repoQuery?: string }

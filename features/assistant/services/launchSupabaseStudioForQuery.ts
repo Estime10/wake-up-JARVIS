@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveSupabaseProjectQuery } from "@/features/assistant/model/resolveSupabaseProjectQuery";
 import { ROUTES } from "@/lib/routes";
 import {
   supabasePlatformConnectionSchema,
@@ -12,18 +13,12 @@ export type StudioLaunchResult =
   | { ok: true; projectName: string; accountLabel: string; studioUrl: string }
   | { ok: false; reason: "not_found" | "failed" | "not_connected" };
 
-function matchesProject(
-  project: SupabasePlatformProjectSummary,
-  query: string,
-): boolean {
-  const q = query.trim().toLowerCase();
-  return (
-    project.name.toLowerCase() === q ||
-    project.ref.toLowerCase() === q ||
-    project.name.toLowerCase().includes(q) ||
-    project.ref.toLowerCase().includes(q)
-  );
-}
+type FlatProject = {
+  connection: SupabasePlatformConnection;
+  project: SupabasePlatformProjectSummary;
+  name: string;
+  ref: string;
+};
 
 /**
  * Résout un projet parmi tous les comptes, bascule le compte si besoin, lance Studio.
@@ -55,10 +50,7 @@ export async function launchSupabaseStudioForQuery(
     return { ok: false, reason: "not_connected" };
   }
 
-  let match: {
-    connection: SupabasePlatformConnection;
-    project: SupabasePlatformProjectSummary;
-  } | null = null;
+  const flat: FlatProject[] = [];
 
   for (const connection of connections) {
     const url = new URL(
@@ -76,22 +68,26 @@ export async function launchSupabaseStudioForQuery(
     for (const raw of projectsJson.projects ?? []) {
       try {
         const project = supabasePlatformProjectSchema.parse(raw);
-        if (matchesProject(project, projectQuery)) {
-          match = { connection, project };
-          break;
-        }
+        flat.push({
+          connection,
+          project,
+          name: project.name,
+          ref: project.ref,
+        });
       } catch {
         // ignore invalid row
       }
     }
-    if (match) {
-      break;
-    }
   }
 
-  if (!match) {
+  const resolved = resolveSupabaseProjectQuery(projectQuery, flat);
+  if (!resolved) {
     return { ok: false, reason: "not_found" };
   }
+  const match = {
+    connection: resolved.connection,
+    project: resolved.project,
+  };
 
   if (!match.connection.isActive) {
     const activeResponse = await fetch(ROUTES.supabasePlatformSetActive, {
