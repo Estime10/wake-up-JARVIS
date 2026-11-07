@@ -12,6 +12,7 @@ type MailPanelContextValue = {
   open: boolean;
   toggle: () => void;
   close: () => void;
+  openPanel: () => void;
 };
 
 const MailPanelContext = createContext<MailPanelContextValue | null>(null);
@@ -25,6 +26,7 @@ export function MailPanelProvider({ children }: { children: ReactNode }) {
       open,
       toggle: () => setOpen((current) => !current),
       close: () => setOpen(false),
+      openPanel: () => setOpen(true),
     }),
     [open],
   );

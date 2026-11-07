@@ -24,18 +24,60 @@ export function formatGithubReposReply(repos: readonly RepoSummary[]): string {
 export function formatGithubPullsReply(
   repoId: string,
   pulls: readonly RepoPull[],
+  opts?: { closed?: boolean },
 ): string {
   if (pulls.length === 0) {
-    return t("assistant.githubPullsEmpty", { repo: repoId });
+    return opts?.closed
+      ? t("assistant.githubPullsClosedEmpty", { repo: repoId })
+      : t("assistant.githubPullsEmpty", { repo: repoId });
   }
   const lines = pulls.slice(0, 20).map((pull, index) => {
     return `${index + 1}. ${pull.author.toLocaleUpperCase("fr-FR")}\n#${pull.number} · ${pull.title}`;
   });
-  const header = t("assistant.githubPullsMany", {
-    count: pulls.length,
-    repo: repoId,
-  });
+  const header = opts?.closed
+    ? t("assistant.githubPullsClosedMany", {
+        count: pulls.length,
+        repo: repoId,
+      })
+    : t("assistant.githubPullsMany", {
+        count: pulls.length,
+        repo: repoId,
+      });
   return `${header}\n${lines.join("\n\n")}`;
+}
+
+export function formatGithubActivityReply(
+  repos: readonly RepoSummary[],
+): string {
+  if (repos.length === 0) {
+    return t("assistant.githubActivityEmpty");
+  }
+  const lines = repos.slice(0, 12).map((repo, index) => {
+    return `${index + 1}. ${repo.id}`;
+  });
+  return `${t("assistant.githubActivityHeader")}\n${lines.join("\n")}`;
+}
+
+export function formatGithubRepoInfoReply(repo: RepoSummary): string {
+  const visibility = repo.private ? "privé" : "public";
+  return t("assistant.githubRepoInfoOk", {
+    repo: repo.id,
+    visibility,
+    branch: repo.defaultBranch,
+  });
+}
+
+export function formatGithubFilesReply(
+  repoId: string,
+  paths: readonly string[],
+): string {
+  if (paths.length === 0) {
+    return t("assistant.githubFilesEmpty", { repo: repoId });
+  }
+  const lines = paths
+    .slice(0, 40)
+    .map((path, index) => `${index + 1}. ${path}`);
+  return `${t("assistant.githubFilesHeader", { repo: repoId })}\n${lines.join("\n")}`;
 }
 
 export function formatGithubCommitsReply(

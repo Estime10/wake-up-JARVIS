@@ -1,4 +1,5 @@
 import type { CustomPhraseRule } from "@/features/assistant/model/customPhraseRules";
+import { collectMailAccountIds } from "@/features/assistant/model/filterMailItems";
 import { formatMailOverviewReply } from "@/features/assistant/model/formatMailOverviewReply";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
 import {
@@ -6,6 +7,10 @@ import {
   formatV2StubReply,
 } from "@/features/assistant/model/formatV2Reply";
 import { parseAssistantIntent } from "@/features/assistant/model/parseAssistantIntent";
+import {
+  executeMailV2Intent,
+  isMailV2Intent,
+} from "@/features/assistant/services/executeMailV2Intent";
 import { t } from "@/lib/i18n";
 import type { MailPort } from "@/ports/mail-port";
 
@@ -50,6 +55,42 @@ export async function buildIntentAssistantReply(
       return formatV2LocalReply(intent.id, intent.slots);
     case "v2.stub":
       return formatV2StubReply(intent.id);
+    case "ui.phrase_catalog":
+    case "ui.panel_mail":
+    case "ui.close_panel":
+    case "ui.repo_tab":
+    case "ui.stop_speaking":
+    case "ui.mute":
+    case "ui.unmute":
+    case "geo.where":
+      // Side-effects + spokenReply côté client (applyAssistantUiIntent).
+      return formatV2LocalReply(
+        intent.kind === "ui.repo_tab"
+          ? intent.tab === "pr"
+            ? "ui.repo_tab_pr"
+            : intent.tab === "commits"
+              ? "ui.repo_tab_commits"
+              : intent.tab === "files"
+                ? "ui.repo_tab_files"
+                : "ui.repo_tab_branches"
+          : intent.kind,
+        intent.kind === "ui.repo_tab" && intent.repoQuery
+          ? { repo: intent.repoQuery }
+          : {},
+      );
+    case "system.status": {
+      const recent = await mail.listRecent(20);
+      const accounts = collectMailAccountIds(recent);
+      const mailState =
+        accounts.length > 0
+          ? t("assistant.systemMailOk", { count: accounts.length })
+          : t("assistant.systemMailOff");
+      return formatV2LocalReply("system.status", {
+        mailState,
+        githubState: t("assistant.systemGithubPending"),
+        macState: t("assistant.systemMacPending"),
+      });
+    }
     case "terminal.open":
       return intent.folder
         ? t("assistant.terminalOpenFolder", { folder: intent.folder })
@@ -139,6 +180,12 @@ export async function buildIntentAssistantReply(
     case "mail.list_by_label": {
       const items = await mail.listByLabel(intent.label, MAIL_LIMIT);
       return formatMailTitlesReply(intent.label, toMailItems(items));
+    }
+    default: {
+      if (isMailV2Intent(intent)) {
+        return executeMailV2Intent(intent, mail);
+      }
+      return t("assistant.fallbackCapability");
     }
   }
 }

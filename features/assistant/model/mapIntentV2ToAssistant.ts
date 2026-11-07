@@ -1,55 +1,16 @@
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import { INTENTS_V2 } from "@/features/assistant/model/intents/v2/index.v2";
 import type { RouteV2 } from "@/features/assistant/model/intents/v2/routeIntentV2";
+import type { RepoTab } from "@/features/home/model/repoTab";
 
 const INTENT_BY_ID = new Map(INTENTS_V2.map((intent) => [intent.id, intent]));
 
-/** Intents UI / ports pas encore branchés → réponse stub honnête. */
+/** Encore sans port / API (issues, pièces jointes, fichiers récents Mac…). */
 const STUB_IDS = new Set([
-  "ui.panel_mail",
-  "ui.repo_tab_pr",
-  "ui.repo_tab_commits",
-  "ui.repo_tab_files",
-  "ui.repo_tab_branches",
-  "ui.close_panel",
-  "ui.stop_speaking",
-  "ui.mute",
-  "ui.unmute",
   "mail.attachments",
-  "mail.summary",
   "github.issues",
   "github.issue_detail",
-  "github.pr_detail",
-  "github.files",
-  "github.file_preview",
-  "github.activity",
-  "github.repo_info",
-  "github.prs_closed",
-  "github.commit_last",
   "files.recent",
-  "geo.where",
-  "system.status",
-  "mail.unread",
-  "mail.today",
-  "mail.yesterday",
-  "mail.count_unread",
-  "mail.count_flagged",
-  "mail.count_today",
-  "mail.labels",
-  "mail.accounts",
-  "mail.account",
-  "mail.unread_account",
-  "mail.from",
-  "mail.search",
-  "mail.read",
-  "conv.cancel",
-  "conv.repeat",
-  "conv.confirm",
-  "conv.deny",
-  "conv.correct",
-  "conv.more",
-  "conv.select",
-  "conv.compound",
 ]);
 
 function slot(
@@ -60,8 +21,17 @@ function slot(
   return value && value.length > 0 ? value : undefined;
 }
 
+function parseN(slots: Readonly<Record<string, string>>): number | null {
+  const raw = slot(slots, "n");
+  if (!raw) {
+    return null;
+  }
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 /**
- * Route v2 → AssistantIntent (handlers existants + local/stub).
+ * Route v2 → AssistantIntent (handlers existants + filtres / UI branchés).
  */
 export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
   if (route.kind !== "match") {
@@ -84,7 +54,43 @@ export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
   }
 
   if (id === "ui.phrase_catalog") {
-    return { kind: "v2.local", id, slots: { ...slots } };
+    return { kind: "ui.phrase_catalog" };
+  }
+  if (id === "ui.panel_mail") {
+    return { kind: "ui.panel_mail" };
+  }
+  if (id === "ui.close_panel") {
+    return { kind: "ui.close_panel" };
+  }
+  if (id === "ui.stop_speaking") {
+    return { kind: "ui.stop_speaking" };
+  }
+  if (id === "ui.mute") {
+    return { kind: "ui.mute" };
+  }
+  if (id === "ui.unmute") {
+    return { kind: "ui.unmute" };
+  }
+
+  const tabMap: Record<string, RepoTab> = {
+    "ui.repo_tab_pr": "pr",
+    "ui.repo_tab_commits": "commits",
+    "ui.repo_tab_files": "files",
+    "ui.repo_tab_branches": "branches",
+  };
+  if (id in tabMap) {
+    const tab = tabMap[id]!;
+    const repo = slot(slots, "repo");
+    return repo
+      ? { kind: "ui.repo_tab", tab, repoQuery: repo }
+      : { kind: "ui.repo_tab", tab };
+  }
+
+  if (id === "system.status") {
+    return { kind: "system.status" };
+  }
+  if (id === "geo.where") {
+    return { kind: "geo.where" };
   }
 
   if (id === "files.reveal_file") {
@@ -96,7 +102,6 @@ export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
 
   if (id === "files.open") {
     const file = slot(slots, "file");
-    // « ouvre le premier / dernier » → ouverture générique (pas un nom de fichier).
     if (file && /^(premier|premiere|dernier|derniere|1er|1ere)$/i.test(file)) {
       return { kind: "files.open" };
     }
@@ -110,6 +115,91 @@ export function mapIntentV2ToAssistant(route: RouteV2): AssistantIntent | null {
   if (id === "mail.count_label") {
     const label = slot(slots, "label");
     return label ? { kind: "mail.count", label } : { kind: "mail.count" };
+  }
+
+  if (id === "mail.unread") {
+    return { kind: "mail.unread" };
+  }
+  if (id === "mail.today") {
+    return { kind: "mail.today" };
+  }
+  if (id === "mail.yesterday") {
+    return { kind: "mail.yesterday" };
+  }
+  if (id === "mail.count_unread") {
+    return { kind: "mail.count_unread" };
+  }
+  if (id === "mail.count_flagged") {
+    return { kind: "mail.count_flagged" };
+  }
+  if (id === "mail.count_today") {
+    return { kind: "mail.count_today" };
+  }
+  if (id === "mail.labels") {
+    return { kind: "mail.labels" };
+  }
+  if (id === "mail.accounts") {
+    return { kind: "mail.accounts" };
+  }
+  if (id === "mail.account") {
+    const account = slot(slots, "account");
+    return account ? { kind: "mail.account", account } : null;
+  }
+  if (id === "mail.unread_account") {
+    const account = slot(slots, "account");
+    return account ? { kind: "mail.unread_account", account } : null;
+  }
+  if (id === "mail.from") {
+    const text = slot(slots, "text");
+    return text ? { kind: "mail.from", text } : null;
+  }
+  if (id === "mail.search") {
+    const text = slot(slots, "text");
+    return text ? { kind: "mail.search", text } : null;
+  }
+  if (id === "mail.read") {
+    const n = parseN(slots);
+    return n ? { kind: "mail.read", n } : null;
+  }
+  if (id === "mail.summary") {
+    const n = parseN(slots);
+    return n ? { kind: "mail.summary_local", n } : null;
+  }
+
+  if (id === "github.prs_closed") {
+    const repo = slot(slots, "repo");
+    return repo
+      ? { kind: "github.prs_closed", repoQuery: repo }
+      : { kind: "github.prs_closed" };
+  }
+  if (id === "github.commit_last") {
+    const repo = slot(slots, "repo");
+    return repo
+      ? { kind: "github.commit_last", repoQuery: repo }
+      : { kind: "github.commit_last" };
+  }
+  if (id === "github.files") {
+    const repo = slot(slots, "repo");
+    return repo ? { kind: "github.files", repoQuery: repo } : null;
+  }
+  if (id === "github.file_preview") {
+    const repo = slot(slots, "repo");
+    const file = slot(slots, "file");
+    return repo && file
+      ? { kind: "github.file_preview", repoQuery: repo, file }
+      : null;
+  }
+  if (id === "github.repo_info") {
+    const repo = slot(slots, "repo");
+    return repo ? { kind: "github.repo_info", repoQuery: repo } : null;
+  }
+  if (id === "github.activity") {
+    return { kind: "github.activity" };
+  }
+  if (id === "github.pr_detail") {
+    const repo = slot(slots, "repo");
+    const n = parseN(slots);
+    return repo && n ? { kind: "github.pr_detail", repoQuery: repo, n } : null;
   }
 
   const appKind = meta?.appKind ?? null;

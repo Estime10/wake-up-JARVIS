@@ -34,11 +34,12 @@ export async function listGithubPulls(
   token: string,
   owner: string,
   repo: string,
+  state: "open" | "closed" | "all" = "open",
 ): Promise<ListPullsResult> {
   const result = await githubGet(
     token,
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls`,
-    { state: "open", per_page: "30", sort: "updated", direction: "desc" },
+    { state, per_page: "30", sort: "updated", direction: "desc" },
   );
 
   if (!result.ok) {

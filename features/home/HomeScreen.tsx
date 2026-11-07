@@ -67,18 +67,26 @@ function HomeScreenBody() {
     triggerRef,
     toggle: toggleTerminal,
     openTerminal,
+    close: closeTerminal,
   } = useTerminalSession();
   const {
     open: repoOpen,
     toggle: toggleRepo,
     openPanel: openGithubPanel,
     focusRepo,
+    close: closeRepo,
+    requestTab,
   } = useRepoPanel();
-  const { open: mailOpen, toggle: toggleMail } = useMailPanel();
+  const {
+    open: mailOpen,
+    toggle: toggleMail,
+    openPanel: openMailPanel,
+    close: closeMail,
+  } = useMailPanel();
   const platform = useSupabasePlatformContext();
   const [phraseCatalogOpen, setPhraseCatalogOpen] = useState(false);
   const [phraseCatalogSeed, setPhraseCatalogSeed] = useState("");
-  const openPhraseCatalog = useCallback((phrase: string) => {
+  const openPhraseCatalog = useCallback((phrase = "") => {
     setPhraseCatalogSeed(phrase);
     setPhraseCatalogOpen(true);
   }, []);
@@ -94,6 +102,21 @@ function HomeScreenBody() {
           openTerminal,
           openGithubPanel,
           focusGithubRepo: focusRepo,
+          openMailPanel,
+          closePanels: () => {
+            closeMail();
+            closeRepo();
+            closeTerminal();
+          },
+          openPhraseCatalog: () => openPhraseCatalog(""),
+          focusRepoTab: (tab, repoQuery) => {
+            requestTab(tab, repoQuery);
+          },
+          stopSpeaking: () => {
+            if (typeof window !== "undefined" && window.speechSynthesis) {
+              window.speechSynthesis.cancel();
+            }
+          },
           onStudioLaunched: (embedUrl) => {
             platform.adoptStudioUrl(embedUrl);
             platform.refresh();
@@ -103,7 +126,18 @@ function HomeScreenBody() {
           },
         },
       }),
-    [openTerminal, openGithubPanel, focusRepo, platform],
+    [
+      openTerminal,
+      openGithubPanel,
+      focusRepo,
+      openMailPanel,
+      closeMail,
+      closeRepo,
+      closeTerminal,
+      openPhraseCatalog,
+      requestTab,
+      platform,
+    ],
   );
   const {
     state,

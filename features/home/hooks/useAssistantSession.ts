@@ -704,7 +704,7 @@ export function useAssistantSession(
           pending: uiPendingRef.current,
         });
         uiPendingRef.current = result.pending;
-        if (result.spokenReply) {
+        if (result.spokenReply !== undefined) {
           await runDirectReply(result.spokenReply);
           return;
         }

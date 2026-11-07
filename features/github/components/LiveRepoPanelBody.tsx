@@ -179,7 +179,8 @@ export function LiveRepoPanelBody({
   );
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [listAttempt, setListAttempt] = useState(0);
-  const { focusRepoQuery, clearFocusRepo } = useRepoPanel();
+  const { focusRepoQuery, clearFocusRepo, focusTab, clearFocusTab } =
+    useRepoPanel();
 
   const selected = repos.find((item) => item.id === repoId);
   const activeRef = branch || selected?.defaultBranch || "";
@@ -251,6 +252,17 @@ export function LiveRepoPanelBody({
     }, 0);
     return () => window.clearTimeout(timer);
   }, [focusRepoQuery, repos, clearFocusRepo, hydrateDetail]);
+
+  useEffect(() => {
+    if (!focusTab) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setTab(focusTab);
+      clearFocusTab();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusTab, clearFocusTab]);
 
   useEffect(() => {
     let cancelled = false;

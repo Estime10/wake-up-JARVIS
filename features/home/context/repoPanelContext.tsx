@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import type { RepoTab } from "@/features/home/model/repoTab";
+
 type RepoPanelContextValue = {
   open: boolean;
   toggle: () => void;
@@ -18,6 +20,10 @@ type RepoPanelContextValue = {
   focusRepoQuery: string | null;
   focusRepo: (query: string) => void;
   clearFocusRepo: () => void;
+  /** Onglet demandé par l’assistant — consommé par le panneau live. */
+  focusTab: RepoTab | null;
+  requestTab: (tab: RepoTab, repoQuery?: string) => void;
+  clearFocusTab: () => void;
 };
 
 const RepoPanelContext = createContext<RepoPanelContextValue | null>(null);
@@ -26,9 +32,14 @@ const RepoPanelContext = createContext<RepoPanelContextValue | null>(null);
 export function RepoPanelProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [focusRepoQuery, setFocusRepoQuery] = useState<string | null>(null);
+  const [focusTab, setFocusTab] = useState<RepoTab | null>(null);
 
   const clearFocusRepo = useCallback(() => {
     setFocusRepoQuery(null);
+  }, []);
+
+  const clearFocusTab = useCallback(() => {
+    setFocusTab(null);
   }, []);
 
   const value = useMemo<RepoPanelContextValue>(
@@ -43,8 +54,17 @@ export function RepoPanelProvider({ children }: { children: ReactNode }) {
         setOpen(true);
       },
       clearFocusRepo,
+      focusTab,
+      requestTab: (tab, repoQuery) => {
+        setFocusTab(tab);
+        if (repoQuery?.trim()) {
+          setFocusRepoQuery(repoQuery.trim());
+        }
+        setOpen(true);
+      },
+      clearFocusTab,
     }),
-    [open, focusRepoQuery, clearFocusRepo],
+    [open, focusRepoQuery, focusTab, clearFocusRepo, clearFocusTab],
   );
 
   return <RepoPanelContext value={value}>{children}</RepoPanelContext>;

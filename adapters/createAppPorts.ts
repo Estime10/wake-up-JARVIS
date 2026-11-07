@@ -14,19 +14,33 @@ import {
 } from "@/adapters/supabase";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
+import { isVoiceMuted } from "@/lib/voice/voiceMute";
 import type { Ports } from "@/ports";
 import type { VoicePort } from "@/ports/voice-port";
+
+function withVoiceMute(voice: VoicePort): VoicePort {
+  return {
+    ...voice,
+    async speak(text, handlers, signal) {
+      if (isVoiceMuted()) {
+        return;
+      }
+      await voice.speak(text, handlers, signal);
+    },
+  };
+}
 
 function createAppVoice(): VoicePort {
   const browser = createBrowserVoice();
   // Piper via proxy Next ; repli speechSynthesis si indisponible avant 1er son.
-  if (process.env.NEXT_PUBLIC_PIPER_TTS === "0") {
-    return browser;
-  }
-  return withSpeakFallback(
-    createPiperVoice({ transport: createPiperHttpTransport() }),
-    browser,
-  );
+  const base =
+    process.env.NEXT_PUBLIC_PIPER_TTS === "0"
+      ? browser
+      : withSpeakFallback(
+          createPiperVoice({ transport: createPiperHttpTransport() }),
+          browser,
+        );
+  return withVoiceMute(base);
 }
 
 /**

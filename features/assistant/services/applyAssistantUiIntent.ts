@@ -1,13 +1,21 @@
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
+import { formatV2LocalReply } from "@/features/assistant/model/formatV2Reply";
 import { launchSupabaseStudioForQuery } from "@/features/assistant/services/launchSupabaseStudioForQuery";
 import { stopSupabaseStudio } from "@/features/assistant/services/stopSupabaseStudio";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
+import type { RepoTab } from "@/features/home/model/repoTab";
 import { t } from "@/lib/i18n";
+import { setVoiceMuted } from "@/lib/voice/voiceMute";
 
 export type AssistantUiPorts = {
   openTerminal: () => void;
   openGithubPanel: () => void;
   focusGithubRepo: (query: string) => void;
+  openMailPanel: () => void;
+  closePanels: () => void;
+  openPhraseCatalog: () => void;
+  focusRepoTab: (tab: RepoTab, repoQuery?: string) => void;
+  stopSpeaking: () => void;
   /** Après lancement Studio — synchronise l’état UI (embed URL). */
   onStudioLaunched: (embedUrl: string) => void;
   /** Ferme l’embed Studio (retour liste projets). */
@@ -27,9 +35,25 @@ export type AssistantUiIntentResult = {
   spokenReply?: string;
 };
 
+function readGeoPlace(): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        resolve(`${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`);
+      },
+      () => resolve(null),
+      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 60_000 },
+    );
+  });
+}
+
 /**
- * Side-effects UI après parse intent (terminal, GitHub, Studio).
- * Retourne le pending mis à jour + éventuel intent effectif (follow-up projet).
+ * Side-effects UI après parse intent (terminal, GitHub, Studio, panneaux, voix).
  */
 export async function applyAssistantUiIntent(args: {
   text: string;
@@ -41,11 +65,6 @@ export async function applyAssistantUiIntent(args: {
   const { text, ui, pending } = args;
   const trimmed = text.trim();
 
-  /**
-   * Après « Quel projet ? », le prochain message = nom de projet —
-   * sauf aide / liste / refus / studio déjà qualifié.
-   * Sinon un « salut » / intent chat vole le pending et répond « Ça va… ».
-   */
   if (
     pending === "supabase.studio" &&
     normalizeIntentText(trimmed).length > 0
@@ -78,6 +97,93 @@ export async function applyAssistantUiIntent(args: {
   if (intent.kind === "github.open_repo") {
     ui.focusGithubRepo(intent.repoQuery);
     return { pending: null, intent };
+  }
+
+  if (intent.kind === "ui.phrase_catalog") {
+    ui.openPhraseCatalog();
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("ui.phrase_catalog"),
+    };
+  }
+
+  if (intent.kind === "ui.panel_mail") {
+    ui.openMailPanel();
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("ui.panel_mail"),
+    };
+  }
+
+  if (intent.kind === "ui.close_panel") {
+    ui.closePanels();
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("ui.close_panel"),
+    };
+  }
+
+  if (intent.kind === "ui.repo_tab") {
+    ui.focusRepoTab(intent.tab, intent.repoQuery);
+    const replyId =
+      intent.tab === "pr"
+        ? "ui.repo_tab_pr"
+        : intent.tab === "commits"
+          ? "ui.repo_tab_commits"
+          : intent.tab === "files"
+            ? "ui.repo_tab_files"
+            : "ui.repo_tab_branches";
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply(
+        replyId,
+        intent.repoQuery ? { repo: intent.repoQuery } : {},
+      ),
+    };
+  }
+
+  if (intent.kind === "ui.stop_speaking") {
+    ui.stopSpeaking();
+    return { pending: null, intent, spokenReply: "" };
+  }
+
+  if (intent.kind === "ui.mute") {
+    setVoiceMuted(true);
+    ui.stopSpeaking();
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("ui.mute"),
+    };
+  }
+
+  if (intent.kind === "ui.unmute") {
+    setVoiceMuted(false);
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("ui.unmute"),
+    };
+  }
+
+  if (intent.kind === "geo.where") {
+    const place = await readGeoPlace();
+    if (!place) {
+      return {
+        pending: null,
+        intent,
+        spokenReply: t("assistant.geoWhereDenied"),
+      };
+    }
+    return {
+      pending: null,
+      intent,
+      spokenReply: formatV2LocalReply("geo.where", { place }),
+    };
   }
 
   if (intent.kind === "supabase.studio_stop") {

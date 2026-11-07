@@ -45,6 +45,11 @@ describe("applyAssistantUiIntent — pending studio", () => {
     openTerminal: () => {},
     openGithubPanel: () => {},
     focusGithubRepo: () => {},
+    openMailPanel: () => {},
+    closePanels: () => {},
+    openPhraseCatalog: () => {},
+    focusRepoTab: () => {},
+    stopSpeaking: () => {},
     onStudioLaunched: () => {},
     onStudioStopped: () => {},
   };
