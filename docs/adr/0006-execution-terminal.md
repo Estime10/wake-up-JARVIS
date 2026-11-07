@@ -6,7 +6,7 @@
 
 ## Contexte
 
-À partir de V1, JARVIS proposera des commandes à lancer sur un Mac. C'est la partie la plus dangereuse : un LLM peut se tromper ou être manipulé (contenu de mail, page web…). Il faut que **rien** ne s'exécute sans que DevinChat ait vu et signé la **commande exacte**. HACKER a posé deux conditions : **C1 ordres signés** et **C2 confirmation signée**.
+À partir de V1, E.L.S.A. proposera des commandes à lancer sur un Mac. C'est la partie la plus dangereuse : un LLM peut se tromper ou être manipulé (contenu de mail, page web…). Il faut que **rien** ne s'exécute sans que DevinChat ait vu et signé la **commande exacte**. HACKER a posé deux conditions : **C1 ordres signés** et **C2 confirmation signée**.
 
 ## Décision (cadre)
 

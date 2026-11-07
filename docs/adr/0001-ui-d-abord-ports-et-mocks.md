@@ -6,7 +6,7 @@
 
 ## Contexte
 
-JARVIS aura plus tard un LLM, une voix réelle, Supabase, Gmail et un agent terminal sur le Mac. Tout faire d'un coup est risqué : beaucoup d'inconnues, de la sécurité sensible, et rien de visible avant longtemps. On veut d'abord une interface solide, accessible, et testable.
+E.L.S.A. (ex-nom de code JARVIS) aura plus tard un LLM, une voix réelle, Supabase, Gmail et un agent terminal sur le Mac. Tout faire d'un coup est risqué : beaucoup d'inconnues, de la sécurité sensible, et rien de visible avant longtemps. On veut d'abord une interface solide, accessible, et testable.
 
 ## Décision
 

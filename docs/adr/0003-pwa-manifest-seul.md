@@ -7,7 +7,7 @@
 
 ## Contexte
 
-DevinChat veut pouvoir **installer** JARVIS comme une app sur son Mac. La phase UI n'a pas besoin de cache hors ligne : toutes les données sont simulées. L'état « hors ligne » de l'UI doit quand même exister.
+DevinChat veut pouvoir **installer** E.L.S.A. comme une app sur son Mac. La phase UI n'a pas besoin de cache hors ligne : toutes les données sont simulées. L'état « hors ligne » de l'UI doit quand même exister.
 
 ## Décision
 
@@ -23,5 +23,5 @@ On utilise le **manifeste natif de Next.js** (`app/manifest.ts`, avec `id: "/"` 
 ## Conséquences
 
 - **Gain** : simple, rien à maintenir, pas de bug de cache.
-- **Risque** : installabilité sans service worker **non vérifiée** sur Safari macOS réel (« Ajouter au Dock ») ni pour l'invite d'installation de Chrome : à confirmer à l'étape 21 (critère : DevTools → Application → Manifest sans erreur, puis « Installer » ouvre une fenêtre JARVIS) ; pas de démarrage hors ligne.
+- **Risque** : installabilité sans service worker **non vérifiée** sur Safari macOS réel (« Ajouter au Dock ») ni pour l'invite d'installation de Chrome : à confirmer à l'étape 21 (critère : DevTools → Application → Manifest sans erreur, puis « Installer » ouvre une fenêtre E.L.S.A.) ; pas de démarrage hors ligne.
 - **Coût** : aucun maintenant ; ajouter Serwist plus tard demandera de revoir la CSP (`worker-src`).

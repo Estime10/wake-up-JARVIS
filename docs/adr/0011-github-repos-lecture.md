@@ -23,7 +23,7 @@ Le panneau REPO home est mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)).
 
 **Étape 1 — Connexion seule**
 
-- Table `github_connections` (1 ligne / user JARVIS) + Vault.
+- Table `github_connections` (1 ligne / user E.L.S.A.) + Vault.
 - API : enregistrer PAT (valider via `GET /user`), status, révoquer (purge Vault).
 - Panneau REPO : états connecté / déconnecté / `needs_reauth` — tree/commits/PR live (étape 2).
 
@@ -55,5 +55,5 @@ Le panneau REPO home est mock ([ADR 0001](./0001-ui-d-abord-ports-et-mocks.md)).
 | CA1 | Connexion : PAT validé (`/user`) ; seul `vault_secret_id` en base ; jamais le PAT au client après submit. |
 | CA2 | Disconnect : secret Vault détruit ; plus aucun appel GitHub possible pour ce user.                        |
 | CA3 | Étape 1 : aucun listing tree/commits/PR live (hors validation `/user` à la connexion).                    |
-| CA4 | Étape 2 : scopes Read uniquement — aucun endpoint d’écriture GitHub dans le code JARVIS.                  |
+| CA4 | Étape 2 : scopes Read uniquement — aucun endpoint d’écriture GitHub dans le code E.L.S.A.                 |
 | CA5 | Repos privés **et** publics listables (pas de filtre allowlist).                                          |
