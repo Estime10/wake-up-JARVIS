@@ -351,8 +351,9 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 
 ## Suivi
 
-| Étape | Branche / commit | Statut          |
-| ----- | ---------------- | --------------- |
-| Plan  | `feat/tauri`     | **ce document** |
-| 0 ADR | —                | à faire         |
-| 1–7   | —                | à faire         |
+| Étape      | Branche / commit | Statut                                                |
+| ---------- | ---------------- | ----------------------------------------------------- |
+| Plan       | `feat/tauri`     | **ce document**                                       |
+| 0 ADR      | —                | à faire                                               |
+| 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` + `tauri-shell/` · `ELSA.app` |
+| 2–7        | —                | à faire                                               |
