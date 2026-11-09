@@ -1,11 +1,16 @@
-JARVIS — notices tierces (voix)
+E.L.S.A. / wake-up-JARVIS — notices tierces (voix)
 
-1. Piper TTS — GPL-3.0-or-later  
+1. Piper TTS — GPL-3.0-or-later
    https://github.com/OHF-Voice/piper1-gpl
 
 2. eSpeak NG — GPL (via Piper)
 
-3. Voix fr_FR-siwis-medium — voir MODEL_CARD du modèle installé (souvent CC BY 4.0).  
-   Restriction potentielle « research only » sur la lignée lessac : ne pas redistribuer commercialement sans revue licence.
+3. Voix fr_FR-siwis-medium (dataset siwis)
+   SHA-256: 641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99
+   Licence modèle typique : CC BY 4.0 (voir MODEL_CARD du paquet si fourni).
+   Restriction potentielle « research only » sur la lignée lessac :
+   ne pas redistribuer commercialement sans revue licence.
+
+Détail : CREDITS.md · page /credits
 
 Ce fichier ne remplace pas les textes de licence complets fournis avec chaque composant.

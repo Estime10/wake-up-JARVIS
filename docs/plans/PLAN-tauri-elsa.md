@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** étapes 1–5 OK (Piper Waitress + spawn shell) ; navigateur libre reporté ; suite = packaging (6)
+**Statut :** étapes 1–6 (packaging conf + crédits + DMG ; signing/notarize = compte Apple DevinChat) ; navigateur libre reporté ; suite = agent (7, gate HACKER)
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
@@ -264,10 +264,14 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 
 - Signing Apple (Developer ID) + notarization — compte DevinChat ;
 - DMG / install user-level ;
-- Auto-update : **décision** (Tauri updater vs manuel V0) ;
-- `CREDITS.md` / licences Piper-SIWIS (plan voix étape 6).
+- Auto-update : **manuel V0** (pas de `tauri-plugin-updater`) ;
+- `CREDITS.md` / `NOTICE` / page `/credits` (Piper GPL + SIWIS CC BY) ;
+- Runbook : `docs/runbooks/PACKAGING-macos.md` · script `./scripts/package-elsa.sh`.
 
-**Done when :** install sur le Mac de DevinChat hors machine de build.  
+**Statut code :** conf `app`+`dmg`, entitlements hardened runtime, crédits UI — **fait**.  
+**Reste ops :** installer le certificat Developer ID + notarier, puis installer le DMG sur un Mac ≠ build (Gatekeeper vert).
+
+**Done when :** install sur le Mac de DevinChat hors machine de build (après notarization).  
 **Commit :** `chore(tauri): packaging macOS et crédits.`
 
 ---
@@ -351,13 +355,14 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 
 ## Suivi
 
-| Étape      | Branche / commit | Statut                                             |
-| ---------- | ---------------- | -------------------------------------------------- |
-| Plan       | `feat/tauri`     | **ce document**                                    |
-| 0 ADR      | `feat/tauri`     | **fait** — ADR 0009 + 0014 (proposés)              |
-| 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64       |
-| 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel               |
-| 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`      |
-| 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)       |
-| 5 Piper    | `feat/tauri`     | **fait** — invoke + Waitress spawn + sha256 modèle |
-| 6–7        | —                | à faire                                            |
+| Étape      | Branche / commit | Statut                                                |
+| ---------- | ---------------- | ----------------------------------------------------- |
+| Plan       | `feat/tauri`     | **ce document**                                       |
+| 0 ADR      | `feat/tauri`     | **fait** — ADR 0009 + 0014 (proposés)                 |
+| 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64          |
+| 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel                  |
+| 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`         |
+| 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)          |
+| 5 Piper    | `feat/tauri`     | **fait** — invoke + Waitress spawn + sha256 modèle    |
+| 6 package  | `feat/tauri`     | **partiel** — DMG/crédits/runbook ; signing Apple ops |
+| 7 agent    | —                | à faire (gate HACKER)                                 |

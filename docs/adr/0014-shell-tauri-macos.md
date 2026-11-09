@@ -18,6 +18,7 @@ La prod web (Vercel) est GO ; les limites navigateur (iframe Studio/browser, Pip
 - **Studio** : child WKWebView `elsa-studio` positionné sur le frame DOM (plein panneau droite) ; proxy `:54332` = **web only**.
 - **Navigateur libre** : reporté (util `normalizeSideBrowserUrl` conservé).
 - **Voix shell** : `invoke` → Rust → Piper **`127.0.0.1:5911`** ; repli `speechSynthesis` si Piper down (aligné ADR 0012). Cycle de vie process Piper = responsabilité du shell (DX : script repo OK).
+- **Packaging V0** : artefacts `.app` + `.dmg` ; signing **Developer ID** + notarization (compte DevinChat) ; **pas** d’auto-update (`createUpdaterArtifacts: false`) — install manuelle du DMG. Piper venv/modèle **hors** bundle V0 (scripts machine). Runbook : `docs/runbooks/PACKAGING-macos.md`.
 
 ## Options envisagées
 
@@ -29,4 +30,5 @@ La prod web (Vercel) est GO ; les limites navigateur (iframe Studio/browser, Pip
 
 - **Gain** : un build UI ; Studio/voix natifs sans open-proxy.
 - **Risque** : auth/cookies WKWebView ; bundle Piper ~60 Mo ; confusion web vs shell → `isTauri()` + ports.
-- **Coût** : crate `src-tauri/`, permissions, sidecars/scripts Piper.
+- **Coût** : crate `src-tauri/`, permissions, sidecars/scripts Piper ; certificat Apple + process notarization pour install hors machine de build.
+- **Updater** : reporter `tauri-plugin-updater` tant que la distribution reste perso / 1–2 Macs.
