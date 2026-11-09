@@ -13,6 +13,8 @@
   "permissions": [
     "core:default",
     "allow-studio-ensure",
+    "allow-terminal-run",
+    "allow-terminal-home",
     "allow-voice-speak",
     "allow-voice-stop",
     "allow-webview-pane-set-studio",

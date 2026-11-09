@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-terminal-run"
+description = "Exécute une ligne terminal allowlistée sur le FS local."
+commands.allow = ["terminal_run"]
+
+[[permission]]
+identifier = "allow-terminal-home"
+description = "Retourne le $HOME utilisateur pour la session terminal."
+commands.allow = ["terminal_home"]

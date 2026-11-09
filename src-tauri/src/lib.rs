@@ -1,6 +1,7 @@
 mod elsa_paths;
 mod piper_runtime;
 mod studio_local;
+mod terminal;
 mod voice;
 mod webview_pane;
 
@@ -49,6 +50,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             studio_local::studio_ensure,
+            terminal::terminal_run,
+            terminal::terminal_home,
             voice::voice_speak,
             voice::voice_stop,
             webview_pane::webview_pane_set_studio,

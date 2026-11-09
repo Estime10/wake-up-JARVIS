@@ -17,6 +17,7 @@ La prod web (Vercel) est GO ; les limites navigateur (iframe Studio/browser, Pip
 - **Bridge** : commandes Rust **nommées** + validation args ; capabilities ADR **0009**. Pas de `fetch('http://127.0.0.1')` depuis l’origine https.
 - **Studio** : child WKWebView `elsa-studio` positionné sur le frame DOM (plein panneau droite) ; proxy `:54332` = **web only**. `studio_ensure` → Docker Desktop + `supabase start` sur le Mac (repo via `ELSA_ROOT` / cache Application Support) — zéro terminal utilisateur.
 - **Navigateur libre** : reporté (util `normalizeSideBrowserUrl` conservé).
+- **Terminal interactif (user)** : builtins allowlistés (`cd`/`ls`/`pwd`/`cat`/…) sur **vrai** `$HOME`|/tmp via `terminal_run` — **pas** shell libre, **pas** agent LLM. L’agent ordres signés reste ADR **0006** (gate HACKER, étape 7).
 - **Voix shell** : `invoke` → Rust → Piper **`127.0.0.1:5911`** ; repli `speechSynthesis` si Piper down (aligné ADR 0012). Cycle de vie process Piper = responsabilité du shell (DX : script repo OK).
 - **Packaging V0** : artefacts `.app` + `.dmg` ; signing **Developer ID** + notarization (compte DevinChat) ; **pas** d’auto-update (`createUpdaterArtifacts: false`) — install manuelle du DMG. Runbook : `docs/runbooks/PACKAGING-macos.md`.
 - **Piper autonome** : runtime sous Application Support (`…/be.devinchat.elsa/piper/`) — bootstrap venv + modèle (sha256) au lancement, **sans terminal**. Repo `.venv-piper` = DX seulement.

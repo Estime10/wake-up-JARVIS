@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** étapes 1–6 + Piper autonome + Studio start (Docker/`supabase` depuis le shell) ; navigateur libre reporté ; suite = agent (7, gate HACKER)
+**Statut :** 1–6 + Piper + Studio start + terminal user allowlisté (vrai $HOME) ; navigateur libre reporté ; agent LLM/LaunchAgent = étape 7 (gate HACKER)
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
