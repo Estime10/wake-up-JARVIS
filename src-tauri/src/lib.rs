@@ -16,6 +16,7 @@ use tauri::{
 pub fn run() {
     tauri::Builder::default()
         .manage(voice::PiperProcess(Mutex::new(None)))
+        .manage(terminal::TerminalPtyState::new())
         .setup(|app| {
             let reload = MenuItemBuilder::with_id("reload", "Recharger")
                 .accelerator("CmdOrCtrl+R")
@@ -50,8 +51,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             studio_local::studio_ensure,
-            terminal::terminal_run,
-            terminal::terminal_home,
+            terminal::terminal_pty_start,
+            terminal::terminal_pty_stop,
+            terminal::terminal_pty_write,
+            terminal::terminal_pty_resize,
             voice::voice_speak,
             voice::voice_stop,
             webview_pane::webview_pane_set_studio,
@@ -65,6 +68,7 @@ pub fn run() {
         .run(|app, event| {
             if matches!(event, RunEvent::Exit | RunEvent::ExitRequested { .. }) {
                 voice::shutdown_piper(app);
+                terminal::shutdown_pty(app);
             }
         });
 }

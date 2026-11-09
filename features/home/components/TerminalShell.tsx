@@ -1,5 +1,7 @@
 "use client";
 
+import { TerminalPtyShell } from "@/features/home/components/TerminalPtyShell";
+import { useIsTauriClient } from "@/features/home/hooks/useIsTauriClient";
 import { useTerminalShell } from "@/features/home/hooks/useTerminalShell";
 import { t } from "@/lib/i18n";
 
@@ -8,9 +10,19 @@ type TerminalShellProps = {
 };
 
 /**
- * Shell zsh minimal — Last login + prompt + saisie (pas de chrome Terminal.app).
+ * Shell — Tauri = vrai zsh (PTY) ; web = FS mock.
  */
 export function TerminalShell({ active }: TerminalShellProps) {
+  const isTauriClient = useIsTauriClient();
+
+  if (isTauriClient) {
+    return <TerminalPtyShell active={active} />;
+  }
+
+  return <TerminalMockShell active={active} />;
+}
+
+function TerminalMockShell({ active }: TerminalShellProps) {
   const {
     lines,
     draft,

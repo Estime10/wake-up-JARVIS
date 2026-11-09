@@ -13,8 +13,11 @@
   "permissions": [
     "core:default",
     "allow-studio-ensure",
-    "allow-terminal-run",
-    "allow-terminal-home",
+    "allow-terminal-pty-start",
+    "allow-terminal-pty-stop",
+    "allow-terminal-pty-write",
+    "allow-terminal-pty-resize",
+    "core:event:default",
     "allow-voice-speak",
     "allow-voice-stop",
     "allow-webview-pane-set-studio",

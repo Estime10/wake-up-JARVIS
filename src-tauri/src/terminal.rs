@@ -1,318 +1,172 @@
-//! Terminal interactif utilisateur — builtins allowlistés sur le vrai FS Mac.
-//! Pas d’agent LLM / pas de `sh -c` libre (ADR 0006 = étape séparée, gate HACKER).
+//! Vrai zsh via PTY (`portable-pty`) — saisie utilisateur dans le shell Tauri.
+//! Pas d’agent LLM (ADR 0006). Surface sensible : UI distante peut invoke → session
+//! unique, cwd = $HOME, binaire fixé `/bin/zsh`.
 
-use std::env;
-use std::fs;
-use std::path::{Component, Path, PathBuf};
-use std::process::Command;
+use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
+use std::io::{Read, Write};
+use std::sync::Mutex;
+use std::thread;
+use tauri::{AppHandle, Emitter, Manager, State};
 
-const MAX_LINE_CHARS: usize = 4096;
-const MAX_CAT_BYTES: u64 = 256 * 1024;
+const ZSH: &str = "/bin/zsh";
+const EVENT_DATA: &str = "terminal-pty-data";
+const EVENT_EXIT: &str = "terminal-pty-exit";
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TerminalRunResult {
-    pub cwd: String,
-    pub lines: Vec<String>,
-    pub clear: bool,
+struct PtySession {
+    master: Box<dyn MasterPty + Send>,
+    writer: Box<dyn Write + Send>,
+    child: Box<dyn Child + Send + Sync>,
 }
 
-fn home_dir() -> PathBuf {
-    env::var_os("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("/"))
-}
+pub struct TerminalPtyState(Mutex<Option<PtySession>>);
 
-fn tokenize(input: &str) -> Vec<&str> {
-    input.split_whitespace().collect()
-}
-
-fn expand_user(path: &str) -> PathBuf {
-    if path == "~" {
-        return home_dir();
+impl TerminalPtyState {
+    pub fn new() -> Self {
+        Self(Mutex::new(None))
     }
-    if let Some(rest) = path.strip_prefix("~/") {
-        return home_dir().join(rest);
-    }
-    PathBuf::from(path)
 }
 
-fn resolve_path(cwd: &Path, target: &str) -> PathBuf {
-    let raw = expand_user(target);
-    let joined = if raw.is_absolute() {
-        raw
-    } else {
-        cwd.join(raw)
+fn home_dir() -> std::path::PathBuf {
+    std::env::var_os("HOME")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| std::path::PathBuf::from("/"))
+}
+
+fn spawn_reader(app: AppHandle, mut reader: Box<dyn Read + Send>) {
+    thread::spawn(move || {
+        let mut buf = [0u8; 4096];
+        loop {
+            match reader.read(&mut buf) {
+                Ok(0) => break,
+                Ok(n) => {
+                    let chunk = String::from_utf8_lossy(&buf[..n]).into_owned();
+                    let _ = app.emit(EVENT_DATA, chunk);
+                }
+                Err(_) => break,
+            }
+        }
+        let _ = app.emit(EVENT_EXIT, ());
+    });
+}
+
+/// Démarre (ou remplace) une session `/bin/zsh -l` dans $HOME.
+#[tauri::command]
+pub async fn terminal_pty_start(
+    app: AppHandle,
+    state: State<'_, TerminalPtyState>,
+    cols: u16,
+    rows: u16,
+) -> Result<(), String> {
+    terminal_pty_stop_inner(&state);
+
+    let pty_system = native_pty_system();
+    let pair = pty_system
+        .openpty(PtySize {
+            rows: rows.max(2),
+            cols: cols.max(20),
+            pixel_width: 0,
+            pixel_height: 0,
+        })
+        .map_err(|e| format!("pty_open: {e}"))?;
+
+    let mut cmd = CommandBuilder::new(ZSH);
+    cmd.arg("-l");
+    cmd.cwd(home_dir());
+    // PATH raisonnable pour un login shell Finder / .app
+    cmd.env(
+        "PATH",
+        format!(
+            "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:{}",
+            std::env::var("PATH").unwrap_or_default()
+        ),
+    );
+    cmd.env("TERM", "xterm-256color");
+
+    let child = pair
+        .slave
+        .spawn_command(cmd)
+        .map_err(|e| format!("zsh_spawn: {e}"))?;
+
+    let reader = pair
+        .master
+        .try_clone_reader()
+        .map_err(|e| format!("pty_reader: {e}"))?;
+    let writer = pair
+        .master
+        .take_writer()
+        .map_err(|e| format!("pty_writer: {e}"))?;
+
+    spawn_reader(app.clone(), reader);
+
+    let mut guard = state.0.lock().map_err(|_| "pty_lock")?;
+    *guard = Some(PtySession {
+        master: pair.master,
+        writer,
+        child,
+    });
+    Ok(())
+}
+
+fn terminal_pty_stop_inner(state: &TerminalPtyState) {
+    let Ok(mut guard) = state.0.lock() else {
+        return;
     };
-    normalize(&joined)
-}
-
-fn normalize(path: &Path) -> PathBuf {
-    let mut out = PathBuf::new();
-    for comp in path.components() {
-        match comp {
-            Component::ParentDir => {
-                out.pop();
-            }
-            Component::CurDir => {}
-            other => out.push(other.as_os_str()),
-        }
-    }
-    if out.as_os_str().is_empty() {
-        PathBuf::from("/")
-    } else {
-        out
-    }
-}
-
-fn under_home_or_tmp(path: &Path) -> bool {
-    let home = home_dir();
-    path.starts_with(&home) || path.starts_with("/tmp") || path.starts_with("/private/tmp")
-}
-
-fn reject_path(path: &Path) -> Option<String> {
-    if under_home_or_tmp(path) {
-        None
-    } else {
-        Some(format!(
-            "elsa: path hors $HOME|/tmp refusé — {}",
-            path.display()
-        ))
-    }
-}
-
-fn list_dir(path: &Path) -> Result<Vec<String>, String> {
-    let mut names = Vec::new();
-    let entries = fs::read_dir(path).map_err(|e| format!("ls: {}: {e}", path.display()))?;
-    for entry in entries.flatten() {
-        let name = entry.file_name().to_string_lossy().into_owned();
-        let suffix = if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
-            "/"
-        } else {
-            ""
-        };
-        names.push(format!("{name}{suffix}"));
-    }
-    names.sort();
-    Ok(names)
-}
-
-fn read_file_capped(path: &Path) -> Result<Vec<String>, String> {
-    let meta = fs::metadata(path).map_err(|e| format!("cat: {}: {e}", path.display()))?;
-    if meta.len() > MAX_CAT_BYTES {
-        return Err(format!(
-            "cat: fichier trop grand (>{} Ko)",
-            MAX_CAT_BYTES / 1024
-        ));
-    }
-    let text = fs::read_to_string(path).map_err(|e| format!("cat: {}: {e}", path.display()))?;
-    Ok(text.lines().map(str::to_owned).collect())
-}
-
-fn whoami() -> String {
-    Command::new("id")
-        .arg("-un")
-        .output()
-        .ok()
-        .and_then(|o| {
-            if o.status.success() {
-                Some(String::from_utf8_lossy(&o.stdout).trim().to_owned())
-            } else {
-                None
-            }
-        })
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "unknown".into())
-}
-
-fn hostname() -> String {
-    Command::new("hostname")
-        .arg("-s")
-        .output()
-        .ok()
-        .and_then(|o| {
-            if o.status.success() {
-                Some(String::from_utf8_lossy(&o.stdout).trim().to_owned())
-            } else {
-                None
-            }
-        })
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "mac".into())
-}
-
-fn run_line(cwd: &Path, line: &str) -> Result<TerminalRunResult, String> {
-    let trimmed = line.trim();
-    if trimmed.is_empty() {
-        return Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![],
-            clear: false,
-        });
-    }
-    if trimmed.chars().count() > MAX_LINE_CHARS {
-        return Err("terminal_line_too_long".into());
-    }
-
-    let tokens = tokenize(trimmed);
-    let cmd = tokens.first().copied().unwrap_or("");
-    let args = &tokens[1..];
-
-    match cmd {
-        "clear" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![],
-            clear: true,
-        }),
-        "pwd" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![cwd.display().to_string()],
-            clear: false,
-        }),
-        "whoami" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![whoami()],
-            clear: false,
-        }),
-        "hostname" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![hostname()],
-            clear: false,
-        }),
-        "date" => {
-            let out = Command::new("date")
-                .output()
-                .map_err(|e| format!("date: {e}"))?;
-            let text = String::from_utf8_lossy(&out.stdout).trim().to_owned();
-            Ok(TerminalRunResult {
-                cwd: cwd.display().to_string(),
-                lines: vec![text],
-                clear: false,
-            })
-        }
-        "help" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![
-                "builtins: cd ls pwd clear echo cat whoami hostname date help".into(),
-                "périmètre: $HOME et /tmp uniquement · pas de shell libre (ADR 0006)".into(),
-            ],
-            clear: false,
-        }),
-        "echo" => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![args.join(" ")],
-            clear: false,
-        }),
-        "cd" => {
-            let target = args.first().copied().unwrap_or("~");
-            let next = resolve_path(cwd, target);
-            if let Some(err) = reject_path(&next) {
-                return Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![err],
-                    clear: false,
-                });
-            }
-            let meta = fs::metadata(&next);
-            match meta {
-                Ok(m) if m.is_dir() => Ok(TerminalRunResult {
-                    cwd: next.display().to_string(),
-                    lines: vec![],
-                    clear: false,
-                }),
-                Ok(_) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![format!("cd: not a directory: {target}")],
-                    clear: false,
-                }),
-                Err(_) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![format!("cd: {target}: No such file or directory")],
-                    clear: false,
-                }),
-            }
-        }
-        "ls" => {
-            let target = args.first().copied().unwrap_or(".");
-            let path = resolve_path(cwd, target);
-            if let Some(err) = reject_path(&path) {
-                return Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![err],
-                    clear: false,
-                });
-            }
-            match list_dir(&path) {
-                Ok(names) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: if names.is_empty() {
-                        vec![]
-                    } else {
-                        vec![names.join("  ")]
-                    },
-                    clear: false,
-                }),
-                Err(e) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![e],
-                    clear: false,
-                }),
-            }
-        }
-        "cat" => {
-            let Some(target) = args.first().copied() else {
-                return Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec!["cat: missing file".into()],
-                    clear: false,
-                });
-            };
-            let path = resolve_path(cwd, target);
-            if let Some(err) = reject_path(&path) {
-                return Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![err],
-                    clear: false,
-                });
-            }
-            match read_file_capped(&path) {
-                Ok(lines) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines,
-                    clear: false,
-                }),
-                Err(e) => Ok(TerminalRunResult {
-                    cwd: cwd.display().to_string(),
-                    lines: vec![e],
-                    clear: false,
-                }),
-            }
-        }
-        _ => Ok(TerminalRunResult {
-            cwd: cwd.display().to_string(),
-            lines: vec![format!(
-                "elsa: commande non allowlistée `{cmd}` — tape `help` (pas de shell libre)"
-            )],
-            clear: false,
-        }),
+    if let Some(mut session) = guard.take() {
+        let _ = session.child.kill();
+        let _ = session.child.wait();
     }
 }
 
 #[tauri::command]
-pub async fn terminal_run(cwd: String, line: String) -> Result<TerminalRunResult, String> {
-    let cwd_raw = cwd.trim();
-    let cwd_path = if cwd_raw.is_empty() {
-        home_dir()
-    } else {
-        normalize(Path::new(cwd_raw))
-    };
-    if let Some(err) = reject_path(&cwd_path) {
-        return Err(err);
-    }
-    run_line(&cwd_path, &line)
+pub async fn terminal_pty_stop(state: State<'_, TerminalPtyState>) -> Result<(), String> {
+    terminal_pty_stop_inner(&state);
+    Ok(())
 }
 
 #[tauri::command]
-pub async fn terminal_home() -> Result<String, String> {
-    Ok(home_dir().display().to_string())
+pub async fn terminal_pty_write(
+    state: State<'_, TerminalPtyState>,
+    data: String,
+) -> Result<(), String> {
+    if data.is_empty() {
+        return Ok(());
+    }
+    if data.len() > 16_384 {
+        return Err("pty_write_too_large".into());
+    }
+    let mut guard = state.0.lock().map_err(|_| "pty_lock")?;
+    let session = guard.as_mut().ok_or("pty_not_running")?;
+    session
+        .writer
+        .write_all(data.as_bytes())
+        .map_err(|e| format!("pty_write: {e}"))?;
+    let _ = session.writer.flush();
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn terminal_pty_resize(
+    state: State<'_, TerminalPtyState>,
+    cols: u16,
+    rows: u16,
+) -> Result<(), String> {
+    let guard = state.0.lock().map_err(|_| "pty_lock")?;
+    let session = guard.as_ref().ok_or("pty_not_running")?;
+    session
+        .master
+        .resize(PtySize {
+            rows: rows.max(2),
+            cols: cols.max(20),
+            pixel_width: 0,
+            pixel_height: 0,
+        })
+        .map_err(|e| format!("pty_resize: {e}"))?;
+    Ok(())
+}
+
+/// Kill PTY à la fermeture de l’app.
+pub fn shutdown_pty(app: &AppHandle) {
+    if let Some(state) = app.try_state::<TerminalPtyState>() {
+        terminal_pty_stop_inner(&state);
+    }
 }
