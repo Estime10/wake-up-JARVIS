@@ -14,7 +14,8 @@ type StudioBrowserSplitProps = {
 };
 
 /**
- * Colonne droite entière : Studio **ou** comptes (plus de navigateur libre).
+ * Colonne droite entière : Studio plein panneau **ou** comptes.
+ * Navigateur libre reporté (plan Tauri) — cleanup orphan `elsa-browser` au mount.
  */
 export function StudioBrowserSplit({
   studioUrl,

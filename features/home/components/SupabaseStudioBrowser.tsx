@@ -22,11 +22,7 @@ export function SupabaseStudioBrowser({
         data-tauri-webview-frame
         className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border border-transparent"
       >
-        <TauriWebviewHost
-          kind="studio"
-          url={studioUrl}
-          className="min-h-0 h-full flex-1"
-        />
+        <TauriWebviewHost url={studioUrl} className="min-h-0 h-full flex-1" />
       </div>
     );
   }

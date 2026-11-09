@@ -4,10 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   boundsEqual,
-  clearBrowserWebviewPane,
   clearStudioWebviewPane,
   measureElementBounds,
-  setBrowserWebviewPane,
   setStudioWebviewPane,
   type WebviewPaneBounds,
 } from "@/features/home/tauri/webviewPane";
@@ -15,7 +13,6 @@ import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 
 type TauriWebviewHostProps = {
-  kind: "studio" | "browser";
   /** `null` → panneau masqué / fermé. */
   url: string | null;
   className?: string;
@@ -24,13 +21,11 @@ type TauriWebviewHostProps = {
 };
 
 /**
- * Emplacement DOM (comme un iframe) : en flux, remplit son parent.
- * Le WebView natif Tauri est un calque OS positionné sur ces bounds —
- * ce nœud reste vide/transparent. Le CSS du host ne peint pas la page
- * externe : seul `set_position` / `set_size` déplacent le child WKWebView.
+ * Emplacement DOM Studio : en flux, remplit son parent.
+ * Le WebView natif Tauri est un calque OS positionné sur ces bounds.
+ * (Navigateur libre `elsa-browser` : plus tard — clear orphan côté split.)
  */
 export function TauriWebviewHost({
-  kind,
   url,
   className,
   reloadToken = 0,
@@ -42,13 +37,11 @@ export function TauriWebviewHost({
 
   useEffect(() => {
     return () => {
-      const clear =
-        kind === "studio" ? clearStudioWebviewPane : clearBrowserWebviewPane;
-      void clear().catch(() => {
+      void clearStudioWebviewPane().catch(() => {
         /* unmount */
       });
     };
-  }, [kind]);
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -78,21 +71,13 @@ export function TauriWebviewHost({
       lastBoundsRef.current = bounds;
       try {
         if (!url || bounds.width < 8 || bounds.height < 8) {
-          if (kind === "studio") {
-            await clearStudioWebviewPane();
-          } else {
-            await clearBrowserWebviewPane();
-          }
+          await clearStudioWebviewPane();
           if (!cancelled) {
             setError(false);
           }
           return;
         }
-        if (kind === "studio") {
-          await setStudioWebviewPane(url, bounds, nextForce);
-        } else {
-          await setBrowserWebviewPane(url, bounds, nextForce);
-        }
+        await setStudioWebviewPane(url, bounds, nextForce);
         if (!cancelled) {
           setError(false);
         }
@@ -111,7 +96,6 @@ export function TauriWebviewHost({
     }
 
     schedule(force);
-    // Layout / anim settle — ResizeObserver ne voit pas un simple shift Y.
     const settleTimers = [50, 200, 500, 1000].map((ms) =>
       window.setTimeout(() => schedule(false), ms),
     );
@@ -134,8 +118,6 @@ export function TauriWebviewHost({
     }
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onScroll, true);
-
-    // Flex / entrée panneau : le frame peut bouger en Y sans resize.
     pollTimer = window.setInterval(() => schedule(false), 250);
 
     return () => {
@@ -149,14 +131,14 @@ export function TauriWebviewHost({
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", onScroll, true);
     };
-  }, [kind, url, reloadToken]);
+  }, [url, reloadToken]);
 
   return (
     <div
       ref={hostRef}
       className={cn("min-h-0 w-full flex-1 bg-transparent", className)}
       aria-hidden
-      data-tauri-webview-host={kind}
+      data-tauri-webview-host="studio"
     >
       {error ? (
         <p

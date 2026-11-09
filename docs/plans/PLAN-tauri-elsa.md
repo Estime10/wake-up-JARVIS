@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** étapes 1–4 en cours (WebViews Studio/browser) — ADR 0014/0009 encore ouverts  
+**Statut :** étapes 1–3 OK (scaffold + UI + Studio WebView) ; navigateur libre + Piper = suite — ADR 0014/0009 encore ouverts  
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
@@ -24,13 +24,13 @@
 
 Livrer une **app macOS Apple Silicon** (Tauri **v2**) qui :
 
-| Capacité                                                           | Remplace / complète                       |
-| ------------------------------------------------------------------ | ----------------------------------------- |
-| Fenêtre unique E.L.S.A.                                            | Safari / Chrome                           |
-| WebView **Studio** top-level                                       | iframe + proxy `:54332`                   |
-| WebView **navigateur libre** top-level                             | iframe `SideWebBrowser`                   |
-| **Piper TTS local** (`127.0.0.1:5911` + bridge Tauri)              | proxy Next (dev only) / `speechSynthesis` |
-| Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                          |
+| Capacité                                                           | Remplace / complète                        |
+| ------------------------------------------------------------------ | ------------------------------------------ |
+| Fenêtre unique E.L.S.A.                                            | Safari / Chrome                            |
+| WebView **Studio** top-level                                       | iframe + proxy `:54332`                    |
+| WebView **navigateur libre** top-level                             | (reporté — util `normalizeSideBrowserUrl`) |
+| **Piper TTS local** (`127.0.0.1:5911` + bridge Tauri)              | proxy Next (dev only) / `speechSynthesis`  |
+| Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                           |
 
 La **logique métier Next** (routes API, Supabase, intents) **ne bouge pas** au début : le shell charge l’UI déjà déployée (ou le `next dev` local), puis on bascule les surfaces « natives » une par une.
 
@@ -229,7 +229,7 @@ Pas de second `package.json` npm pour l’UI : le front reste ce repo. Scripts r
 **Remplace** (dans le shell uniquement) :
 
 - `SupabaseStudioBrowser` iframe + proxy `:54332` → **WebView** vers `http://127.0.0.1:54323` (ou URL Studio réelle) ;
-- `SideWebBrowser` iframe → **WebView** avec barre d’URL (réutiliser `normalizeSideBrowserUrl` côté front ; navigation via commande Rust).
+- Recréer un chrome navigateur libre → **WebView** `elsa-browser` (réutiliser `normalizeSideBrowserUrl` ; navigation via commande Rust).
 
 Layout : conserver le split 50/50 (chrome React) ; les surfaces média sont des WebViews enfants / labels Tauri positionnés — **spike UI** en sous-tâche (mesure bbox DOM → `set_position`).
 

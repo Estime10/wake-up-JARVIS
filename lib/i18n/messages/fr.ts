@@ -336,15 +336,7 @@ export const fr = {
     supabaseStudioStarting: "Démarrage Studio…",
     supabaseStudioBack: "← projets",
     supabaseStudioBrowserTitle: "Studio",
-    sideBrowserLabel: "Navigateur libre",
-    sideBrowserUrlLabel: "Adresse web",
-    sideBrowserUrlPlaceholder: "https://… ou recherche",
-    sideBrowserGo: "Aller",
-    sideBrowserReload: "Recharger",
-    sideBrowserFrameTitle: "Navigateur",
-    sideBrowserEmpty: "Entre une URL pour naviguer ici.",
     sideBrowserStudioLabel: "Studio",
-    sideBrowserSplitLabel: "Studio et navigateur",
     supabaseStudioErrorDisabled:
       "Lancement local désactivé hors développement.",
     supabaseStudioErrorNotRunning:

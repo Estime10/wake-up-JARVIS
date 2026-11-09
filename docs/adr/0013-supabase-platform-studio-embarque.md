@@ -3,7 +3,7 @@
 - **Statut** : Proposé
 - **Niveau** : 2 (jetons Management API en Vault, Docker local)
 - **Date** : 2026-11-04
-- **Révisé** : 2026-11-07 (split Studio / navigateur libre, CSP `frame-src`)
+- **Révisé** : 2026-11-09 (Studio plein panneau ; navigateur libre reporté Tauri)
 - **Auteur** : ARCHITECT — impl. `refonte-ui` / `feature/api` ; passe doc 2026-11-07
 - **Relecteurs** : HACKER, THE JUDGE, PIXEL
 
@@ -19,10 +19,10 @@ Il veut aussi, **sous Studio**, un **navigateur libre** (barre d’URL) dans le 
 - **API** : routes `app/api/supabase/platform/*` (connect, status, disconnect, projects, select-project, set-active, docker/ensure, studio/start|stop) — owner only (`requireOwnerAccess`).
 - **Docker / Studio** : `ensureDockerRunning` + `supabase start` en Node (`ALLOW_LOCAL_STUDIO` / `NODE_ENV=development`). API locale sur **`:54331`** (évite conflit CleanMyMac sur `:54321`) ; Studio reste `:54323`.
 - **Embed Studio** : reverse-proxy local **`:54332`** (`studioEmbedProxy`) ; Host allowlist (`127.0.0.1` / `localhost`:+port) ; CSP réponse `frame-ancestors` borné à l’origine app (`:3000`) — **pas** de strip total (DEV-3) ; iframe dans `SupabaseStudioBrowser`.
-- **Split tiroir** : quand Studio est ouvert, `StudioBrowserSplit` — **haut** Studio, **bas** navigateur libre (`SideWebBrowser`), défaut **50/50**, séparateur redimensionnable (souris + clavier), ratio en `sessionStorage`.
-- **Navigateur libre (web)** : iframe + normalisation d’URL (`normalizeSideBrowserUrl`, schémas dangereux refusés) ; **placeholder UI** jusqu’au WebView Tauri. Pas de proxy générique anti-frame (open-proxy interdit).
+- **Tiroir Studio** : quand Studio est ouvert, `StudioBrowserSplit` = **plein panneau** Studio (web = iframe `:54332` ; Tauri = child WKWebView). Plus de split 50/50.
+- **Navigateur libre** : **reporté** au shell Tauri (plan `PLAN-tauri-elsa`) — util `normalizeSideBrowserUrl` conservé. Pas de proxy générique anti-frame (open-proxy interdit).
 - **CSP app (`proxy.ts`)** : en **dev** uniquement — `frame-src 'self' http://127.0.0.1:54332 https: http:` (Studio + aperçu sites frameables) ; en **prod** — `frame-src 'self'`.
-- **Tauri (plus tard)** : WebView(s) top-level dans le tiroir — même chrome, sans proxy Studio ni iframe libre.
+- **Tauri** : child WebView Studio (`elsa-studio`) ; navigateur libre (`elsa-browser`) prévu ensuite.
 
 ## Options envisagées
 
@@ -47,5 +47,5 @@ Il veut aussi, **sous Studio**, un **navigateur libre** (barre d’URL) dans le 
 | CA2 | Clic projet → Docker ensure ; Start Studio → stack up ou `port_in_use`.     |
 | CA3 | Après start, le tiroir affiche Studio via `:54332` (pas d’onglet).          |
 | CA4 | API locale configurable (`supabase/config.toml` `[api] port = 54331`).      |
-| CA5 | Studio ouvert → split 50/50 Studio / navigateur libre, redimensionnable.    |
+| CA5 | Studio ouvert → plein panneau droite ; « ← projets » + URL dans le top bar. |
 | CA6 | Navigateur libre : URL normalisée ; `javascript:` / `file:` / etc. refusés. |
