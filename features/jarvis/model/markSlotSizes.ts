@@ -1,16 +1,21 @@
-/** Classes taille MarkSlot — splash (intro / terminal) vs home. */
+/**
+ * Taille MarkSlot — bornée à la **colonne centrale** (parent `w-full`).
+ *
+ * Le chrome SVG (`overflow: visible`, crosshairs ≈ −56…304 sur viewBox 248)
+ * déborde d’un facteur ~1.45. On plafonne donc le slot à ~64 % de la colonne
+ * pour que le dessin reste dans le tiers milieu, sans chevaucher conversation /
+ * Studio, et sans manger le libellé sous le ring.
+ */
+const MARK_SLOT_BOX =
+  "aspect-square mx-auto h-auto w-[min(64%,42vh,15rem)] sm:w-[min(64%,46vh,17rem)]";
 
 export const MARK_SLOT_SIZE = {
-  splash: "size-[min(72vw,22rem)] sm:size-[min(52vw,28rem)]",
-  /**
-   * Home = splash (refonte-ui) : pas de scale-down après splash ;
-   * le mark reste plein centre à la même taille.
-   */
-  home: "size-[min(72vw,22rem)] sm:size-[min(52vw,28rem)]",
+  splash: MARK_SLOT_BOX,
+  home: MARK_SLOT_BOX,
 } as const;
 
 /**
- * Réserve sous le MarkSlot home pour le chrome splash (overflow visible).
- * ≈ 24 % du viewBox 248 (réticules ~y 302) → calé en rem stables.
+ * Réserve sous le MarkSlot pour le chrome SVG (réticules) — en flux pour
+ * laisser de la place au libellé / wordmark.
  */
-export const MARK_HOME_CHROME_BELOW = "h-14 sm:h-16";
+export const MARK_HOME_CHROME_BELOW = "h-10 sm:h-12";

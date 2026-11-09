@@ -72,7 +72,7 @@ export function HomeComposer({
           aria-disabled={disabled || undefined}
           onClick={handleMicClick}
           className={cn(
-            "mb-0.5 shrink-0 text-text-muted hover:text-text",
+            "mb-0.5 shrink-0 text-text hover:text-accent",
             listening && "text-accent hover:text-accent",
           )}
         >
@@ -96,7 +96,7 @@ export function HomeComposer({
           aria-disabled={disabled || undefined}
           autoComplete="off"
           enterKeyHint="send"
-          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text-muted outline-hidden aria-disabled:cursor-not-allowed"
+          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text outline-hidden aria-disabled:cursor-not-allowed"
         />
         <Button
           type="submit"
@@ -111,7 +111,7 @@ export function HomeComposer({
       </div>
       {caption ? (
         <p
-          className="t-mono mt-2 text-center text-sm text-text-muted"
+          className="t-mono mt-2 text-center text-sm text-text"
           aria-hidden={listening || undefined}
         >
           {caption}

@@ -91,10 +91,10 @@ function RepoTreeNode({
           }
           onClick={() => onSelectFile?.(path)}
         >
-          <RepoFileIcon className="size-3.5 shrink-0 text-text-muted" />
+          <RepoFileIcon className="size-3.5 shrink-0 text-text" />
           <span className="min-w-0 flex-1 truncate text-left">{node.name}</span>
           {isProtected ? (
-            <RepoLockIcon className="size-3 shrink-0 text-text-muted" />
+            <RepoLockIcon className="size-3 shrink-0 text-text" />
           ) : null}
         </Button>
       </li>
@@ -116,10 +116,10 @@ function RepoTreeNode({
         style={{ paddingLeft: `${depth * 0.75 + 0.25}rem` }}
         onClick={() => setExpanded((value) => !value)}
       >
-        <span className="w-3 shrink-0 text-text-muted" aria-hidden>
+        <span className="w-3 shrink-0 text-text" aria-hidden>
           {expanded ? "▾" : "▸"}
         </span>
-        <RepoFolderIcon className="size-3.5 shrink-0 text-text-muted" />
+        <RepoFolderIcon className="size-3.5 shrink-0 text-text" />
         <span className="truncate">{node.name}/</span>
       </Button>
       {expanded ? (

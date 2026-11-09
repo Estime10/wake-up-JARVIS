@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -40,6 +41,14 @@ export function AuthScreen() {
         ) : (
           <AuthModal onSuccess={goHome} />
         )}
+        <p className="mt-6 text-center text-xs text-text/50">
+          <Link
+            className="underline underline-offset-2 hover:text-text/80"
+            href={ROUTES.credits}
+          >
+            Crédits &amp; licences
+          </Link>
+        </p>
       </div>
     </div>
   );

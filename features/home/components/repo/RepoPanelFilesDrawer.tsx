@@ -39,7 +39,7 @@ export function RepoPanelFilesDrawer({
     >
       <div className="relative flex h-full min-h-0 flex-col">
         <header className={cn(REPO_CHROME.header, "justify-between")}>
-          <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
+          <p className="t-mono text-sm tracking-wide text-text uppercase">
             {t("home.repoTitle")}
           </p>
           <Button

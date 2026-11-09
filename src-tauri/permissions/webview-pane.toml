@@ -1,0 +1,14 @@
+[[permission]]
+identifier = "allow-webview-pane-set-studio"
+description = "Ouvre / positionne le WebView Studio (loopback)."
+commands.allow = ["webview_pane_set_studio"]
+
+[[permission]]
+identifier = "allow-webview-pane-clear-studio"
+description = "Ferme le WebView Studio."
+commands.allow = ["webview_pane_clear_studio"]
+
+[[permission]]
+identifier = "allow-webview-pane-debug"
+description = "Lit scale / inset / bounds réels du child WebView (diagnostic)."
+commands.allow = ["webview_pane_debug"]

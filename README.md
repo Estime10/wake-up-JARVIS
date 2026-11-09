@@ -327,3 +327,6 @@ Comment avancer :
 
 **JARVIS** et **Iron Man** sont des marques et personnages appartenant à **Marvel** (The Walt Disney Company).
 Ce dépôt est un **projet personnel, non commercial**, sans lien avec Marvel ni Disney.
+
+Voix / licences tierces : [`CREDITS.md`](./CREDITS.md), [`NOTICE`](./NOTICE), page [`/credits`](https://wake-up-jarvis.vercel.app/credits).  
+Packaging macOS (DMG, signing) : [`docs/runbooks/PACKAGING-macos.md`](./docs/runbooks/PACKAGING-macos.md).

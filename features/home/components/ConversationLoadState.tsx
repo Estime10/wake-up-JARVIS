@@ -19,7 +19,7 @@ export function ConversationLoadState({
       <div className="flex min-h-0 w-full flex-1 flex-col">
         <ConversationSkeleton />
         <p
-          className="t-mono px-4 pb-4 text-center text-sm tracking-wide text-text-muted uppercase sm:px-5"
+          className="t-mono px-4 pb-4 text-center text-sm tracking-wide text-text uppercase sm:px-5"
           aria-hidden
         >
           {t("home.conversationLoading")}

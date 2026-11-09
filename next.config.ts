@@ -4,6 +4,9 @@ import type { NextConfig } from "next";
 // et le rendu partiel est incompatible avec une CSP à nonce (voir ADR 0002).
 // CSP elle-même : uniquement dans proxy.ts (pas ici).
 const nextConfig: NextConfig = {
+  // Shell Tauri charge http://localhost:3000 — sans ça, Next bloque /_next/hmr
+  // (origine 127.0.0.1 ≠ hostname du dev server) → UI figée / skeleton auth.
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   turbopack: {
     rules: {
       "*.css": {

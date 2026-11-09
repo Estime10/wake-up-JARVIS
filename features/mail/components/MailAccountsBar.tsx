@@ -27,7 +27,7 @@ export function MailAccountsBar({
   return (
     <div className="flex shrink-0 flex-col gap-2 border-b border-line-subtle px-3 py-3 sm:px-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium tracking-wide text-text-muted uppercase">
+        <p className="text-sm font-medium tracking-wide text-text uppercase">
           {t("home.mailboxesTitle")}
         </p>
         <div className="flex items-center gap-3">
@@ -38,7 +38,7 @@ export function MailAccountsBar({
               size="bare"
               disabled={polling}
               onClick={onRefresh}
-              className="font-mono text-sm tracking-wide text-text-muted uppercase hover:text-text"
+              className="font-mono text-sm tracking-wide text-text uppercase hover:text-accent"
             >
               {polling ? t("home.mailPolling") : t("home.mailRefresh")}
             </Button>
@@ -46,7 +46,7 @@ export function MailAccountsBar({
           {canConnect ? (
             <a
               href={ROUTES.googleOAuthConnect}
-              className="font-mono text-sm tracking-wide text-text-muted uppercase transition-colors hover:text-text"
+              className="font-mono text-sm tracking-wide text-text uppercase transition-colors hover:text-accent"
             >
               {t("home.mailAddMailbox")}
             </a>
@@ -55,9 +55,7 @@ export function MailAccountsBar({
       </div>
 
       {accounts.length === 0 ? (
-        <p className="t-mono text-sm text-text-muted">
-          {t("home.mailNoMailbox")}
-        </p>
+        <p className="t-mono text-sm text-text">{t("home.mailNoMailbox")}</p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {accounts.map((account) => {
@@ -85,7 +83,7 @@ export function MailAccountsBar({
                     size="bare"
                     className={cn(
                       "text-sm tracking-wide uppercase",
-                      enabled ? "text-success" : "text-text-muted",
+                      enabled ? "text-success" : "text-text",
                     )}
                     disabled={needsReauth}
                     onClick={() => onToggle(account.id, !enabled)}

@@ -513,7 +513,7 @@ export function LiveRepoPanelBody({
           }}
         />
         {activeRef ? (
-          <p className="t-mono text-dial text-text-muted sm:text-sm">
+          <p className="t-mono text-dial text-text sm:text-sm">
             {t("home.repoBranch", { branch: activeRef })}
           </p>
         ) : null}
@@ -522,7 +522,7 @@ export function LiveRepoPanelBody({
           variant="ghost"
           size="bare"
           disabled={disconnecting}
-          className="t-mono self-start text-sm tracking-wide text-text-muted uppercase hover:text-danger"
+          className="t-mono self-start text-sm tracking-wide text-text uppercase hover:text-danger"
           onClick={onDisconnect}
         >
           {disconnecting
@@ -587,7 +587,7 @@ export function LiveRepoPanelBody({
             {tab === "branches" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {branches.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text-muted">
+                  <p className="t-mono px-1 text-sm text-text">
                     {t("home.repoBranchesEmpty")}
                   </p>
                 ) : (
@@ -611,7 +611,7 @@ export function LiveRepoPanelBody({
                             <span className="min-w-0 truncate uppercase">
                               {item.name}
                             </span>
-                            <span className="shrink-0 text-dial text-text-muted sm:text-sm">
+                            <span className="shrink-0 text-dial text-text sm:text-sm">
                               {item.isDefault
                                 ? t("home.repoBranchDefault")
                                 : item.protected
@@ -630,7 +630,7 @@ export function LiveRepoPanelBody({
             {tab === "files" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {tree.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text-muted">
+                  <p className="t-mono px-1 text-sm text-text">
                     {t("home.repoEmpty")}
                   </p>
                 ) : (
@@ -662,7 +662,7 @@ export function LiveRepoPanelBody({
             {tab === "pr" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {pulls.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text-muted">
+                  <p className="t-mono px-1 text-sm text-text">
                     {t("home.repoPrEmpty")}
                   </p>
                 ) : (
@@ -672,11 +672,11 @@ export function LiveRepoPanelBody({
                         key={pull.id}
                         className="rounded-md border border-line-subtle px-3 py-2.5"
                       >
-                        <p className="t-mono text-dial text-text-muted sm:text-sm">
+                        <p className="t-mono text-dial text-text sm:text-sm">
                           #{pull.number}
                         </p>
                         <p className="t-mono text-sm text-text">{pull.title}</p>
-                        <p className="t-mono text-dial text-text-muted sm:text-sm">
+                        <p className="t-mono text-dial text-text sm:text-sm">
                           {pull.author} · {pull.relativeTime}
                         </p>
                       </li>

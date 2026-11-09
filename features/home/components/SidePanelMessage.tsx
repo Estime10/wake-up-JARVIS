@@ -22,7 +22,7 @@ export function SidePanelMessage({
         className={
           tone === "danger"
             ? "t-mono text-sm text-danger"
-            : "t-mono text-sm text-text-muted"
+            : "t-mono text-sm text-text"
         }
         role={tone === "danger" ? "alert" : "status"}
       >

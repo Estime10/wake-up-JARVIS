@@ -144,7 +144,7 @@ export function Select({
         onKeyDown={onTriggerKeyDown}
       >
         <span className="truncate">{selected?.label ?? ""}</span>
-        <span className="shrink-0 text-text-muted" aria-hidden>
+        <span className="shrink-0 text-text" aria-hidden>
           {open ? "▴" : "▾"}
         </span>
       </Button>

@@ -1,169 +1,41 @@
 "use client";
 
-import {
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-  type ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
-import { SideWebBrowser } from "@/features/home/components/SideWebBrowser";
 import { SupabaseStudioBrowser } from "@/features/home/components/SupabaseStudioBrowser";
-import {
-  STUDIO_BROWSER_SHARE_DEFAULT,
-  STUDIO_BROWSER_SHARE_MAX,
-  STUDIO_BROWSER_SHARE_MIN,
-  STUDIO_BROWSER_SHARE_STEP,
-  clampStudioBrowserShare,
-} from "@/features/home/model/clampStudioBrowserShare";
-import { readSessionNumber } from "@/features/home/model/readSessionNumber";
 import { t } from "@/lib/i18n";
 
-const SPLIT_KEY = "elsa.studioBrowserSplit.v1";
-
 type StudioBrowserSplitProps = {
-  /** Studio ouvert → panneau haut. `null` → `topFallback` (comptes), browser toujours bas. */
+  /** Studio ouvert → plein panneau. `null` → `topFallback` (comptes). */
   studioUrl: string | null;
   topFallback?: ReactNode;
 };
 
-function initialShare(): number {
-  const saved = readSessionNumber(SPLIT_KEY);
-  return saved === null
-    ? STUDIO_BROWSER_SHARE_DEFAULT
-    : clampStudioBrowserShare(saved);
-}
-
 /**
- * Colonne droite : haut = Studio **ou** comptes ; bas = navigateur libre (toujours).
- * Studio et browser sont indépendants — fermer Studio ne démonte pas le browser.
+ * Colonne droite entière : Studio plein panneau **ou** comptes.
  */
 export function StudioBrowserSplit({
   studioUrl,
   topFallback = null,
 }: StudioBrowserSplitProps) {
-  const studioOpen = Boolean(studioUrl);
-  const [studioShare, setStudioShare] = useState(initialShare);
-  const shareRef = useRef(studioShare);
-  const splitRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef<{ startY: number; startShare: number } | null>(null);
-
-  function persistShare(value: number): void {
-    try {
-      window.sessionStorage.setItem(SPLIT_KEY, String(value));
-    } catch {
-      /* private mode */
-    }
-  }
-
-  function applyShare(value: number, persist: boolean): void {
-    const next = clampStudioBrowserShare(value);
-    setStudioShare(next);
-    shareRef.current = next;
-    if (persist) {
-      persistShare(next);
-    }
-  }
-
-  function onSplitPointerDown(event: ReactPointerEvent<HTMLDivElement>): void {
-    event.preventDefault();
-    dragRef.current = { startY: event.clientY, startShare: shareRef.current };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function onSplitPointerMove(event: ReactPointerEvent<HTMLDivElement>): void {
-    if (!dragRef.current || !splitRef.current) {
-      return;
-    }
-    const height = splitRef.current.getBoundingClientRect().height;
-    if (height <= 0) {
-      return;
-    }
-    const delta = (event.clientY - dragRef.current.startY) / height;
-    applyShare(dragRef.current.startShare + delta, false);
-  }
-
-  function onSplitPointerUp(event: ReactPointerEvent<HTMLDivElement>): void {
-    if (!dragRef.current) {
-      return;
-    }
-    dragRef.current = null;
-    try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    } catch {
-      /* already released */
-    }
-    persistShare(shareRef.current);
-  }
-
-  function onSplitKeyDown(event: ReactKeyboardEvent<HTMLDivElement>): void {
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      applyShare(shareRef.current - STUDIO_BROWSER_SHARE_STEP, true);
-      return;
-    }
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      applyShare(shareRef.current + STUDIO_BROWSER_SHARE_STEP, true);
-    }
-  }
-
-  return (
-    <div
-      ref={splitRef}
-      className="flex min-h-0 flex-1 flex-col"
-      aria-label={t("home.sideBrowserSplitLabel")}
-    >
-      {studioOpen && studioUrl ? (
-        <>
-          <div
-            className="flex min-h-0 flex-col gap-1"
-            style={{ flex: `${studioShare} 1 0%` }}
-          >
-            <p className="t-mono shrink-0 text-dial tracking-wide text-text-muted uppercase">
-              {t("home.sideBrowserStudioLabel")}
-            </p>
-            <SupabaseStudioBrowser studioUrl={studioUrl} />
-          </div>
-          <div
-            role="separator"
-            aria-orientation="horizontal"
-            aria-valuemin={Math.round(STUDIO_BROWSER_SHARE_MIN * 100)}
-            aria-valuemax={Math.round(STUDIO_BROWSER_SHARE_MAX * 100)}
-            aria-valuenow={Math.round(studioShare * 100)}
-            tabIndex={0}
-            className="my-1 flex h-3 shrink-0 cursor-row-resize items-center justify-center"
-            onPointerDown={onSplitPointerDown}
-            onPointerMove={onSplitPointerMove}
-            onPointerUp={onSplitPointerUp}
-            onPointerCancel={onSplitPointerUp}
-            onKeyDown={onSplitKeyDown}
-          >
-            <span className="h-px w-16 bg-line" aria-hidden />
-          </div>
-        </>
-      ) : topFallback ? (
-        <div className="flex max-h-[42%] min-h-0 shrink-0 flex-col overflow-y-auto overscroll-y-contain">
-          {topFallback}
-        </div>
-      ) : null}
-
+  if (studioUrl) {
+    return (
       <div
-        className="flex min-h-0 flex-col gap-1"
-        style={
-          studioOpen ? { flex: `${1 - studioShare} 1 0%` } : { flex: "1 1 0%" }
-        }
+        className="flex h-full min-h-0 flex-1 flex-col"
+        aria-label={t("home.sideBrowserStudioLabel")}
       >
-        {/* Réserve la hauteur du libellé (retiré) pour ne pas remonter le browser. */}
-        <p
-          className="t-mono invisible shrink-0 text-dial tracking-wide text-text-muted uppercase select-none"
-          aria-hidden
-        >
-          {t("home.sideBrowserLabel")}
-        </p>
-        <SideWebBrowser className="min-h-0 flex-1" />
+        <SupabaseStudioBrowser studioUrl={studioUrl} />
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (topFallback) {
+    return (
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+        {topFallback}
+      </div>
+    );
+  }
+
+  return null;
 }

@@ -11,10 +11,10 @@ export function ConversationEmptyState() {
       role="status"
       data-home="conversation-empty"
     >
-      <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
+      <p className="t-mono text-sm tracking-wide text-text uppercase">
         {t("home.conversationEmptyTitle")}
       </p>
-      <p className="t-body max-w-[22rem] text-sm text-text-muted">
+      <p className="t-body max-w-[22rem] text-sm text-text">
         {t("home.conversationEmptyHint")}
       </p>
     </div>

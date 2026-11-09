@@ -176,8 +176,11 @@ export function playHomeSettleTransition({
       gsap.set(wordmark, { clearProps: "opacity,transform", opacity: 1, y: 0 });
     }
     if (mark && homeSlot && !preserveMarkPose) {
+      gsap.set(mark, {
+        opacity: 1,
+        clearProps: "x,y,scale,xPercent,yPercent,transform",
+      });
       placeOnRect(mark, homeSlot.getBoundingClientRect());
-      gsap.set(mark, { opacity: 1, x: 0, y: 0, scale: 1 });
     }
   };
 }

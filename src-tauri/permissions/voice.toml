@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-voice-speak"
+description = "Synthèse TTS via Piper loopback 127.0.0.1:5911 (WAV base64)."
+commands.allow = ["voice_speak"]
+
+[[permission]]
+identifier = "allow-voice-stop"
+description = "Annule une synthèse voix in-flight (V0 réservé)."
+commands.allow = ["voice_stop"]

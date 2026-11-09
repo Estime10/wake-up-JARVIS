@@ -54,9 +54,9 @@ export function RepoFilePreview({
       <header className={cn(REPO_CHROME.header, "justify-between gap-3")}>
         <div className="flex min-w-0 items-center gap-2">
           {kind === "protected" ? (
-            <RepoLockIcon className="size-4 shrink-0 text-text-muted" />
+            <RepoLockIcon className="size-4 shrink-0 text-text" />
           ) : (
-            <RepoFileIcon className="size-4 shrink-0 text-text-muted" />
+            <RepoFileIcon className="size-4 shrink-0 text-text" />
           )}
           <p className="t-mono truncate text-sm text-text">{path}</p>
         </div>
@@ -72,7 +72,7 @@ export function RepoFilePreview({
       </header>
 
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3">
-        <p className="t-mono text-dial text-text-muted sm:text-sm">
+        <p className="t-mono text-dial text-text sm:text-sm">
           {[sizeLabel, linesLabel, branch].filter(Boolean).join(" · ")}
           {maskedCount > 0
             ? ` · ${t("home.repoPreviewMaskedBadge", { count: maskedCount })}`
@@ -82,7 +82,7 @@ export function RepoFilePreview({
           <Button
             variant="ghost"
             size="bare"
-            className="t-label flex items-center gap-1.5 text-sm text-text-muted hover:text-text"
+            className="t-label flex items-center gap-1.5 text-sm text-text hover:text-accent"
             aria-label={t("home.repoOpenGithubLabel")}
             onClick={() => undefined}
           >

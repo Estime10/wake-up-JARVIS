@@ -30,7 +30,7 @@ export function RepoPanelError({
         <p className="t-body text-sm text-text">
           {t("home.repoErrorBody", { repo: repoName })}
         </p>
-        <p className="t-mono text-dial text-text-muted sm:text-sm">{detail}</p>
+        <p className="t-mono text-dial text-text sm:text-sm">{detail}</p>
       </div>
       <Button
         variant="bordered"

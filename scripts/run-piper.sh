@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Lance Piper HTTP (siwis) en loopback pour JARVIS.
+# Lance Piper HTTP (siwis) en loopback — DX Flask (dev only).
+# Prod shell : ./scripts/run-piper-prod.sh (Waitress) ou spawn Tauri.
 # Usage : depuis la racine du repo → ./scripts/run-piper.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

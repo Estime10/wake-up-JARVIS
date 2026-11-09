@@ -20,7 +20,7 @@ type MailListDrawerProps = {
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — liste / boîtes (1re moitié section gauche). */
+/** Tiroir 1 — liste / boîtes (pleine colonne gauche). */
 export function MailListDrawer({ visible, onDismiss }: MailListDrawerProps) {
   return (
     <aside
@@ -37,7 +37,7 @@ export function MailListDrawer({ visible, onDismiss }: MailListDrawerProps) {
       inert={!visible ? true : undefined}
     >
       <header className={cn(REPO_CHROME.header, "justify-between")}>
-        <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
+        <p className="t-mono text-sm tracking-wide text-text uppercase">
           {t("home.email")}
         </p>
         <Button

@@ -17,12 +17,12 @@ type RepoPanelDisconnectedProps = {
 export function RepoPanelDisconnected({ live }: RepoPanelDisconnectedProps) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <RepoPlugIcon className="size-10 text-text-muted" />
+      <RepoPlugIcon className="size-10 text-text" />
       <div className="flex flex-col gap-1">
         <p className="t-body text-sm text-text">
           {t("home.repoDisconnectedTitle")}
         </p>
-        <p className="t-body text-sm text-text-muted">
+        <p className="t-body text-sm text-text">
           {t("home.repoDisconnectedHint")}
         </p>
       </div>

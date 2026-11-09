@@ -12,7 +12,7 @@ export function MarkSlot({ name, className }: MarkSlotProps) {
   return (
     <div
       data-mark-slot={name}
-      className={cn("shrink-0", className)}
+      className={cn("relative shrink-0", className)}
       aria-hidden
     />
   );

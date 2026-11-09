@@ -16,7 +16,7 @@ import {
 } from "@/features/mail/context/mailPreviewContext";
 
 /**
- * Orchestrateur panneau mails — liste (1re moitié) + aperçu (2e moitié).
+ * Orchestrateur panneau mails — liste pleine colonne ; aperçu couvre toute la gauche.
  */
 export function HomeMailDrawer() {
   const { open, close } = useMailPanel();

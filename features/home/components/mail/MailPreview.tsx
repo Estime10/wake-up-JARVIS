@@ -39,13 +39,13 @@ export function MailPreview({ mail, onClose }: MailPreviewProps) {
 
       <div className="flex shrink-0 flex-col gap-1 border-b border-line-subtle px-4 py-3">
         <p className="t-mono truncate text-sm text-text">{mail.from}</p>
-        <p className="t-mono text-dial text-text-muted sm:text-sm">
+        <p className="t-mono text-dial text-text sm:text-sm">
           {mail.time}
           {labelText ? (
             <>
               {" · "}
               <span
-                className={cn("uppercase", !labelColor && "text-text-muted")}
+                className={cn("uppercase", !labelColor && "text-text")}
                 style={labelColor ? { color: labelColor } : undefined}
               >
                 {labelText}

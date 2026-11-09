@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ensureLocalStudioViaTauri } from "@/features/home/tauri/studioEnsure";
 import { ROUTES } from "@/lib/routes";
+import { isTauri } from "@/lib/runtime/isTauri";
 import {
   supabasePlatformConnectionSchema,
   supabasePlatformProjectSchema,
@@ -286,26 +288,28 @@ export function useSupabasePlatform(): UseSupabasePlatformResult {
           ),
         );
 
-        // Après sélection : Docker tourne-t-il ? Sinon on l’active (macOS).
-        setDockerEnsuring(true);
-        try {
-          const dockerResponse = await fetch(
-            ROUTES.supabasePlatformDockerEnsure,
-            {
-              method: "POST",
-              credentials: "same-origin",
-            },
-          );
-          const dockerJson = (await dockerResponse.json()) as {
-            ok: boolean;
-            error?: string;
-          };
-          if (!dockerResponse.ok || !dockerJson.ok) {
-            setDockerError(dockerJson.error ?? "docker_start_failed");
-            return false;
+        // Docker via API Next = dev web only. En shell Tauri, Studio probe loopback.
+        if (!isTauri()) {
+          setDockerEnsuring(true);
+          try {
+            const dockerResponse = await fetch(
+              ROUTES.supabasePlatformDockerEnsure,
+              {
+                method: "POST",
+                credentials: "same-origin",
+              },
+            );
+            const dockerJson = (await dockerResponse.json()) as {
+              ok: boolean;
+              error?: string;
+            };
+            if (!dockerResponse.ok || !dockerJson.ok) {
+              setDockerError(dockerJson.error ?? "docker_start_failed");
+              return false;
+            }
+          } finally {
+            setDockerEnsuring(false);
           }
-        } finally {
-          setDockerEnsuring(false);
         }
 
         return true;
@@ -321,6 +325,32 @@ export function useSupabasePlatform(): UseSupabasePlatformResult {
     setStudioStarting(true);
     setStudioError(null);
     try {
+      if (isTauri()) {
+        try {
+          const ensured = await ensureLocalStudioViaTauri();
+          setStudioUrl(ensured.studioUrl);
+          return { ok: true as const, studioUrl: ensured.studioUrl };
+        } catch (error) {
+          const message =
+            typeof error === "string"
+              ? error
+              : error instanceof Error
+                ? error.message
+                : "not_running";
+          const known = [
+            "not_running",
+            "docker_missing",
+            "docker_start_failed",
+            "supabase_start_failed",
+            "port_in_use",
+            "repo_missing",
+          ] as const;
+          const code = known.find((k) => message.includes(k)) ?? "upstream";
+          setStudioError(code);
+          return { ok: false as const };
+        }
+      }
+
       const response = await fetch(ROUTES.supabasePlatformStudioStart, {
         method: "POST",
         credentials: "same-origin",

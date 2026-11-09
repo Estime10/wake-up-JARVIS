@@ -22,9 +22,7 @@ export function RepoPanelDenied({ live }: RepoPanelDeniedProps) {
         <p className="t-label text-sm text-danger">
           {t("home.repoDeniedTitle")}
         </p>
-        <p className="t-body text-sm text-text-muted">
-          {t("home.repoDeniedHint")}
-        </p>
+        <p className="t-body text-sm text-text">{t("home.repoDeniedHint")}</p>
       </div>
       <RepoGithubConnectForm
         submitting={live.submitting}
