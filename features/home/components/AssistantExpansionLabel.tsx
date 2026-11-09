@@ -105,7 +105,7 @@ export function AssistantExpansionLabel({
       ref={labelRef}
       data-home="assistant-expansion"
       className={cn(
-        "pointer-events-none absolute inset-x-0 z-10 -translate-y-1/2 px-2 text-center t-mono text-dial tracking-[0.18em] text-text-muted uppercase sm:text-sm",
+        "pointer-events-none absolute inset-x-0 z-10 -translate-y-1/2 px-2 text-center t-mono text-dial tracking-[0.18em] text-text uppercase sm:text-sm",
         (!visible || !ready) && "opacity-0",
       )}
       aria-hidden={!visible || !ready || undefined}

@@ -2,7 +2,7 @@
 
 - **Statut** : Proposé
 - **Date** : 2026-11-03
-- **Révisé** : 2026-11-07 (rebrand produit E.L.S.A. ; fichier conservé `0012-voix-de-jarvis.md`)
+- **Révisé** : 2026-11-09 (shell Tauri : bridge `invoke`, proxy Next = web/DX only — voir ADR 0014)
 - **Relecteurs** : ARCHITECT, HACKER, THE JUDGE, PIXEL
 
 ## Contexte
@@ -11,11 +11,11 @@ Le TTS navigateur (`speechSynthesis`, Thomas) est inégal. DevinChat a choisi **
 
 ## Décision
 
-- **Synthèse** : Piper HTTP en loopback (`127.0.0.1`) ; proxy Next `POST /api/voice/piper` (session ADR 0008, same-origin, JSON `{text}`, max 4096 o, off en prod sauf flag).
+- **Synthèse (web / DX navigateur)** : Piper HTTP en loopback (`127.0.0.1`) ; proxy Next `POST /api/voice/piper` (session ADR 0008, same-origin, JSON `{text}`, max 4096 o, off en prod Vercel sauf flag).
+- **Synthèse (shell Tauri)** : **pas** de proxy Next ni `fetch` cross-origin vers le Mac — `invoke` → Rust → `POST http://127.0.0.1:5911/synthesize` (ADR **0014**). Bind **uniquement** loopback.
 - **Texte** : `normalizeFr` + `splitSentences` avant lecture ; phrases enchaînées avec prefetch.
-- **Repli** : `speechSynthesis` seulement si Piper échoue **avant** le premier audio.
-- **Stop** : `AbortSignal` coupe lecture + file.
-- **Hors scope immédiat** : sidecar Tauri / canal live distant (étapes 4–5 du plan — décision séparée).
+- **Repli** : `speechSynthesis` seulement si Piper échoue **avant** le premier audio (web **et** shell).
+- **Stop** : `AbortSignal` coupe lecture + file (côté front) ; commande `voice_stop` pour annuler un synthesize in-flight côté Rust.
 
 ## Options envisagées
 

@@ -32,8 +32,8 @@ type PlayHomeBriefingHoldArgs = {
 
 /**
  * Briefing home.
- * Splash v1 (`skipCenteredBriefing`) : conserve la pose capture — pas de Flip
- * (évite saut + double animation avant le settle composer).
+ * Splash v1 (`skipCenteredBriefing`) : pose immédiate sur le slot home
+ * (pas de Flip legacy — évite le saut « refetch » au settle).
  */
 export function playHomeBriefingHold({
   root,
@@ -68,7 +68,8 @@ export function playHomeBriefingHold({
     prepareChromeHidden(chrome);
   }
 
-  if (wordmark) {
+  // Skip path : le wordmark est déjà révélé par le boot — ne pas le cacher.
+  if (wordmark && !skipCenteredBriefing) {
     gsap.set(wordmark, { opacity: 0, y: 16 });
   }
 
@@ -76,22 +77,28 @@ export function playHomeBriefingHold({
     if (!mark || !briefingSlot) {
       return;
     }
+    gsap.set(mark, {
+      clearProps: "x,y,scale,xPercent,yPercent,transform",
+      opacity: 1,
+    });
     placeOnRect(mark, briefingSlot.getBoundingClientRect());
     showMark(mark);
     mark.style.visibility = "";
-    gsap.set(mark, {
-      clearProps: "transform",
-      opacity: 1,
-      x: 0,
-      y: 0,
-      scale: 1,
-    });
   };
 
   let revealTween: gsap.core.Tween | null = null;
 
   const revealWordmarkThenReady = (): void => {
     if (!wordmark) {
+      onReady();
+      return;
+    }
+    if (skipCenteredBriefing) {
+      gsap.set(wordmark, {
+        clearProps: "opacity,transform",
+        opacity: 1,
+        y: 0,
+      });
       onReady();
       return;
     }
@@ -123,16 +130,16 @@ export function playHomeBriefingHold({
     }
   };
 
-  // Post-splash (overlay home) : pose capture figée, ou slot home si refresh session.
+  // Post-splash : coller au slot home tout de suite (pas de Flip legacy).
+  // Garder la pose splash jusqu’au settle = saut visible (« refetch »).
   if (skipCenteredBriefing) {
     if (mark) {
-      if (fromSplash) {
-        showMark(mark);
-        mark.style.visibility = "";
-        gsap.set(mark, { opacity: 1 });
-      } else {
-        placeOnTargetSlot();
-      }
+      gsap.set(mark, {
+        clearProps: "x,y,scale,xPercent,yPercent,transform",
+        opacity: 1,
+      });
+      placeOnTargetSlot();
+      mark.style.visibility = "";
     }
     revealWordmarkThenReady();
     return cleanup;

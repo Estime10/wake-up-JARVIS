@@ -217,7 +217,7 @@ export function HomeSidePanel() {
                   aria-hidden
                 >
                   <span className="truncate uppercase">{account.label}</span>
-                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text-muted normal-case">
+                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text normal-case">
                     {count}
                   </span>
                 </span>
@@ -265,9 +265,9 @@ export function HomeSidePanel() {
         ) : activeMails.length === 0 ? (
           <SidePanelMessage text={t("home.mailEmpty")} />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col">
             {activeMails.map((mail) => (
-              <li key={mail.id}>
+              <li key={mail.id} className="border-b border-line-subtle">
                 <MailListItem
                   mail={mail}
                   selected={selected?.id === mail.id}

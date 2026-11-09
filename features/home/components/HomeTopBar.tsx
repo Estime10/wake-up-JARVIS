@@ -135,7 +135,7 @@ export function HomeTopBar({
             </Button>
             <p
               data-entrance-side="right"
-              className="t-mono conversation-bubble-enter min-w-0 truncate text-dial text-text-muted sm:text-sm"
+              className="t-mono conversation-bubble-enter min-w-0 truncate text-dial text-text sm:text-sm"
               style={{ animationDelay: "140ms" }}
             >
               {studioUrl}
@@ -148,7 +148,7 @@ export function HomeTopBar({
           >
             <p
               data-entrance-side="right"
-              className="t-mono conversation-bubble-enter text-sm tracking-wide text-text-muted uppercase"
+              className="t-mono conversation-bubble-enter text-sm tracking-wide text-text uppercase"
               style={{ animationDelay: "0ms" }}
             >
               {t("home.supabaseAccountsTitle")}

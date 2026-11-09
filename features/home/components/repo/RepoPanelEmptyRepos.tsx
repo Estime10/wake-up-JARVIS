@@ -16,10 +16,10 @@ type RepoPanelEmptyReposProps = {
 export function RepoPanelEmptyRepos({ live }: RepoPanelEmptyReposProps) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <RepoEmptyBoxIcon className="size-10 text-text-muted" />
+      <RepoEmptyBoxIcon className="size-10 text-text" />
       <div className="flex flex-col gap-1">
         <p className="t-body text-sm text-text">{t("home.repoEmptyTitle")}</p>
-        <p className="t-body text-sm text-text-muted">
+        <p className="t-body text-sm text-text">
           {t("home.repoConnectedHint", { login: live.login })}
         </p>
       </div>

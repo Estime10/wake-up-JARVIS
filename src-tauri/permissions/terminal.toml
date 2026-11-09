@@ -1,0 +1,19 @@
+[[permission]]
+identifier = "allow-terminal-pty-start"
+description = "Démarre une session PTY /bin/zsh -l dans $HOME."
+commands.allow = ["terminal_pty_start"]
+
+[[permission]]
+identifier = "allow-terminal-pty-stop"
+description = "Arrête la session PTY zsh."
+commands.allow = ["terminal_pty_stop"]
+
+[[permission]]
+identifier = "allow-terminal-pty-write"
+description = "Envoie des octets clavier vers le PTY zsh."
+commands.allow = ["terminal_pty_write"]
+
+[[permission]]
+identifier = "allow-terminal-pty-resize"
+description = "Redimensionne le PTY (cols/rows)."
+commands.allow = ["terminal_pty_resize"]

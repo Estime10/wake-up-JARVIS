@@ -18,8 +18,7 @@ type RepoPanelPreviewDrawerProps = {
 };
 
 /**
- * Tiroir 2 — clip overflow pour ne pas peindre sur le tiroir fichiers
- * pendant le slide open/close.
+ * Tiroir 2 — pleine colonne gauche (couvre la liste fichiers).
  */
 export function RepoPanelPreviewDrawer({
   visible,

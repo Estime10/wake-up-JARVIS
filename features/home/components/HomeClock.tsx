@@ -15,7 +15,7 @@ export function HomeClock({ visible = true, className }: HomeClockProps) {
   return (
     <p
       className={cn(
-        "t-mono flex min-w-0 flex-wrap items-baseline gap-x-2 truncate text-dial text-text-muted uppercase sm:text-sm",
+        "t-mono flex min-w-0 flex-wrap items-baseline gap-x-2 truncate text-dial text-text uppercase sm:text-sm",
         !visible && "pointer-events-none opacity-0",
         className,
       )}

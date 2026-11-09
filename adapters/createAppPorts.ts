@@ -7,6 +7,7 @@ import {
   createPiperVoice,
   withSpeakFallback,
 } from "@/adapters/piper";
+import { createTauriVoice } from "@/adapters/tauri/createTauriVoice";
 import {
   createSupabaseMail,
   createSupabaseMemory,
@@ -14,6 +15,7 @@ import {
 } from "@/adapters/supabase";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
+import { isTauri } from "@/lib/runtime/isTauri";
 import { isVoiceMuted } from "@/lib/voice/voiceMute";
 import type { Ports } from "@/ports";
 import type { VoicePort } from "@/ports/voice-port";
@@ -31,8 +33,12 @@ function withVoiceMute(voice: VoicePort): VoicePort {
 }
 
 function createAppVoice(): VoicePort {
+  // Shell : invoke → Piper loopback (ADR 0014) — pas de proxy Next / fetch :5911.
+  if (isTauri()) {
+    return withVoiceMute(createTauriVoice());
+  }
+
   const browser = createBrowserVoice();
-  // Piper via proxy Next ; repli speechSynthesis si indisponible avant 1er son.
   const base =
     process.env.NEXT_PUBLIC_PIPER_TTS === "0"
       ? browser

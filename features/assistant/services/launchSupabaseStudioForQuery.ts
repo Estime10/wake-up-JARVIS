@@ -1,7 +1,9 @@
 "use client";
 
 import { resolveSupabaseProjectQuery } from "@/features/assistant/model/resolveSupabaseProjectQuery";
+import { ensureLocalStudioViaTauri } from "@/features/home/tauri/studioEnsure";
 import { ROUTES } from "@/lib/routes";
+import { isTauri } from "@/lib/runtime/isTauri";
 import {
   supabasePlatformConnectionSchema,
   supabasePlatformProjectSchema,
@@ -113,6 +115,20 @@ export async function launchSupabaseStudioForQuery(
   });
   if (!selectResponse.ok) {
     return { ok: false, reason: "failed" };
+  }
+
+  if (isTauri()) {
+    try {
+      const ensured = await ensureLocalStudioViaTauri();
+      return {
+        ok: true,
+        projectName: match.project.name,
+        accountLabel: match.connection.accountLabel,
+        studioUrl: ensured.studioUrl,
+      };
+    } catch {
+      return { ok: false, reason: "failed" };
+    }
   }
 
   await fetch(ROUTES.supabasePlatformDockerEnsure, {

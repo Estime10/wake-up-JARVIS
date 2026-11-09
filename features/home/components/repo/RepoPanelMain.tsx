@@ -52,7 +52,7 @@ export function RepoPanelMain() {
         <p className="t-body text-sm text-text">
           {t("home.repoUnavailableTitle")}
         </p>
-        <p className="t-body text-sm text-text-muted">
+        <p className="t-body text-sm text-text">
           {t("home.repoUnavailableHint")}
         </p>
       </div>

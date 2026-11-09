@@ -6,6 +6,7 @@
   --color-surface: #141416;
   --color-surface-2: #1c1c1f;
   --color-text: #e8e8e6;
+  /* Gris réservé aux bulles / fil de messages — chrome UI = text / accent. */
   --color-text-muted: #9a9a97;
   --color-line: #6a6a6e;
   --color-line-subtle: #2a2a2d;

@@ -57,7 +57,7 @@ export function RepoPreviewBody({
   if (kind === "tooLarge") {
     return (
       <RepoPreviewMessage
-        icon={<RepoEmptyBoxIcon className="size-10 text-text-muted" />}
+        icon={<RepoEmptyBoxIcon className="size-10 text-text" />}
         title={t("home.repoPreviewTooLargeTitle")}
         body={t("home.repoPreviewTooLargeBody")}
       />
@@ -67,7 +67,7 @@ export function RepoPreviewBody({
   if (kind === "binary") {
     return (
       <RepoPreviewMessage
-        icon={<RepoFileIcon className="size-10 text-text-muted" />}
+        icon={<RepoFileIcon className="size-10 text-text" />}
         title={t("home.repoPreviewBinaryTitle")}
         body={t("home.repoPreviewBinaryBody", {
           name: path.split("/").pop() ?? path,
@@ -79,7 +79,7 @@ export function RepoPreviewBody({
   if (kind === "protected") {
     return (
       <RepoPreviewMessage
-        icon={<RepoLockIcon className="size-10 text-text-muted" />}
+        icon={<RepoLockIcon className="size-10 text-text" />}
         title={t("home.repoPreviewProtectedTitle")}
         body={t("home.repoPreviewProtectedBody")}
       />
@@ -89,7 +89,7 @@ export function RepoPreviewBody({
   if (kind === "offline") {
     return (
       <RepoPreviewMessage
-        icon={<RepoOfflineDocIcon className="size-10 text-text-muted" />}
+        icon={<RepoOfflineDocIcon className="size-10 text-text" />}
         title={t("home.repoPreviewOfflineTitle")}
         body={t("home.repoPreviewOfflineBody")}
       />
@@ -110,7 +110,7 @@ export function RepoPreviewBody({
           <p className="t-body text-sm text-text">
             {t("home.repoPreviewErrorBody", { path })}
           </p>
-          <p className="t-mono text-dial text-text-muted sm:text-sm">
+          <p className="t-mono text-dial text-text sm:text-sm">
             {t("home.repoPreviewErrorDetail")}
           </p>
         </div>

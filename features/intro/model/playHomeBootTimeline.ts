@@ -11,17 +11,20 @@ type PlayHomeBootTimelineArgs = {
 };
 
 /**
- * Boot sur home — uniquement scan + nom JARVIS (pas le SVG splash assemblé).
- * Le mark / équerres home restent ceux de la page.
+ * Boot sur home — scan + révélation du wordmark **page** (sous le mark).
+ * Le nom reste visible à la fin (pas de fade-out) : même nœud que le home.
  */
 export function playHomeBootTimeline({
   root,
   onComplete,
 }: PlayHomeBootTimelineArgs): () => void {
   const scan = root.querySelector<HTMLElement>("[data-boot-scan]");
-  const wordmark = root.querySelector<HTMLElement>("[data-boot-wordmark]");
+  // Wordmark live dans AssistantStage — pas un doublon overlay.
+  const wordmark = root.ownerDocument.querySelector<HTMLElement>(
+    '[data-intro="wordmark"]',
+  );
   const letters = wordmark
-    ? [...wordmark.querySelectorAll<HTMLElement>("[data-boot-letter]")]
+    ? [...wordmark.querySelectorAll<HTMLElement>("[data-wordmark-letter]")]
     : [];
 
   if (prefersReducedMotion()) {
@@ -29,7 +32,10 @@ export function playHomeBootTimeline({
       gsap.set(scan, { opacity: 0 });
     }
     if (wordmark) {
-      gsap.set(wordmark, { opacity: 0 });
+      gsap.set(wordmark, { opacity: 1, y: 0 });
+    }
+    if (letters.length > 0) {
+      gsap.set(letters, { opacity: 1, y: 0 });
     }
     onComplete();
     return () => {};
@@ -40,6 +46,7 @@ export function playHomeBootTimeline({
   }
   if (letters.length > 0) {
     gsap.set(letters, { opacity: 0, y: 12 });
+    gsap.set(wordmark, { opacity: 1, y: 0 });
   } else if (wordmark) {
     gsap.set(wordmark, { opacity: 0, y: 12 });
   }
@@ -49,7 +56,7 @@ export function playHomeBootTimeline({
     onComplete,
   });
 
-  // Nom JARVIS
+  // Nom E.L.S.A. — reste en place ensuite
   if (letters.length > 0) {
     tl.to(
       letters,
@@ -67,22 +74,6 @@ export function playHomeBootTimeline({
     tl.set(scan, { y: "-20vh" });
     tl.to(scan, { y: "110vh", duration: 1.35, ease: IN_OUT });
     tl.to(scan, { opacity: 0, duration: 0.25 }, "-=0.15");
-  }
-
-  // Nom s’en va
-  const exitAt = Math.max(tl.duration() - 0.1, 2.8);
-  if (letters.length > 0) {
-    tl.to(
-      letters,
-      { opacity: 0, y: -8, duration: 0.4, stagger: 0.03, ease: "power2.in" },
-      exitAt,
-    );
-  } else if (wordmark) {
-    tl.to(
-      wordmark,
-      { opacity: 0, y: -8, duration: 0.4, ease: "power2.in" },
-      exitAt,
-    );
   }
 
   // Filet si rien à animer

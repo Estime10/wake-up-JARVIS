@@ -16,7 +16,7 @@ export function RepoPreviewMessage({
     <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
       {icon}
       <p className="t-body text-sm text-text">{title}</p>
-      <p className="t-body max-w-sm text-sm text-text-muted">{body}</p>
+      <p className="t-body max-w-sm text-sm text-text">{body}</p>
     </div>
   );
 }

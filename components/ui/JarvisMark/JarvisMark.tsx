@@ -84,7 +84,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           r="138"
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.21"
+          strokeOpacity="1"
           strokeDasharray="200 16.77"
         />
         <circle
@@ -94,7 +94,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           r="150"
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.2"
+          strokeOpacity="1"
           strokeWidth="1.25"
           strokeDasharray="36 52 18 96 48 140"
         />
@@ -103,14 +103,14 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           d={BOOT_GRADUATIONS_D}
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.33"
+          strokeOpacity="1"
           strokeWidth="0.8"
         />
         <path
           d={CROSSHAIR_AND_RETICLES_D}
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.55"
+          strokeOpacity="1"
         />
       </g>
 
@@ -122,14 +122,14 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="120"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.21"
+        strokeOpacity="1"
       />
       <path
         data-jarvis="ring-accent"
         d={OUTER_ARC_A_D}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.33"
+        strokeOpacity="1"
         strokeWidth="1.25"
       />
       <path
@@ -137,7 +137,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         d={OUTER_ARC_B_D}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.33"
+        strokeOpacity="1"
         strokeWidth="1.25"
       />
 
@@ -147,7 +147,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         d={TICKS_PATH_D}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.33"
+        strokeOpacity="1"
       />
 
       {/* ring-inner — dial = anneau pointillé (spin idle) */}
@@ -157,7 +157,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="88"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.1"
+        strokeOpacity="1"
         strokeWidth="6"
       />
       <circle cx={RING_CX} cy={RING_CY} r="78" fill={`url(#${brightId})`} />
@@ -167,7 +167,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="80"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.12"
+        strokeOpacity="1"
         strokeWidth="2"
       />
       <circle
@@ -177,7 +177,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="70"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.33"
+        strokeOpacity="1"
         strokeDasharray="2 5"
       />
       <circle
@@ -186,7 +186,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         r="60"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.21"
+        strokeOpacity="1"
       />
 
       {/* Idle — traînée arcs imbriqués + noyau */}
@@ -194,7 +194,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         <g data-jarvis="trail-group">
           <g fill="none" stroke="currentColor" strokeWidth="2">
             {TRAIL_FADE_ARCS.map((arc) => (
-              <path key={arc.d} d={arc.d} strokeOpacity={arc.opacity} />
+              <path key={arc.d} d={arc.d} strokeOpacity={1} />
             ))}
           </g>
           {/* Arc principal — idle + intro strokeDashoffset */}
@@ -204,7 +204,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            strokeOpacity="0.55"
+            strokeOpacity="1"
             strokeLinecap="round"
           />
           <g data-jarvis="head">
@@ -219,7 +219,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
               cy={TRAIL_HEAD.y}
               r="3"
               fill="currentColor"
-              fillOpacity="0.95"
+              fillOpacity="1"
             />
           </g>
         </g>
@@ -242,7 +242,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
                 height={spoke.height}
                 rx="0.75"
                 fill="currentColor"
-                fillOpacity="0.85"
+                fillOpacity="1"
               />
             </g>
           ))}
@@ -277,11 +277,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           strokeLinecap="round"
         >
           {THINK_SEGMENTS.map((segment) => (
-            <path
-              key={segment.key}
-              d={segment.d}
-              strokeOpacity={segment.opacity}
-            />
+            <path key={segment.key} d={segment.d} strokeOpacity={1} />
           ))}
         </g>
         <ThinkHourglass />
@@ -328,7 +324,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
       </g>
 
       {/* Hors ligne */}
-      <g data-jarvis="mode-offline" opacity="0" className="text-text-muted">
+      <g data-jarvis="mode-offline" opacity="0" className="text-text">
         <circle
           cx={RING_CX}
           cy={RING_CY}

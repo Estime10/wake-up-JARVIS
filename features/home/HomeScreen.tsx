@@ -280,7 +280,7 @@ function HomeScreenBody() {
 
             <div
               className={cn(
-                "relative flex min-h-0 w-full flex-1 flex-col items-center justify-center px-2",
+                "relative flex min-h-0 w-full flex-1 flex-col items-center px-2",
                 PANEL_CONTENT_MOTION_CLASS,
               )}
             >
@@ -312,7 +312,7 @@ function HomeScreenBody() {
             </div>
           </div>
 
-          <div className="min-h-0 min-w-0">
+          <div className="flex h-full min-h-0 min-w-0 flex-col">
             <HomeSupabasePane reveal={settled} />
           </div>
         </div>

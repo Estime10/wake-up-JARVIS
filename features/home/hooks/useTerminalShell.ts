@@ -26,7 +26,7 @@ type UseTerminalShellResult = {
   handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
-/** Session zsh mock — FS local, cd/ls/tab (pas le vrai disque Mac). */
+/** Session zsh mock web — FS local. Shell Tauri = PTY (`TerminalPtyShell`). */
 export function useTerminalShell(active: boolean): UseTerminalShellResult {
   const [cwd, setCwd] = useState(TERMINAL_HOME);
   const [lines, setLines] = useState<string[]>([]);
@@ -41,14 +41,28 @@ export function useTerminalShell(active: boolean): UseTerminalShellResult {
       bootedRef.current = false;
       return;
     }
-    if (!bootedRef.current) {
-      bootedRef.current = true;
+    if (bootedRef.current) {
+      const focusId = window.setTimeout(() => inputRef.current?.focus(), 50);
+      return () => window.clearTimeout(focusId);
+    }
+    bootedRef.current = true;
+
+    let cancelled = false;
+    const bootId = window.setTimeout(() => {
+      if (cancelled) {
+        return;
+      }
       setCwd(TERMINAL_HOME);
       setLines([formatTerminalLastLogin(new Date()), ""]);
       setDraft("");
-    }
-    const id = window.setTimeout(() => inputRef.current?.focus(), 50);
-    return () => window.clearTimeout(id);
+    }, 0);
+
+    const focusId = window.setTimeout(() => inputRef.current?.focus(), 50);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(bootId);
+      window.clearTimeout(focusId);
+    };
   }, [active]);
 
   useEffect(() => {

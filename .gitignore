@@ -16,6 +16,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -23,6 +25,7 @@
 
 # production
 /build
+/dist/
 
 # misc
 .DS_Store
@@ -41,6 +44,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Tauri / Rust
+/src-tauri/target/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+tmp/
+bootstrap.log
