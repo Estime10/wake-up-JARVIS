@@ -160,7 +160,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                       {account.accountLabel}
                     </span>
                     {account.selectedProjectName ? (
-                      <span className="block truncate text-dial opacity-70">
+                      <span className="block truncate text-dial text-text">
                         {account.selectedProjectName}
                       </span>
                     ) : null}
@@ -221,7 +221,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                             <span className="block truncate">
                               {project.name}
                             </span>
-                            <span className="block truncate text-dial opacity-70">
+                            <span className="block truncate text-dial text-text">
                               {project.ref}
                               {project.region ? ` · ${project.region}` : ""}
                             </span>
