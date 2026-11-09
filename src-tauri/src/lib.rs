@@ -1,3 +1,4 @@
+mod piper_runtime;
 mod studio_local;
 mod voice;
 mod webview_pane;
@@ -24,6 +25,12 @@ pub fn run() {
                 .build()?;
             let menu = MenuBuilder::new(app).item(&app_menu).build()?;
             app.set_menu(menu)?;
+
+            // Piper : bootstrap Application Support en arrière-plan (zéro terminal).
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                voice::warm_piper(&handle);
+            });
             Ok(())
         })
         .on_menu_event(|app, event| {

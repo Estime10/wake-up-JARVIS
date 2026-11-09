@@ -18,7 +18,8 @@ La prod web (Vercel) est GO ; les limites navigateur (iframe Studio/browser, Pip
 - **Studio** : child WKWebView `elsa-studio` positionné sur le frame DOM (plein panneau droite) ; proxy `:54332` = **web only**.
 - **Navigateur libre** : reporté (util `normalizeSideBrowserUrl` conservé).
 - **Voix shell** : `invoke` → Rust → Piper **`127.0.0.1:5911`** ; repli `speechSynthesis` si Piper down (aligné ADR 0012). Cycle de vie process Piper = responsabilité du shell (DX : script repo OK).
-- **Packaging V0** : artefacts `.app` + `.dmg` ; signing **Developer ID** + notarization (compte DevinChat) ; **pas** d’auto-update (`createUpdaterArtifacts: false`) — install manuelle du DMG. Piper venv/modèle **hors** bundle V0 (scripts machine). Runbook : `docs/runbooks/PACKAGING-macos.md`.
+- **Packaging V0** : artefacts `.app` + `.dmg` ; signing **Developer ID** + notarization (compte DevinChat) ; **pas** d’auto-update (`createUpdaterArtifacts: false`) — install manuelle du DMG. Runbook : `docs/runbooks/PACKAGING-macos.md`.
+- **Piper autonome** : runtime sous Application Support (`…/be.devinchat.elsa/piper/`) — bootstrap venv + modèle (sha256) au lancement, **sans terminal**. Repo `.venv-piper` = DX seulement.
 
 ## Options envisagées
 

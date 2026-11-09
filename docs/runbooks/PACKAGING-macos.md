@@ -74,12 +74,20 @@ spctl -a -vv "…/ELSA.app"
 
 Sans notarization : clic droit → Ouvrir (exception Gatekeeper) — **OK perso**, pas pour un tiers.
 
-## Ce qui n’est pas dans le `.app` (V0)
+## Piper sans terminal (runtime Application Support)
 
-- `.venv-piper/`
-- `models/piper/fr_FR-siwis-medium.onnx` (~60 Mo, sha256 pinée)
+Au **premier lancement** (ou premier `voice_speak`), le shell :
 
-→ installer via scripts repo ou parcours DX documenté. Bundling sidecar = itération ultérieure.
+1. crée `~/Library/Application Support/be.devinchat.elsa/piper/` ;
+2. y écrit le serveur Waitress (embarqué dans le binaire) ;
+3. crée un venv Python + `piper-tts` / `waitress` (nécessite `python3` sur le Mac) ;
+4. copie le modèle depuis le repo s’il est trouvé, sinon **télécharge** `fr_FR-siwis-medium` (sha256 pinée) ;
+5. spawn Waitress sur `127.0.0.1:5911`.
+
+Log : `…/piper/bootstrap.log`  
+DX : si `ELSA_ROOT` ou le cwd pointe vers le monorepo avec `.venv-piper` + modèle → réutilise le repo (pas de second venv).
+
+**Prérequis machine :** `python3` (Homebrew ou CLT). Réseau au premier bootstrap si le modèle n’est pas déjà local.
 
 ## Liens
 

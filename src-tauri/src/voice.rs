@@ -1,10 +1,10 @@
 //! Bridge TTS — `invoke` → Piper loopback `127.0.0.1:5911` (ADR 0012 / 0014).
-//! Spawn Waitress (`scripts/piper_waitress_server.py`) si le port est down.
+//! Runtime : Application Support (bootstrap auto) ou repo DX.
 //! Jamais de bind `0.0.0.0` ; pas de fetch cross-origin depuis l’UI https.
 
+use crate::piper_runtime::{self, PiperPaths};
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use std::net::TcpStream;
-use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::Duration;
@@ -15,7 +15,7 @@ const PIPER_PORT: u16 = 5911;
 const PIPER_SYNTHESIZE_URL: &str = "http://127.0.0.1:5911/synthesize";
 const MAX_TEXT_CHARS: usize = 4096;
 const TIMEOUT_SECS: u64 = 60;
-const READY_ATTEMPTS: u32 = 40;
+const READY_ATTEMPTS: u32 = 80;
 const READY_GAP_MS: u64 = 250;
 
 #[derive(Debug, serde::Serialize)]
@@ -34,55 +34,7 @@ fn piper_listening() -> bool {
     TcpStream::connect_timeout(&sock_addr, Duration::from_millis(400)).is_ok()
 }
 
-fn resolve_repo_root(app: &AppHandle) -> Result<PathBuf, String> {
-    if let Ok(root) = std::env::var("ELSA_ROOT") {
-        let path = PathBuf::from(root);
-        if looks_like_repo(&path) {
-            return Ok(path);
-        }
-    }
-    if let Ok(cwd) = std::env::current_dir() {
-        if looks_like_repo(&cwd) {
-            return Ok(cwd);
-        }
-        if looks_like_repo(&cwd.join("..")) {
-            return cwd
-                .join("..")
-                .canonicalize()
-                .map_err(|e| format!("piper_root: {e}"));
-        }
-    }
-    if let Ok(resource) = app.path().resource_dir() {
-        if looks_like_repo(&resource) {
-            return Ok(resource);
-        }
-    }
-    Err("piper_root_missing".into())
-}
-
-fn looks_like_repo(root: &Path) -> bool {
-    root.join("scripts/piper_waitress_server.py").is_file()
-        && root
-            .join("models/piper/fr_FR-siwis-medium.onnx")
-            .is_file()
-}
-
-fn spawn_piper(app: &AppHandle) -> Result<(), String> {
-    let root = resolve_repo_root(app)?;
-    let python = root.join(".venv-piper/bin/python");
-    let script = root.join("scripts/piper_waitress_server.py");
-    let model = root.join("models/piper/fr_FR-siwis-medium.onnx");
-
-    if !python.is_file() {
-        return Err("piper_venv_missing".into());
-    }
-    if !script.is_file() {
-        return Err("piper_script_missing".into());
-    }
-    if !model.is_file() {
-        return Err("piper_model_missing".into());
-    }
-
+fn spawn_piper(app: &AppHandle, paths: &PiperPaths) -> Result<(), String> {
     let state = app.state::<PiperProcess>();
     let mut guard = state.0.lock().map_err(|_| "piper_lock")?;
 
@@ -93,21 +45,20 @@ fn spawn_piper(app: &AppHandle) -> Result<(), String> {
                 *guard = None;
             }
             Ok(None) => {
-                // Process vivant mais port pas prêt → on attend côté ensure.
                 return Ok(());
             }
         }
     }
 
-    let child = Command::new(&python)
-        .arg(&script)
+    let child = Command::new(&paths.python)
+        .arg(&paths.script)
         .arg("--model")
-        .arg(&model)
+        .arg(&paths.model)
         .arg("--host")
         .arg(PIPER_HOST)
         .arg("--port")
         .arg(PIPER_PORT.to_string())
-        .current_dir(&root)
+        .current_dir(&paths.root)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -121,7 +72,8 @@ async fn ensure_piper(app: &AppHandle) -> Result<(), String> {
     if piper_listening() {
         return Ok(());
     }
-    spawn_piper(app)?;
+    let paths = piper_runtime::resolve_ready(app)?;
+    spawn_piper(app, &paths)?;
     for _ in 0..READY_ATTEMPTS {
         if piper_listening() {
             return Ok(());
@@ -129,6 +81,11 @@ async fn ensure_piper(app: &AppHandle) -> Result<(), String> {
         std::thread::sleep(Duration::from_millis(READY_GAP_MS));
     }
     Err("piper_start_timeout".into())
+}
+
+/// Warm-up runtime (venv/modèle) au lancement — thread dédié.
+pub fn warm_piper(app: &AppHandle) {
+    piper_runtime::warm(app);
 }
 
 /// Arrête le process Waitress spawné par le shell (pas un Piper externe).

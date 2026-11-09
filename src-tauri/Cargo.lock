@@ -727,6 +727,7 @@ dependencies = [
  "base64 0.22.1",
  "reqwest 0.12.28",
  "serde",
+ "sha2",
  "tauri",
  "tauri-build",
  "url",

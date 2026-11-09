@@ -17,5 +17,6 @@ tauri-build = { version = "2", features = [] }
 base64 = "0.22"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
 tauri = { version = "2", features = ["unstable"] }
 url = "2"
