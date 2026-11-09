@@ -4,13 +4,14 @@
   "version": "0.1.0",
   "identifier": "be.devinchat.elsa",
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://127.0.0.1:3000",
+    "beforeDevCommand": "node scripts/ensure-next-dev.mjs",
+    "devUrl": "http://localhost:3000",
     "frontendDist": "https://wake-up-jarvis.vercel.app"
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "E.L.S.A.",
         "width": 1280,
         "height": 800,

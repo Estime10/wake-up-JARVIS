@@ -43,37 +43,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     let cancelled = false;
+    const settle = (next: AuthUser | null) => {
+      if (cancelled) {
+        return;
+      }
+      setUser(next);
+      setStatus(next ? "authenticated" : "anonymous");
+    };
+
+    // WKWebView / réseau lent : ne pas rester éternellement sur AuthSkeleton.
+    const timeoutId = window.setTimeout(() => {
+      settle(null);
+    }, 10_000);
 
     void client.auth
       .getUser()
       .then(({ data }) => {
-        if (cancelled) {
-          return;
-        }
-        const next = toAuthUser(data.user);
-        setUser(next);
-        setStatus(next ? "authenticated" : "anonymous");
+        window.clearTimeout(timeoutId);
+        settle(toAuthUser(data.user));
       })
       .catch(() => {
-        if (!cancelled) {
-          setUser(null);
-          setStatus("anonymous");
-        }
+        window.clearTimeout(timeoutId);
+        settle(null);
       });
 
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event, session) => {
-      if (cancelled) {
-        return;
-      }
-      const next = toAuthUser(session?.user ?? null);
-      setUser(next);
-      setStatus(next ? "authenticated" : "anonymous");
+      window.clearTimeout(timeoutId);
+      settle(toAuthUser(session?.user ?? null));
     });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [client]);

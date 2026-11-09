@@ -21,6 +21,14 @@ function isHomePath(pathname: string): boolean {
   return pathname === ROUTES.home || pathname.startsWith(`${ROUTES.home}/`);
 }
 
+function resolveHomeSlotName(doc: Document): MarkSlotName {
+  return queryMarkSlot(doc, "home") != null ? "home" : "splash";
+}
+
+/**
+ * Pose fixed sur le slot — sans clearProps layout (évite le flash / « refetch »).
+ * Annule seulement les offsets Flip/GSAP résiduels.
+ */
 function placeMarkOnSlot(
   mark: HTMLElement,
   slotName: MarkSlotName,
@@ -30,17 +38,89 @@ function placeMarkOnSlot(
   if (!slot) {
     return false;
   }
-  placeOnRect(mark, slot.getBoundingClientRect());
+  const rect = slot.getBoundingClientRect();
+  if (rect.width < 8 || rect.height < 8) {
+    return false;
+  }
+  gsap.set(mark, { x: 0, y: 0, scale: 1, xPercent: 0, yPercent: 0 });
+  placeOnRect(mark, rect);
   if (opts?.visible) {
     showMark(mark);
   }
   return true;
 }
 
+/** Suit le MarkSlot — même nœud DOM, jamais de portal / remount SVG. */
+function attachSlotSync(mark: HTMLElement, slotName: MarkSlotName): () => void {
+  let raf = 0;
+  let lastKey = "";
+
+  function syncToSlot(): void {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const slot = queryMarkSlot(mark.ownerDocument, slotName);
+      if (!slot) {
+        return;
+      }
+      const rect = slot.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) {
+        return;
+      }
+      const key = `${rect.top.toFixed(1)}|${rect.left.toFixed(1)}|${rect.width.toFixed(1)}|${rect.height.toFixed(1)}`;
+      if (key === lastKey) {
+        return;
+      }
+      lastKey = key;
+      gsap.set(mark, { x: 0, y: 0, scale: 1, xPercent: 0, yPercent: 0 });
+      placeOnRect(mark, rect);
+      showMark(mark);
+      mark.style.visibility = "";
+    });
+  }
+
+  syncToSlot();
+
+  const slot = queryMarkSlot(mark.ownerDocument, slotName);
+  const stage =
+    slot?.closest<HTMLElement>("[data-home='assistant-stage']") ?? null;
+  const column = stage?.parentElement ?? null;
+
+  const observer = new ResizeObserver(() => {
+    lastKey = "";
+    syncToSlot();
+  });
+  if (slot) {
+    observer.observe(slot);
+  }
+  if (stage) {
+    observer.observe(stage);
+  }
+  if (column) {
+    observer.observe(column);
+  }
+  window.addEventListener("resize", syncToSlot);
+
+  const followUps = [0, 50, 150, 400].map((ms) =>
+    window.setTimeout(() => {
+      lastKey = "";
+      syncToSlot();
+    }, ms),
+  );
+
+  return () => {
+    cancelAnimationFrame(raf);
+    observer.disconnect();
+    window.removeEventListener("resize", syncToSlot);
+    for (const id of followUps) {
+      window.clearTimeout(id);
+    }
+  };
+}
+
 /**
  * Unique mark de session — toujours le même nœud DOM (fixed).
- * Dessin = splash (JarvisMark v2 + chrome boot).
- * Pose via useGSAP (ADR 0004 / DEV-9).
+ * Pas de portal : un déplacement React remontait JarvisMark et
+ * relançait les spins SVG (= impression de « refetch » à l’arrivée home).
  */
 export function PersistentMark() {
   const pathname = usePathname();
@@ -60,31 +140,39 @@ export function PersistentMark() {
         margin: 0,
         x: 0,
         y: 0,
+        scale: 1,
         maxWidth: "none",
         zIndex: 30,
         pointerEvents: "none",
       });
 
       if (home && handoff.hasPending()) {
-        // Pose capture splash : ne pas re-placer au slot home (saut visible).
         phaseRef.current = "home";
         showMark(mark);
         mark.style.visibility = "";
-        return handoff.onComplete(() => {
-          // Repasse sous le HUD une fois l’overlay démonté.
+        // Coller au slot tout de suite (skipCenteredBriefing = pas de Flip).
+        // Attendre handoff.end() provoquait un saut « refetch » au settle.
+        const detachSync = attachSlotSync(
+          mark,
+          resolveHomeSlotName(mark.ownerDocument),
+        );
+        const stopHandoff = handoff.onComplete(() => {
           mark.style.zIndex = "30";
         });
+        return () => {
+          stopHandoff();
+          detachSync();
+        };
       }
 
       if (home && phaseRef.current === "splash") {
         phaseRef.current = "home";
         placeMarkOnSlot(mark, "home", { visible: true });
-        return undefined;
       }
 
       if (home) {
         phaseRef.current = "home";
-        return undefined;
+        return attachSlotSync(mark, resolveHomeSlotName(mark.ownerDocument));
       }
 
       phaseRef.current = "splash";

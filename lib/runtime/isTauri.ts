@@ -1,6 +1,6 @@
 /**
  * Détection shell Tauri v2 (WebView).
- * Pas de dépendance `@tauri-apps/api` — le package arrive avec l’étape invoke.
+ * Les invokes (`@tauri-apps/api`) ne doivent tourner que si vrai.
  */
 export function isTauri(): boolean {
   if (typeof window === "undefined") {

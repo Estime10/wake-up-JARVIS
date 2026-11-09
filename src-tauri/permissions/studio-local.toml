@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-studio-ensure"
+description = "Probe Studio local :54323 depuis le shell."
+commands.allow = ["studio_ensure"]

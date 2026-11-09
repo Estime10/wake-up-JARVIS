@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { TauriWebviewHost } from "@/features/home/components/TauriWebviewHost";
+import { useIsTauriClient } from "@/features/home/hooks/useIsTauriClient";
 import { normalizeSideBrowserUrl } from "@/features/home/model/normalizeSideBrowserUrl";
 import { readSessionString } from "@/features/home/model/readSessionString";
 import { cn } from "@/lib/cn";
@@ -23,13 +25,13 @@ function initialUrl(): string | null {
 }
 
 /**
- * Mini-navigateur colonne droite — barre d’URL + iframe (placeholder UI).
- * Sites anti-frame / CSP : best-effort jusqu’au WebView Tauri (ADR 0013).
+ * Mini-navigateur colonne droite — barre d’URL + iframe (web) / WebView (Tauri).
  */
 export function SideWebBrowser({ className }: SideWebBrowserProps) {
   const [src, setSrc] = useState<string | null>(initialUrl);
   const [draft, setDraft] = useState(() => src ?? "https://");
   const [frameKey, setFrameKey] = useState(0);
+  const native = useIsTauriClient();
 
   function navigate(raw: string): void {
     const normalized = normalizeSideBrowserUrl(raw);
@@ -98,16 +100,28 @@ export function SideWebBrowser({ className }: SideWebBrowserProps) {
         ) : null}
       </form>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden border border-line-subtle bg-transparent">
+      <div
+        data-tauri-webview-frame
+        className="flex min-h-0 flex-1 flex-col overflow-hidden border border-line-subtle bg-transparent"
+      >
         {src ? (
-          <iframe
-            key={frameKey}
-            title={t("home.sideBrowserFrameTitle")}
-            src={src}
-            className="h-full w-full border-0 bg-transparent"
-            referrerPolicy="strict-origin-when-cross-origin"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-          />
+          native ? (
+            <TauriWebviewHost
+              kind="browser"
+              url={src}
+              reloadToken={frameKey}
+              className="min-h-0 flex-1"
+            />
+          ) : (
+            <iframe
+              key={frameKey}
+              title={t("home.sideBrowserFrameTitle")}
+              src={src}
+              className="min-h-0 h-full w-full flex-1 border-0 bg-transparent"
+              referrerPolicy="strict-origin-when-cross-origin"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+            />
+          )
         ) : (
           <p className="t-mono flex h-full items-center justify-center px-4 text-center text-sm text-text-muted">
             {t("home.sideBrowserEmpty")}

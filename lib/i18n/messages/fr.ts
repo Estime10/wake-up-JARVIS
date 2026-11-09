@@ -347,11 +347,15 @@ export const fr = {
     sideBrowserSplitLabel: "Studio et navigateur",
     supabaseStudioErrorDisabled:
       "Lancement local désactivé hors développement.",
+    supabaseStudioErrorNotRunning:
+      "Studio local injoignable (:54323). Lance `supabase start` dans le repo, puis réessaie.",
     supabaseStudioErrorDockerMissing: "Docker Desktop introuvable.",
     supabaseStudioErrorDockerStart: "Docker n’a pas démarré à temps.",
     supabaseStudioErrorStart: "Échec de supabase start.",
     supabaseStudioErrorPortInUse:
       "Un port Supabase local est déjà pris. Fais supabase stop, ou change le port dans supabase/config.toml.",
+    sideBrowserNativeError:
+      "WebView natif indisponible. Relance via `pnpm tauri:dev` (cargo dans le PATH).",
     repoPanelLabel: "Dépôts",
     repoTitle: "Repo",
     repoClose: "Fermer",

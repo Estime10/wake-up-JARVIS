@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** plan prêt — **zéro code shell tant que l’étape 0 n’est pas cochée**  
+**Statut :** étapes 1–4 en cours (WebViews Studio/browser) — ADR 0014/0009 encore ouverts  
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
@@ -358,4 +358,5 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 | 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64  |
 | 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel          |
 | 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime` |
-| 4–7        | —                | à faire                                       |
+| 4 WebViews | `feat/tauri`     | **fait** — child WV + ACL remote allowlist    |
+| 5–7        | —                | à faire                                       |
