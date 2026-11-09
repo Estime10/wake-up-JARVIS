@@ -5,33 +5,38 @@
 
 ## Décisions V0
 
-| Sujet             | Choix                                                               |
-| ----------------- | ------------------------------------------------------------------- |
-| Artefacts         | `.app` + `.dmg` (même machine)                                      |
-| Signing           | **Hors scope** — pas de Developer ID / notarization (usage perso)   |
-| Auto-update       | **Manuel V0** — pas de `tauri-plugin-updater` ; rebuild / DMG local |
-| Piper dans le DMG | **Hors bundle V0** — venv + modèle restent sur la machine (scripts) |
+| Sujet       | Choix                                                             |
+| ----------- | ----------------------------------------------------------------- |
+| Artefact    | `.app` installé dans **`/Applications/ELSA.app`** (machine perso) |
+| Repo        | **pas** de `dist/` — artefacts hors monorepo                      |
+| Signing     | **Hors scope** — pas de Developer ID / notarization (usage perso) |
+| Auto-update | **Manuel V0** — relancer `./scripts/package-elsa.sh`              |
+| Piper       | **Hors bundle** — runtime Application Support                     |
 
-Cible produit : **un seul Mac** (celui de build). Les sections signing/notarization ci-dessous sont optionnelles / archivées.
+Cible produit : **un seul Mac** (celui de build).
 
 ## Prérequis
 
 1. Xcode CLT + Rust `aarch64-apple-darwin`
 2. `pnpm` + deps à jour
 
-## Build local (unsigned / ad-hoc) — **chemin nominal**
+## Build + install — **chemin nominal**
 
 ```bash
 ./scripts/package-elsa.sh
-# → dist/macos/ELSA.app
-# → dist/macos/ELSA_0.1.0_aarch64.dmg
+# → build Tauri
+# → /Applications/ELSA.app
+# → seed ~/Library/Application Support/be.devinchat.elsa/elsa-root.txt
+# → supprime dist/ s’il existe
 ```
 
-(`pnpm tauri:build` seul suffit ; le script copie aussi vers `dist/macos/` car `CARGO_TARGET_DIR` peut être hors repo.)
+Override du dossier Apps (rare) : `ELSA_APPS_DIR=~/Applications ./scripts/package-elsa.sh`
 
-**Note :** la création DMG nécessite `hdiutil` hors sandbox restreint (device). Sur cette machine : build OK (~5 Mo DMG).
+Le binaire de build reste sous `CARGO_TARGET_DIR` / `src-tauri/target/…/bundle/` (hors tracking git). Un `.dmg` peut y apparaître — **ne pas** le committer ni le copier dans le repo.
 
-## Build signé + notarié
+**Note :** `hdiutil` (bundle DMG) nécessite un environnement non sandboxé.
+
+## Build signé + notarié (archivé — hors scope)
 
 Exporter (session shell, pas dans le repo) :
 
@@ -40,32 +45,10 @@ export APPLE_SIGNING_IDENTITY="Developer ID Application: … (TEAMID)"
 export APPLE_ID="…"
 export APPLE_PASSWORD="…"   # app-specific
 export APPLE_TEAM_ID="…"
-# optionnel si plusieurs providers :
-# export APPLE_PROVIDER_SHORT_NAME="…"
-```
-
-Puis :
-
-```bash
 pnpm tauri:build
 ```
 
-Tauri lit l’identité via `bundle.macOS.signingIdentity` (env `APPLE_SIGNING_IDENTITY` si conf = null / omise selon CLI) et notarize si les vars Apple sont présentes.
-
-**Vérifs :**
-
-```bash
-codesign -dv --verbose=4 "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/ELSA.app"
-spctl -a -vv "…/ELSA.app"
-```
-
-## Install hors machine de build
-
-1. Copier le **DMG notarié** (AirDrop / disque / lien privé).
-2. Ouvrir → glisser **ELSA** dans Applications.
-3. Premier lancement : Piper (`pnpm voice:piper:prod` ou spawn shell si venv+modèle présents).
-
-Sans notarization : clic droit → Ouvrir (exception Gatekeeper) — **OK perso**, pas pour un tiers.
+Sans notarization : clic droit → Ouvrir (exception Gatekeeper) — **OK perso**.
 
 ## Piper sans terminal (runtime Application Support)
 
@@ -78,7 +61,7 @@ Au **premier lancement** (ou premier `voice_speak`), le shell :
 5. spawn Waitress sur `127.0.0.1:5911`.
 
 Log : `…/piper/bootstrap.log`  
-DX : si `ELSA_ROOT` ou le cwd pointe vers le monorepo avec `.venv-piper` + modèle → réutilise le repo (pas de second venv).
+DX : si `ELSA_ROOT` ou le cwd pointe vers le monorepo avec `.venv-piper` + modèle → réutilise le repo.
 
 **Prérequis machine :** `python3` (Homebrew ou CLT). Réseau au premier bootstrap si le modèle n’est pas déjà local.
 
