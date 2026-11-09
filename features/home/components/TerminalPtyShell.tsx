@@ -37,6 +37,8 @@ export function TerminalPtyShell({ active }: TerminalPtyShellProps) {
       cursorBlink: true,
       fontFamily: "var(--font-mono), ui-monospace, monospace",
       fontSize: 13,
+      lineHeight: 1.35,
+      letterSpacing: 0.5,
       theme: {
         background: "#0B0B0C",
         foreground: "#ECEAE4",
@@ -118,7 +120,7 @@ export function TerminalPtyShell({ active }: TerminalPtyShellProps) {
 
   return (
     <div
-      className="relative z-10 h-full min-h-0 px-3 py-3 sm:px-4 sm:py-4"
+      className="relative z-10 h-full min-h-0 px-4 py-4 sm:px-5 sm:py-5"
       aria-label={t("home.terminalShellLabel")}
     >
       <div ref={hostRef} className="h-full min-h-0 w-full overflow-hidden" />
