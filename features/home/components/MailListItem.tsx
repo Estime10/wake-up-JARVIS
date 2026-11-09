@@ -47,14 +47,12 @@ export function MailListItem({
         >
           {mail.from}
         </p>
-        <time className="t-mono shrink-0 text-sm text-text-muted">
-          {mail.time}
-        </time>
+        <time className="t-mono shrink-0 text-sm text-text">{mail.time}</time>
       </div>
       <p
         className={cn(
           "t-mono mt-1.5 truncate text-sm leading-snug",
-          mail.unread ? "text-text" : "text-text-muted",
+          mail.unread ? "text-text" : "text-text",
         )}
       >
         {mail.subject || t("home.mailNoSubject")}
@@ -63,7 +61,7 @@ export function MailListItem({
         <p
           className={cn(
             "t-mono mt-1 truncate text-sm uppercase",
-            !labelColor && "text-text-muted",
+            !labelColor && "text-text",
           )}
           style={labelColor ? { color: labelColor } : undefined}
         >
@@ -73,7 +71,7 @@ export function MailListItem({
             : null}
         </p>
       ) : null}
-      <p className="t-mono mt-1 line-clamp-2 text-sm text-text-muted">
+      <p className="t-mono mt-1 line-clamp-2 text-sm text-text">
         {mail.excerpt}
       </p>
     </button>

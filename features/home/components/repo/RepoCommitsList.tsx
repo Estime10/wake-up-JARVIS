@@ -25,7 +25,7 @@ export function RepoCommitsList({
 }: RepoCommitsListProps) {
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      <p className="t-mono shrink-0 px-1 text-dial text-text-muted uppercase sm:text-sm">
+      <p className="t-mono shrink-0 px-1 text-dial text-text uppercase sm:text-sm">
         {t("home.repoCommitsCount", { count: commits.length })}
       </p>
 
@@ -51,7 +51,7 @@ export function RepoCommitsList({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={t("home.repoCommitsOnGithubLabel")}
-          className="t-mono inline-flex items-center gap-2 text-sm tracking-wide text-text-muted uppercase outline-hidden transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid"
+          className="t-mono inline-flex items-center gap-2 text-sm tracking-wide text-text uppercase outline-hidden transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid"
         >
           {t("home.repoCommitsOnGithub")}
           <RepoExternalIcon className="size-3.5 shrink-0" />

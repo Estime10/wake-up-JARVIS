@@ -14,7 +14,7 @@ export function RepoPreviewCode({ content, masked }: RepoPreviewCodeProps) {
       <code>
         {lines.map((line, index) => (
           <span key={index} className="flex gap-4">
-            <span className="w-8 shrink-0 select-none text-right text-text-muted tabular-nums">
+            <span className="w-8 shrink-0 select-none text-right text-text tabular-nums">
               {index + 1}
             </span>
             <span className="min-w-0 flex-1 whitespace-pre-wrap break-all">
@@ -37,7 +37,7 @@ function MaskedLine({ line }: { line: string }) {
     <span className="inline-flex flex-wrap items-center gap-2">
       <span>{left}=</span>
       <span className="inline-block h-4 w-40 rounded bg-text-muted/30 blur-[3px]" />
-      <span className="t-label rounded border border-line px-1.5 py-0.5 text-[0.65rem] text-text-muted">
+      <span className="t-label rounded border border-line px-1.5 py-0.5 text-[0.65rem] text-text">
         {t("home.repoPreviewMaskedChip")}
       </span>
     </span>

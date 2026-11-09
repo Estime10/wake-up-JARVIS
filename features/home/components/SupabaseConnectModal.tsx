@@ -88,7 +88,7 @@ export function SupabaseConnectModal({
             </Button>
           </div>
 
-          <p className="t-body text-sm text-text-muted">
+          <p className="t-body text-sm text-text">
             {t("home.supabaseConnectHint")}
           </p>
 
@@ -101,7 +101,7 @@ export function SupabaseConnectModal({
             <div className="flex flex-col gap-1">
               <label
                 htmlFor={`${idPrefix}-label`}
-                className="t-mono text-sm tracking-wide text-text-muted uppercase"
+                className="t-mono text-sm tracking-wide text-text uppercase"
               >
                 {t("home.supabaseAccountLabel")}
               </label>
@@ -122,7 +122,7 @@ export function SupabaseConnectModal({
             <div className="flex flex-col gap-1">
               <label
                 htmlFor={`${idPrefix}-token`}
-                className="t-mono text-sm tracking-wide text-text-muted uppercase"
+                className="t-mono text-sm tracking-wide text-text uppercase"
               >
                 {t("home.supabaseTokenLabel")}
               </label>
@@ -141,7 +141,7 @@ export function SupabaseConnectModal({
                 className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-sm text-text outline-none focus-visible:border-accent"
               />
             </div>
-            <p className="t-mono text-sm text-text-muted">
+            <p className="t-mono text-sm text-text">
               {t("home.supabaseTokenHint")}
             </p>
             {errorKey ? (

@@ -75,13 +75,13 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
       ) : null}
       <div className="flex min-w-0 items-center justify-between gap-2">
         {platform.connection.selectedProjectName ? (
-          <p className="t-mono min-w-0 truncate text-sm text-text-muted">
+          <p className="t-mono min-w-0 truncate text-sm text-text">
             {t("home.supabaseActiveProject", {
               name: platform.connection.selectedProjectName,
             })}
           </p>
         ) : (
-          <p className="t-mono min-w-0 truncate text-sm text-text-muted">
+          <p className="t-mono min-w-0 truncate text-sm text-text">
             {t("home.supabasePickProject")}
           </p>
         )}
@@ -116,11 +116,11 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain pr-1">
         {platform.status === "loading" ? (
-          <p className="t-mono text-sm text-text-muted">
+          <p className="t-mono text-sm text-text">
             {t("home.supabaseLoading")}
           </p>
         ) : platform.status === "unavailable" ? (
-          <p className="t-mono text-sm text-text-muted">
+          <p className="t-mono text-sm text-text">
             {t("home.supabaseUnavailable")}
           </p>
         ) : !hasAccounts ? (
@@ -134,7 +134,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
             >
               {t("home.supabaseConnect")}
             </Button>
-            <p className="t-mono max-w-[16rem] text-sm text-text-muted">
+            <p className="t-mono max-w-[16rem] text-sm text-text">
               {t("home.supabaseConnectDrawerHint")}
             </p>
           </div>
@@ -153,7 +153,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                       "t-mono min-w-0 flex-1 px-1 py-2 text-left text-sm transition-colors",
                       account.isActive
                         ? "text-text"
-                        : "text-text-muted hover:text-text",
+                        : "text-text hover:text-accent",
                     )}
                   >
                     <span className="block truncate">
@@ -185,15 +185,15 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
 
             {platform.connection ? (
               <div className="flex flex-col gap-2">
-                <p className="t-mono text-sm tracking-wide text-text-muted uppercase">
+                <p className="t-mono text-sm tracking-wide text-text uppercase">
                   {t("home.supabaseProjectsTitle")}
                 </p>
                 {platform.projectsLoading ? (
-                  <p className="t-mono text-sm text-text-muted">
+                  <p className="t-mono text-sm text-text">
                     {t("home.supabaseProjectsLoading")}
                   </p>
                 ) : platform.projects.length === 0 ? (
-                  <p className="t-mono text-sm text-text-muted">
+                  <p className="t-mono text-sm text-text">
                     {t("home.supabaseProjectsEmpty")}
                   </p>
                 ) : (
@@ -214,8 +214,7 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                               "t-mono w-full px-1 py-2 text-left text-sm transition-colors",
                               selected
                                 ? "text-text"
-                                : "text-text-muted hover:text-text",
-                              platform.dockerEnsuring && "opacity-60",
+                                : "text-text hover:text-accent",
                             )}
                           >
                             <span className="block truncate">

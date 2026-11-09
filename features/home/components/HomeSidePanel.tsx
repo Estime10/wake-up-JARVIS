@@ -217,7 +217,7 @@ export function HomeSidePanel() {
                   aria-hidden
                 >
                   <span className="truncate uppercase">{account.label}</span>
-                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text-muted normal-case">
+                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text normal-case">
                     {count}
                   </span>
                 </span>

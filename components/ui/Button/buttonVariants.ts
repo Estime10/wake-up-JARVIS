@@ -16,9 +16,9 @@ export const BUTTON_VARIANT_CLASS = {
   dangerSolid:
     "t-label rounded-md bg-danger text-on-danger hover:brightness-110",
   /** Lien HUD mono — méta coins (Terminal, etc.). */
-  hud: "pointer-events-auto rounded-none bg-transparent font-mono text-dial font-normal tracking-dial text-text-muted uppercase transition-colors hover:text-text sm:text-sm",
+  hud: "pointer-events-auto rounded-none bg-transparent font-mono text-dial font-normal tracking-dial text-text uppercase transition-colors hover:text-accent sm:text-sm",
   /** Onglet souligné — `aria-selected` porte l’état actif. */
-  tab: "t-label rounded-none border-0 border-b-2 border-transparent bg-transparent text-sm text-text-muted hover:text-text aria-selected:border-accent aria-selected:text-accent",
+  tab: "t-label rounded-none border-0 border-b-2 border-transparent bg-transparent text-sm text-text hover:text-accent aria-selected:border-accent aria-selected:text-accent",
 } as const;
 
 export const BUTTON_SIZE_CLASS = {
