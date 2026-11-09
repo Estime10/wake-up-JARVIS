@@ -13,6 +13,8 @@
   "permissions": [
     "core:default",
     "allow-studio-ensure",
+    "allow-voice-speak",
+    "allow-voice-stop",
     "allow-webview-pane-set-studio",
     "allow-webview-pane-set-browser",
     "allow-webview-pane-clear-studio",

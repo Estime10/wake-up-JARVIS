@@ -33,7 +33,7 @@ function withVoiceMute(voice: VoicePort): VoicePort {
 }
 
 function createAppVoice(): VoicePort {
-  // Shell : pas de proxy Next/Piper HTTP (prod Vercel) — stub jusqu’à l’étape 5.
+  // Shell : invoke → Piper loopback (ADR 0014) — pas de proxy Next / fetch :5911.
   if (isTauri()) {
     return withVoiceMute(createTauriVoice());
   }

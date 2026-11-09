@@ -7,8 +7,6 @@ Statuts possibles : **Proposé** → **Accepté** (validé par DevinChat) → é
 
 **Rebrand (2026-11)** : le produit s’appelle **E.L.S.A.** ; les ADR antérieurs pouvaient dire « JARVIS » (nom de code). La phrase de réveil « Wake up, JARVIS » ([0007](./0007-mot-de-reveil.md)) reste telle quelle jusqu’à un ADR dédié. **Musique** : ADR à venir (branche `feature/music`) — pas encore numéroté.
 
-**0009** : numéro réservé / référencé dans des plans (capabilities Tauri) — **fichier absent** ; ne pas réutiliser sans décision explicite.
-
 ## Index
 
 | N°                                                  | Titre                                                                                                      | Statut  | Date       |
@@ -21,16 +19,18 @@ Statuts possibles : **Proposé** → **Accepté** (validé par DevinChat) → é
 | [0006](./0006-execution-terminal.md)                | _(cadre futur)_ Exécution terminal : agent Tauri v2, file Supabase, ordres signés, signature WebAuthn      | Proposé | 2026-11-01 |
 | [0007](./0007-mot-de-reveil.md)                     | _(cadre futur)_ Mot de réveil : openWakeWord local, réveil de l'écran seulement                            | Proposé | 2026-11-01 |
 | [0008](./0008-auth-email-memoire-supabase.md)       | Auth e-mail + MemoryPort Supabase (V0b partiel) ; pages système ; pas d’offline navigateur                 | Proposé | 2026-11-02 |
+| [0009](./0009-capabilities-tauri.md)                | Capabilities Tauri : allowlist d’invoke + remote.urls bornés                                               | Proposé | 2026-11-09 |
 | [0010](./0010-tri-des-mails.md)                     | Tri des mails : Gmail readonly, Vault, tri déterministe, résumé sur demande (étape 1 = connexion seule)    | Proposé | 2026-11-02 |
 | [0011](./0011-github-repos-lecture.md)              | GitHub : lecture repos (privés + publics), fine-grained PAT dans Vault (étape 1 = connexion seule)         | Proposé | 2026-11-02 |
-| [0012](./0012-voix-de-jarvis.md)                    | Voix E.L.S.A. : Piper siwis (FR local) + proxy Next + repli speechSynthesis                                | Proposé | 2026-11-03 |
-| [0013](./0013-supabase-platform-studio-embarque.md) | Platform Supabase multi-comptes (Vault) + Studio + navigateur libre (split tiroir ; Tauri plus tard)       | Proposé | 2026-11-04 |
+| [0012](./0012-voix-de-jarvis.md)                    | Voix E.L.S.A. : Piper siwis (FR local) ; web = proxy Next ; shell = invoke Tauri                           | Proposé | 2026-11-03 |
+| [0013](./0013-supabase-platform-studio-embarque.md) | Platform Supabase multi-comptes (Vault) + Studio plein panneau (navigateur libre reporté)                  | Proposé | 2026-11-04 |
+| [0014](./0014-shell-tauri-macos.md)                 | Shell macOS Tauri v2 : URL prod + bridge allowlist + Studio WV + voix invoke                               | Proposé | 2026-11-09 |
 
 Les ADR **0002, 0003 et 0004** ont été **révisés le 2026-11-01 après relecture PIXEL** (CSP et `connection()`, règle `style`, icônes PWA, `quickTo` et Flip). Leur statut reste « Proposé ».
 
 Passe doc **2026-11-07** (`feature/music`) : rebrand E.L.S.A. dans les libellés ; **0013** enrichi (split Studio / navigateur, CSP `frame-src` dev, placeholder jusqu’à Tauri) ; **0012** titre aligné ; **0009** noté absent ; musique **reportée**.
 
-Qui relit : **DevinChat** valide (passe en « Accepté ») ; **THE JUDGE** relit tous les ADR ; **HACKER** relit obligatoirement 0006, 0007, 0008, **0010**, **0011**, **0012** et **0013** (jetons / Vault / Studio local) ; **PIXEL** relit 0002 à 0004, 0008 et 0013 ; **SKETCH** relit 0004.
+Qui relit : **DevinChat** valide (passe en « Accepté ») ; **THE JUDGE** relit tous les ADR ; **HACKER** relit obligatoirement 0006, 0007, 0008, **0009**, **0010**, **0011**, **0012**, **0013** et **0014** (IPC / Vault / Studio / voix shell) ; **PIXEL** relit 0002 à 0004, 0008 et 0013 ; **SKETCH** relit 0004.
 
 ## Modèle (copier dans `00XX-titre-court.md`)
 

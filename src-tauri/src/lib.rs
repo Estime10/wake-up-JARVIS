@@ -1,4 +1,5 @@
 mod studio_local;
+mod voice;
 mod webview_pane;
 
 use tauri::{
@@ -31,6 +32,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             studio_local::studio_ensure,
+            voice::voice_speak,
+            voice::voice_stop,
             webview_pane::webview_pane_set_studio,
             webview_pane::webview_pane_set_browser,
             webview_pane::webview_pane_clear_studio,
