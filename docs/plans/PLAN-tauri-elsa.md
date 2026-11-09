@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** étapes 1–4 OK ; ADR 0009/0014 proposés ; étape 5 = **bridge invoke OK** (reste Waitress/spawn) ; navigateur libre reporté  
+**Statut :** étapes 1–5 OK (Piper Waitress + spawn shell) ; navigateur libre reporté ; suite = packaging (6)
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
@@ -351,13 +351,13 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 
 ## Suivi
 
-| Étape      | Branche / commit | Statut                                           |
-| ---------- | ---------------- | ------------------------------------------------ |
-| Plan       | `feat/tauri`     | **ce document**                                  |
-| 0 ADR      | `feat/tauri`     | **fait** — ADR 0009 + 0014 (proposés)            |
-| 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64     |
-| 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel             |
-| 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`    |
-| 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)     |
-| 5 Piper    | `feat/tauri`     | **partiel** — bridge OK ; Waitress/spawn à faire |
-| 6–7        | —                | à faire                                          |
+| Étape      | Branche / commit | Statut                                             |
+| ---------- | ---------------- | -------------------------------------------------- |
+| Plan       | `feat/tauri`     | **ce document**                                    |
+| 0 ADR      | `feat/tauri`     | **fait** — ADR 0009 + 0014 (proposés)              |
+| 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64       |
+| 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel               |
+| 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`      |
+| 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)       |
+| 5 Piper    | `feat/tauri`     | **fait** — invoke + Waitress spawn + sha256 modèle |
+| 6–7        | —                | à faire                                            |

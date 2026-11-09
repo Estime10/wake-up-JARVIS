@@ -2,14 +2,17 @@ mod studio_local;
 mod voice;
 mod webview_pane;
 
+use std::sync::Mutex;
+
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder},
-    Manager,
+    Manager, RunEvent,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(voice::PiperProcess(Mutex::new(None)))
         .setup(|app| {
             let reload = MenuItemBuilder::with_id("reload", "Recharger")
                 .accelerator("CmdOrCtrl+R")
@@ -40,6 +43,11 @@ pub fn run() {
             webview_pane::webview_pane_clear_browser,
             webview_pane::webview_pane_debug,
         ])
-        .run(tauri::generate_context!())
-        .expect("E.L.S.A. failed to start");
+        .build(tauri::generate_context!())
+        .expect("E.L.S.A. failed to start")
+        .run(|app, event| {
+            if matches!(event, RunEvent::Exit | RunEvent::ExitRequested { .. }) {
+                voice::shutdown_piper(app);
+            }
+        });
 }

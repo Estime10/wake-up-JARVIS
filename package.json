@@ -18,6 +18,7 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm format:check",
     "mail:purge": "node scripts/purge-mail-items.mjs",
     "voice:piper": "./scripts/run-piper.sh",
+    "voice:piper:prod": "./scripts/run-piper-prod.sh",
     "tauri:dev": "PATH=\"$HOME/.cargo/bin:$PATH\" tauri dev",
     "tauri:build": "PATH=\"$HOME/.cargo/bin:$PATH\" tauri build --target aarch64-apple-darwin",
     "prepare": "husky"
