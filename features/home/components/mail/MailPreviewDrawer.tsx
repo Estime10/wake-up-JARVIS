@@ -19,8 +19,8 @@ type MailPreviewDrawerProps = {
 };
 
 /**
- * Tiroir 2 — 2e moitié section gauche.
- * Clip overflow pour ne pas peindre sur la liste pendant le slide.
+ * Tiroir 2 — pleine colonne gauche (couvre la liste).
+ * Clip overflow pour le slide.
  */
 export function MailPreviewDrawer({
   visible,

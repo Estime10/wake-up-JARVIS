@@ -265,9 +265,9 @@ export function HomeSidePanel() {
         ) : activeMails.length === 0 ? (
           <SidePanelMessage text={t("home.mailEmpty")} />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col">
             {activeMails.map((mail) => (
-              <li key={mail.id}>
+              <li key={mail.id} className="border-b border-line-subtle">
                 <MailListItem
                   mail={mail}
                   selected={selected?.id === mail.id}

@@ -17,7 +17,7 @@ type RepoPanelCommitDrawerProps = {
 };
 
 /**
- * Tiroir 2 — détail commit (même rail que l’aperçu fichier).
+ * Tiroir 2 — détail commit (pleine colonne gauche, comme l’aperçu fichier).
  */
 export function RepoPanelCommitDrawer({
   visible,

@@ -20,7 +20,7 @@ type MailListDrawerProps = {
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — liste / boîtes (1re moitié section gauche). */
+/** Tiroir 1 — liste / boîtes (pleine colonne gauche). */
 export function MailListDrawer({ visible, onDismiss }: MailListDrawerProps) {
   return (
     <aside
