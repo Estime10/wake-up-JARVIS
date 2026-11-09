@@ -48,4 +48,10 @@ if [[ -f "${BUNDLE}/dmg/ELSA_0.1.0_aarch64.dmg" ]]; then
   echo "Copié → dist/macos/ELSA_0.1.0_aarch64.dmg"
 fi
 
+# Seed chemin repo pour Studio/Piper depuis le Finder (Application Support).
+SUPPORT="${HOME}/Library/Application Support/be.devinchat.elsa"
+mkdir -p "$SUPPORT"
+printf '%s\n' "$ROOT" > "${SUPPORT}/elsa-root.txt"
+echo "elsa-root.txt → ${SUPPORT}/elsa-root.txt"
+
 echo "Done. Runbook: docs/runbooks/PACKAGING-macos.md"

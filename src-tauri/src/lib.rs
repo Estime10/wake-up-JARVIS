@@ -1,3 +1,4 @@
+mod elsa_paths;
 mod piper_runtime;
 mod studio_local;
 mod voice;
@@ -26,10 +27,16 @@ pub fn run() {
             let menu = MenuBuilder::new(app).item(&app_menu).build()?;
             app.set_menu(menu)?;
 
-            // Piper : bootstrap Application Support en arrière-plan (zéro terminal).
+            // Mémorise le repo si trouvé (DX) — sert au `.app` Finder pour Studio/Piper.
             let handle = app.handle().clone();
+            if let Ok(root) = elsa_paths::resolve_repo_root(&handle) {
+                elsa_paths::remember_repo_root(&handle, &root);
+            }
+
+            // Piper : bootstrap Application Support en arrière-plan (zéro terminal).
+            let piper_handle = app.handle().clone();
             std::thread::spawn(move || {
-                voice::warm_piper(&handle);
+                voice::warm_piper(&piper_handle);
             });
             Ok(())
         })

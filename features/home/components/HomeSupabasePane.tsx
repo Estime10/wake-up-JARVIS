@@ -30,6 +30,7 @@ const STUDIO_ERROR_KEYS: Record<string, MessageKey> = {
   docker_start_failed: "home.supabaseStudioErrorDockerStart",
   supabase_start_failed: "home.supabaseStudioErrorStart",
   port_in_use: "home.supabaseStudioErrorPortInUse",
+  repo_missing: "home.supabaseStudioErrorRepoMissing",
   network: "home.supabaseTokenErrorNetwork",
   upstream: "home.supabaseStudioErrorStart",
 };

@@ -337,9 +337,16 @@ export function useSupabasePlatform(): UseSupabasePlatformResult {
               : error instanceof Error
                 ? error.message
                 : "not_running";
-          setStudioError(
-            message.includes("not_running") ? "not_running" : "upstream",
-          );
+          const known = [
+            "not_running",
+            "docker_missing",
+            "docker_start_failed",
+            "supabase_start_failed",
+            "port_in_use",
+            "repo_missing",
+          ] as const;
+          const code = known.find((k) => message.includes(k)) ?? "upstream";
+          setStudioError(code);
           return { ok: false as const };
         }
       }

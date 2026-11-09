@@ -15,7 +15,7 @@ La prod web (Vercel) est GO ; les limites navigateur (iframe Studio/browser, Pip
 - **Runtime** : Tauri **v2**, cible **`aarch64-apple-darwin`** uniquement (ADR 0005).
 - **UI V0** : WebView principal charge **l’URL prod** `https://wake-up-jarvis.vercel.app` en release ; **`http://127.0.0.1:3000`** en DX (`tauri:dev` + `next dev`).
 - **Bridge** : commandes Rust **nommées** + validation args ; capabilities ADR **0009**. Pas de `fetch('http://127.0.0.1')` depuis l’origine https.
-- **Studio** : child WKWebView `elsa-studio` positionné sur le frame DOM (plein panneau droite) ; proxy `:54332` = **web only**.
+- **Studio** : child WKWebView `elsa-studio` positionné sur le frame DOM (plein panneau droite) ; proxy `:54332` = **web only**. `studio_ensure` → Docker Desktop + `supabase start` sur le Mac (repo via `ELSA_ROOT` / cache Application Support) — zéro terminal utilisateur.
 - **Navigateur libre** : reporté (util `normalizeSideBrowserUrl` conservé).
 - **Voix shell** : `invoke` → Rust → Piper **`127.0.0.1:5911`** ; repli `speechSynthesis` si Piper down (aligné ADR 0012). Cycle de vie process Piper = responsabilité du shell (DX : script repo OK).
 - **Packaging V0** : artefacts `.app` + `.dmg` ; signing **Developer ID** + notarization (compte DevinChat) ; **pas** d’auto-update (`createUpdaterArtifacts: false`) — install manuelle du DMG. Runbook : `docs/runbooks/PACKAGING-macos.md`.

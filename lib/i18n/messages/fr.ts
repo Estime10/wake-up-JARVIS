@@ -340,12 +340,14 @@ export const fr = {
     supabaseStudioErrorDisabled:
       "Lancement local désactivé hors développement.",
     supabaseStudioErrorNotRunning:
-      "Studio local injoignable (:54323). Lance `supabase start` dans le repo, puis réessaie.",
+      "Studio local injoignable (:54323) après démarrage. Vérifie Docker et `supabase status`.",
     supabaseStudioErrorDockerMissing: "Docker Desktop introuvable.",
     supabaseStudioErrorDockerStart: "Docker n’a pas démarré à temps.",
     supabaseStudioErrorStart: "Échec de supabase start.",
     supabaseStudioErrorPortInUse:
       "Un port Supabase local est déjà pris. Fais supabase stop, ou change le port dans supabase/config.toml.",
+    supabaseStudioErrorRepoMissing:
+      "Repo E.L.S.A. introuvable (supabase/config.toml). Lance une fois via `pnpm tauri:dev` depuis le repo, ou exporte ELSA_ROOT.",
     sideBrowserNativeError:
       "WebView natif indisponible. Relance via `pnpm tauri:dev` (cargo dans le PATH).",
     repoPanelLabel: "Dépôts",
