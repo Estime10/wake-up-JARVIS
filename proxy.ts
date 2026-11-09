@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
     isDev
       ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* ws://localhost:* http://127.0.0.1:* http://localhost:*"
       : "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-    // Studio embed (:54332) + navigateur libre (placeholder iframe) — dev only (DEV-12 / Tauri).
+    // Studio embed (:54332) — web only ; shell Tauri = WebView natif.
     isDev
       ? "frame-src 'self' http://127.0.0.1:54332 https: http:"
       : "frame-src 'self'",

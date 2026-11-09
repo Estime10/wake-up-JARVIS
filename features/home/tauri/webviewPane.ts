@@ -29,20 +29,8 @@ export async function setStudioWebviewPane(
   await invoke("webview_pane_set_studio", { url, bounds, force });
 }
 
-export async function setBrowserWebviewPane(
-  url: string,
-  bounds: WebviewPaneBounds,
-  force = false,
-): Promise<void> {
-  await invoke("webview_pane_set_browser", { url, bounds, force });
-}
-
 export async function clearStudioWebviewPane(): Promise<void> {
   await invoke("webview_pane_clear_studio");
-}
-
-export async function clearBrowserWebviewPane(): Promise<void> {
-  await invoke("webview_pane_clear_browser");
 }
 
 export async function debugWebviewPane(

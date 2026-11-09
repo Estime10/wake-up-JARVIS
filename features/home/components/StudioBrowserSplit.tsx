@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { SupabaseStudioBrowser } from "@/features/home/components/SupabaseStudioBrowser";
-import { useIsTauriClient } from "@/features/home/hooks/useIsTauriClient";
-import { clearBrowserWebviewPane } from "@/features/home/tauri/webviewPane";
 import { t } from "@/lib/i18n";
 
 type StudioBrowserSplitProps = {
@@ -15,24 +13,11 @@ type StudioBrowserSplitProps = {
 
 /**
  * Colonne droite entière : Studio plein panneau **ou** comptes.
- * Navigateur libre reporté (plan Tauri) — cleanup orphan `elsa-browser` au mount.
  */
 export function StudioBrowserSplit({
   studioUrl,
   topFallback = null,
 }: StudioBrowserSplitProps) {
-  const native = useIsTauriClient();
-
-  useEffect(() => {
-    if (!native) {
-      return;
-    }
-    // Ferme un éventuel child `elsa-browser` restant d’une session précédente.
-    void clearBrowserWebviewPane().catch(() => {
-      /* hors shell */
-    });
-  }, [native]);
-
   if (studioUrl) {
     return (
       <div

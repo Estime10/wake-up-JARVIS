@@ -23,7 +23,6 @@ type TauriWebviewHostProps = {
 /**
  * Emplacement DOM Studio : en flux, remplit son parent.
  * Le WebView natif Tauri est un calque OS positionné sur ces bounds.
- * (Navigateur libre `elsa-browser` : plus tard — clear orphan côté split.)
  */
 export function TauriWebviewHost({
   url,

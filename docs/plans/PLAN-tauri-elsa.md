@@ -1,7 +1,7 @@
 # Plan — Shell macOS Tauri v2 pour E.L.S.A.
 
 **Branche :** `feat/tauri`  
-**Statut :** 1–6 + Piper + Studio start + **zsh PTY réel** ; navigateur libre reporté ; agent LLM/LaunchAgent = étape 7 (gate HACKER)
+**Statut :** 1–6 **clos** (machine perso) + Piper + Studio + **zsh PTY** ; navigateur libre **abandonné** ; Developer ID / notarization **hors scope** ; reste étape 7 agent (gate HACKER)
 **Prérequis prod web :** https://wake-up-jarvis.vercel.app (Next.js) — **reste la source de vérité UI**  
 **Règles :** pas de push sans accord · pas de `Co-authored-by: Cursor` · aucun secret · pas de `child_process` / shell dans `lib/`, `adapters/`, `app/` · **revue HACKER obligatoire** avant agent terminal (ADR 0006)
 
@@ -28,7 +28,7 @@ Livrer une **app macOS Apple Silicon** (Tauri **v2**) qui :
 | ------------------------------------------------------------------ | ------------------------------------------ |
 | Fenêtre unique E.L.S.A.                                            | Safari / Chrome                            |
 | WebView **Studio** top-level                                       | iframe + proxy `:54332`                    |
-| WebView **navigateur libre** top-level                             | (reporté — util `normalizeSideBrowserUrl`) |
+| ~~WebView navigateur libre~~                                       | **abandonné** (anti-frame ; Studio suffit) |
 | **Piper TTS local** (`127.0.0.1:5911` + bridge Tauri)              | proxy Next (dev only) / `speechSynthesis`  |
 | Plus tard : **agent** lecture seule (file Supabase, ordres signés) | mock terminal UI                           |
 
@@ -121,7 +121,7 @@ Amendement ADR **0012** à prévoir en étape 0/5 : « en shell Tauri, TTS via l
 │  App Tauri v2 (macOS, Apple Silicon)                        │
 │  ┌─────────────────────┐  ┌──────────────────────────────┐  │
 │  │ WebView principal   │  │ WebViews secondaires         │  │
-│  │ = UI E.L.S.A.       │  │ (Studio · navigateur libre)  │  │
+│  │ = UI E.L.S.A.       │  │ (Studio WV)                  │  │
 │  │ (souvent URL prod)  │  │ top-level, pas iframe        │  │
 │  └─────────┬───────────┘  └──────────────▲───────────────┘  │
 │            │ invoke voice_* / window_*    │ embed / navigate │
@@ -224,19 +224,18 @@ Pas de second `package.json` npm pour l’UI : le front reste ce repo. Scripts r
 
 ---
 
-### Étape 4 — WebViews Studio + navigateur libre
+### Étape 4 — WebView Studio (navigateur libre abandonné)
 
 **Remplace** (dans le shell uniquement) :
 
-- `SupabaseStudioBrowser` iframe + proxy `:54332` → **WebView** vers `http://127.0.0.1:54323` (ou URL Studio réelle) ;
-- Recréer un chrome navigateur libre → **WebView** `elsa-browser` (réutiliser `normalizeSideBrowserUrl` ; navigation via commande Rust).
+- `SupabaseStudioBrowser` iframe + proxy `:54332` → **WebView** vers `http://127.0.0.1:54323` (ou URL Studio réelle).
 
-Layout : conserver le split 50/50 (chrome React) ; les surfaces média sont des WebViews enfants / labels Tauri positionnés — **spike UI** en sous-tâche (mesure bbox DOM → `set_position`).
+**Abandonné (décision produit 2026-11-09) :** WebView `elsa-browser` / navigateur libre — anti-frame inutilisable ; Studio + multi-comptes Supabase (ajout manuel plus tard) couvrent le besoin.
 
 **Interdit :** proxy open générique ; strip CSP arbitraire ; `shell.open` non borné.
 
-**Done when :** CA-T3, CA-T4 · sites anti-frame navigables dans le WV libre.  
-**Commit :** `feat(tauri): WebViews Studio et navigateur libre.`
+**Done when :** CA-T3 (Studio WV).  
+**Commit :** `feat(tauri): WebView Studio.`
 
 ---
 
@@ -260,18 +259,16 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 
 ---
 
-### Étape 6 — Packaging & distribution perso
+### Étape 6 — Packaging machine perso (sans Developer ID)
 
-- Signing Apple (Developer ID) + notarization — compte DevinChat ;
-- DMG / install user-level ;
+- DMG / `.app` **local** (même Mac) — clic droit → Ouvrir si Gatekeeper ;
 - Auto-update : **manuel V0** (pas de `tauri-plugin-updater`) ;
 - `CREDITS.md` / `NOTICE` / page `/credits` (Piper GPL + SIWIS CC BY) ;
 - Runbook : `docs/runbooks/PACKAGING-macos.md` · script `./scripts/package-elsa.sh`.
 
-**Statut code :** conf `app`+`dmg`, entitlements hardened runtime, crédits UI — **fait**.  
-**Reste ops :** installer le certificat Developer ID + notarier, puis installer le DMG sur un Mac ≠ build (Gatekeeper vert).
+**Hors scope (décision produit 2026-11-09) :** Developer ID, notarization, distribution hors machine de build.
 
-**Done when :** install sur le Mac de DevinChat hors machine de build (après notarization).  
+**Statut :** conf `app`+`dmg`, crédits, runbook — **clos** pour usage perso.  
 **Commit :** `chore(tauri): packaging macOS et crédits.`
 
 ---
@@ -297,7 +294,7 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 | CA-T1 | `.app` Apple Silicon s’ouvre ; UI login/home via WebView.                                                                                   |
 | CA-T2 | `pnpm build` / déploiement Vercel **non régressés**.                                                                                        |
 | CA-T3 | Studio visible **sans** iframe proxy `:54332` dans le shell.                                                                                |
-| CA-T4 | Navigateur libre charge un site qui refuse l’iframe web.                                                                                    |
+| CA-T4 | ~~Navigateur libre~~ — **N/A** (abandonné).                                                                                                 |
 | CA-T5 | Aucune capability Rust exposée à une origine distante non allowlistée.                                                                      |
 | CA-T6 | Piper (ou repli documenté) pour le salut dans le shell.                                                                                     |
 | CA-T7 | Pas de port d’écoute agent ; file pull uniquement (quand V1).                                                                               |
@@ -362,7 +359,7 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 | 1 scaffold | `feat/tauri`     | **fait** — `src-tauri/` · `ELSA.app` aarch64          |
 | 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel                  |
 | 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`         |
-| 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)          |
+| 4 WebViews | `feat/tauri`     | **fait** — Studio WV ; navigateur libre **abandonné** |
 | 5 Piper    | `feat/tauri`     | **fait** — Waitress + App Support (zéro terminal)     |
-| 6 package  | `feat/tauri`     | **partiel** — DMG/crédits/runbook ; signing Apple ops |
+| 6 package  | `feat/tauri`     | **clos** — DMG local ; pas de Developer ID            |
 | 7 agent    | —                | à faire (gate HACKER)                                 |

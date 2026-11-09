@@ -4,19 +4,9 @@ description = "Ouvre / positionne le WebView Studio (loopback)."
 commands.allow = ["webview_pane_set_studio"]
 
 [[permission]]
-identifier = "allow-webview-pane-set-browser"
-description = "Ouvre / positionne le WebView navigateur libre (http/https)."
-commands.allow = ["webview_pane_set_browser"]
-
-[[permission]]
 identifier = "allow-webview-pane-clear-studio"
 description = "Ferme le WebView Studio."
 commands.allow = ["webview_pane_clear_studio"]
-
-[[permission]]
-identifier = "allow-webview-pane-clear-browser"
-description = "Ferme le WebView navigateur libre."
-commands.allow = ["webview_pane_clear_browser"]
 
 [[permission]]
 identifier = "allow-webview-pane-debug"

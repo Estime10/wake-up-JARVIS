@@ -23,7 +23,7 @@ Statuts possibles : **Proposé** → **Accepté** (validé par DevinChat) → é
 | [0010](./0010-tri-des-mails.md)                     | Tri des mails : Gmail readonly, Vault, tri déterministe, résumé sur demande (étape 1 = connexion seule)    | Proposé | 2026-11-02 |
 | [0011](./0011-github-repos-lecture.md)              | GitHub : lecture repos (privés + publics), fine-grained PAT dans Vault (étape 1 = connexion seule)         | Proposé | 2026-11-02 |
 | [0012](./0012-voix-de-jarvis.md)                    | Voix E.L.S.A. : Piper siwis (FR local) ; web = proxy Next ; shell = invoke Tauri                           | Proposé | 2026-11-03 |
-| [0013](./0013-supabase-platform-studio-embarque.md) | Platform Supabase multi-comptes (Vault) + Studio plein panneau (navigateur libre reporté)                  | Proposé | 2026-11-04 |
+| [0013](./0013-supabase-platform-studio-embarque.md) | Platform Supabase multi-comptes (Vault) + Studio plein panneau (navigateur libre abandonné)                | Proposé | 2026-11-04 |
 | [0014](./0014-shell-tauri-macos.md)                 | Shell macOS Tauri v2 : URL prod + bridge allowlist + Studio WV + voix invoke                               | Proposé | 2026-11-09 |
 
 Les ADR **0002, 0003 et 0004** ont été **révisés le 2026-11-01 après relecture PIXEL** (CSP et `connection()`, règle `style`, icônes PWA, `quickTo` et Flip). Leur statut reste « Proposé ».

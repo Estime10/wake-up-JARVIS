@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Fenêtre principale E.L.S.A. — panes Studio/browser via invoke (pas d’IPC sur les WV enfants).",
+  "description": "Fenêtre principale E.L.S.A. — pane Studio via invoke (pas d’IPC sur le WV enfant).",
   "windows": ["main"],
   "remote": {
     "urls": [
@@ -21,9 +21,7 @@
     "allow-voice-speak",
     "allow-voice-stop",
     "allow-webview-pane-set-studio",
-    "allow-webview-pane-set-browser",
     "allow-webview-pane-clear-studio",
-    "allow-webview-pane-clear-browser",
     "allow-webview-pane-debug"
   ]
 }

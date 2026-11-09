@@ -58,9 +58,7 @@ pub fn run() {
             voice::voice_speak,
             voice::voice_stop,
             webview_pane::webview_pane_set_studio,
-            webview_pane::webview_pane_set_browser,
             webview_pane::webview_pane_clear_studio,
-            webview_pane::webview_pane_clear_browser,
             webview_pane::webview_pane_debug,
         ])
         .build(tauri::generate_context!())

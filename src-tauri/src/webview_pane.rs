@@ -2,7 +2,6 @@ use tauri::{AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalSize, Webv
 use url::Url;
 
 const STUDIO_LABEL: &str = "elsa-studio";
-const BROWSER_LABEL: &str = "elsa-browser";
 const STUDIO_DIRECT: &str = "http://127.0.0.1:54323/project/default";
 const MAIN_LABEL: &str = "main";
 
@@ -29,14 +28,6 @@ pub struct PaneDebugInfo {
     pub child_y: Option<f64>,
     pub child_w: Option<f64>,
     pub child_h: Option<f64>,
-}
-
-fn parse_browser_url(raw: &str) -> Result<Url, String> {
-    let url = Url::parse(raw).map_err(|e| e.to_string())?;
-    match url.scheme() {
-        "http" | "https" => Ok(url),
-        _ => Err("scheme not allowed".into()),
-    }
 }
 
 fn resolve_studio_url(raw: &str) -> Result<Url, String> {
@@ -186,24 +177,8 @@ pub async fn webview_pane_set_studio(
 }
 
 #[tauri::command]
-pub async fn webview_pane_set_browser(
-    app: AppHandle,
-    url: String,
-    bounds: PaneBounds,
-    force: Option<bool>,
-) -> Result<(), String> {
-    let parsed = parse_browser_url(&url)?;
-    upsert_child(&app, BROWSER_LABEL, parsed, &bounds, force.unwrap_or(false))
-}
-
-#[tauri::command]
 pub async fn webview_pane_clear_studio(app: AppHandle) -> Result<(), String> {
     clear_child(&app, STUDIO_LABEL)
-}
-
-#[tauri::command]
-pub async fn webview_pane_clear_browser(app: AppHandle) -> Result<(), String> {
-    clear_child(&app, BROWSER_LABEL)
 }
 
 #[tauri::command]
@@ -223,7 +198,7 @@ pub async fn webview_pane_debug(
         .ok_or_else(|| "main webview missing".to_string())?;
     let main_size = main.size().map_err(|e| e.to_string())?;
 
-    let child_label = label.unwrap_or_else(|| BROWSER_LABEL.to_string());
+    let child_label = label.unwrap_or_else(|| STUDIO_LABEL.to_string());
     let (child_x, child_y, child_w, child_h) = if let Some(child) = app.get_webview(&child_label)
     {
         let pos = child.position().ok();

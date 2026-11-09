@@ -5,28 +5,21 @@
 
 ## Décisions V0
 
-| Sujet             | Choix                                                                |
-| ----------------- | -------------------------------------------------------------------- |
-| Artefacts         | `.app` + `.dmg` (user-level : glisser vers `/Applications`)          |
-| Signing           | **Developer ID Application** (compte DevinChat) + notarization Apple |
-| Auto-update       | **Manuel V0** — pas de `tauri-plugin-updater` ; réinstaller le DMG   |
-| Piper dans le DMG | **Hors bundle V0** — venv + modèle restent sur la machine (scripts)  |
+| Sujet             | Choix                                                               |
+| ----------------- | ------------------------------------------------------------------- |
+| Artefacts         | `.app` + `.dmg` (même machine)                                      |
+| Signing           | **Hors scope** — pas de Developer ID / notarization (usage perso)   |
+| Auto-update       | **Manuel V0** — pas de `tauri-plugin-updater` ; rebuild / DMG local |
+| Piper dans le DMG | **Hors bundle V0** — venv + modèle restent sur la machine (scripts) |
 
-Réévaluer l’updater quand il y aura ≥ 2 Macs à tenir à jour ou une release semi-publique.
+Cible produit : **un seul Mac** (celui de build). Les sections signing/notarization ci-dessous sont optionnelles / archivées.
 
 ## Prérequis
 
 1. Xcode CLT + Rust `aarch64-apple-darwin`
-2. Certificat **Developer ID Application** dans le trousseau :
-   ```bash
-   security find-identity -v -p codesigning
-   ```
-3. App-specific password Apple ID (notarization) — **jamais** committer
-4. `pnpm` + deps à jour
+2. `pnpm` + deps à jour
 
-## Build local (unsigned / ad-hoc)
-
-Utile sur la machine de build ; Gatekeeper bloquera sur un autre Mac.
+## Build local (unsigned / ad-hoc) — **chemin nominal**
 
 ```bash
 ./scripts/package-elsa.sh
