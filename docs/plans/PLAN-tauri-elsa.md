@@ -363,6 +363,6 @@ Voir section **« Piper en prod »** ci-dessus. Reprendre aussi le plan voix (é
 | 2 URL UI   | `feat/tauri`     | **fait** — dev `:3000` · prod Vercel                  |
 | 3 runtime  | `feat/tauri`     | **fait** — `isTauri` / ports / `data-runtime`         |
 | 4 WebViews | `feat/tauri`     | **fait** — Studio WV (browser libre reporté)          |
-| 5 Piper    | `feat/tauri`     | **fait** — invoke + Waitress spawn + sha256 modèle    |
+| 5 Piper    | `feat/tauri`     | **fait** — Waitress + App Support (zéro terminal)     |
 | 6 package  | `feat/tauri`     | **partiel** — DMG/crédits/runbook ; signing Apple ops |
 | 7 agent    | —                | à faire (gate HACKER)                                 |
