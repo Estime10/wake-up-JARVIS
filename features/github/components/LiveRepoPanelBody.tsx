@@ -9,10 +9,10 @@ import {
 } from "react";
 
 import { usePorts } from "@/app/ports-context";
-import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button/Button";
+import { Select } from "@/components/ui/Select/Select";
 import { useLiveRepoPreview } from "@/features/github/context/liveRepoPreviewContext";
-import { useRepoPanel } from "@/features/home/context";
+import { useRepoPanel } from "@/features/home/context/repoPanelContext";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 import {
   getLiveRepoDetailCache,
@@ -25,18 +25,18 @@ import {
   setLiveRepoSelectionCache,
   type LiveRepoDetailSnapshot,
 } from "@/features/github/model/liveRepoSessionCache";
-import { RepoFileTree } from "@/features/home/components/RepoFileTree";
-import { RepoCommitsList } from "@/features/home/components/repo/RepoCommitsList";
-import { RepoPanelEmptyCommits } from "@/features/home/components/repo/RepoPanelEmptyCommits";
-import { RepoPanelEmptyRepos } from "@/features/home/components/repo/RepoPanelEmptyRepos";
-import { RepoPanelError } from "@/features/home/components/repo/RepoPanelError";
-import { RepoPanelLoading } from "@/features/home/components/repo/RepoPanelLoading";
+import { RepoFileTree } from "@/features/home/components/ui/repo/files/RepoFileTree";
+import { RepoCommitsList } from "@/features/home/components/ui/repo/commits/RepoCommitsList";
+import { RepoPanelEmptyCommits } from "@/features/home/components/ui/repo/panel/states/RepoPanelEmptyCommits";
+import { RepoPanelEmptyRepos } from "@/features/home/components/ui/repo/panel/states/RepoPanelEmptyRepos";
+import { RepoPanelError } from "@/features/home/components/ui/repo/panel/states/RepoPanelError";
+import { RepoPanelLoading } from "@/features/home/components/ui/repo/panel/states/RepoPanelLoading";
 import type { RepoPreviewKind } from "@/features/home/model/repoPanelScenario";
 import { REPO_TABS, type RepoTab } from "@/features/home/model/repoTab";
 import { REPO_TAB_LABEL_KEY } from "@/features/home/model/repoTabsUi";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import type {
   RepoBranch,
   RepoCommit,

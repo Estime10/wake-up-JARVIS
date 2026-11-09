@@ -2,9 +2,9 @@
 
 import { useId, useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/Button";
-import { HudModal } from "@/components/ui/HudModal";
-import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button/Button";
+import { HudModal } from "@/components/layout/HudModal/HudModal";
+import { Select } from "@/components/ui/Select/Select";
 import {
   addCustomPhraseRule,
   loadCustomPhraseRules,
@@ -20,13 +20,13 @@ import {
   type IntentKind,
 } from "@/features/assistant/model/intentKindOptions";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
-import { HudOverlay } from "@/features/home/components/HudOverlay";
+import { HudOverlay } from "@/features/home/components/layout/HudOverlay";
 import {
   mainSectionBoxStyle,
   useMainSectionBox,
 } from "@/features/home/hooks/useMainSectionBox";
 import { useScrollLock } from "@/lib/hooks/useScrollLock";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type PhraseCatalogModalProps = {
   open: boolean;

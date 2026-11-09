@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { theme } from "@/lib/theme/tokens";
 
 const COLOR_SWATCHES = [

@@ -553,6 +553,18 @@ export const fr = {
     actionsOutputOk: "ok",
     actionsOutputError: "erreur : mock",
   },
+  music: {
+    nowPlayingLabel: "Lecture en cours",
+    progressLabel: "Progression de la piste",
+    previous: "Piste précédente",
+    next: "Piste suivante",
+    play: "Lecture",
+    pause: "Pause",
+    previousGlyph: "‹‹",
+    playGlyph: "▶",
+    pauseGlyph: "❚❚",
+    nextGlyph: "››",
+  },
 } as const;
 
 export type FrMessages = typeof fr;

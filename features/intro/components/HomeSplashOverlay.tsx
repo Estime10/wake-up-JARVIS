@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
 import { playSplashExitHandoff } from "@/features/intro/model/playSplashExitHandoff";
-import { useJarvisShell } from "@/features/jarvis/context";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import { resetWelcomeSpeakSession } from "@/lib/voice/welcomeSpeak";
 
 type HomeSplashOverlayProps = {

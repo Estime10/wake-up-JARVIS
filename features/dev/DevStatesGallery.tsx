@@ -1,6 +1,6 @@
 import { ActionCardsBlock } from "@/features/dev/components/ActionCardsBlock";
 import { TokensBlock } from "@/features/dev/components/TokensBlock";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 /** Galerie des états — Server + îlots client (actions). */
 export function DevStatesGallery() {

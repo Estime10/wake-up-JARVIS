@@ -1,5 +1,5 @@
 import { mailSenderDisplayName } from "@/features/mail/model/mailSenderDisplayName";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 export type MailLabelReplyItem = {
   from: string;

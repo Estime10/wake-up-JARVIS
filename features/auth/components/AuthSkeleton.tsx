@@ -1,7 +1,7 @@
-import { HudModal } from "@/components/ui/HudModal";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
-import { t } from "@/lib/i18n";
+import { HudModal } from "@/components/layout/HudModal/HudModal";
+import { Skeleton } from "@/components/ui/Skeleton/Skeleton";
+import { VisuallyHidden } from "@/components/ui/VisuallyHidden/VisuallyHidden";
+import { t } from "@/lib/i18n/t";
 
 /** Squelette gate auth — même enveloppe que `AuthModal`. */
 export function AuthSkeleton() {

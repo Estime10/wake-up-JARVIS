@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import type { RefObject } from "react";
 
-import { useJarvisShell } from "@/features/jarvis/context";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);

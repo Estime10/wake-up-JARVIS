@@ -2,9 +2,9 @@
 
 import { useId, useState, type FormEvent } from "react";
 
-import { Button } from "@/components/ui/Button";
-import type { MessageKey } from "@/lib/i18n";
-import { t } from "@/lib/i18n";
+import { Button } from "@/components/ui/Button/Button";
+import type { MessageKey } from "@/lib/i18n/types";
+import { t } from "@/lib/i18n/t";
 
 type RepoGithubConnectFormProps = {
   submitting: boolean;

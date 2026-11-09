@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button/Button";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import type { MailAccount } from "@/lib/schemas";
 import { ROUTES } from "@/lib/routes";
 

@@ -4,7 +4,7 @@ import { connection } from "next/server";
 
 import { Providers } from "@/app/providers";
 import { JarvisShell } from "@/features/jarvis/JarvisShell";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 import "./globals.css";
 

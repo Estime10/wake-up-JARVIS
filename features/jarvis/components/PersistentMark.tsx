@@ -5,8 +5,8 @@ import gsap from "gsap";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
 
-import { JarvisMark } from "@/components/ui/JarvisMark";
-import { useJarvisShell } from "@/features/jarvis/context";
+import { JarvisMark } from "@/components/brand/JarvisMark/JarvisMark";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import {
   FLIP_ID,
   queryMarkSlot,

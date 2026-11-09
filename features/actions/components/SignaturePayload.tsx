@@ -1,5 +1,5 @@
 import { formatPayloadDisplay } from "@/lib/actions/formatPayloadDisplay";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type SignaturePayloadProps = {
   raw: string;

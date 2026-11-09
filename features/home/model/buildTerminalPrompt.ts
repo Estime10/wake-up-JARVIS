@@ -1,5 +1,5 @@
 import { displayPath } from "@/features/home/model/terminal/pathUtils";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 /** Prompt zsh macOS : `DevinChat@host ~ % ` */
 export function buildTerminalPrompt(cwd: string): string {

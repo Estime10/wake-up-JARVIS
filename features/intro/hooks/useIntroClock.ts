@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 import { formatIntroClock } from "@/features/intro/model/formatIntroClock";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 function subscribeClock(onStoreChange: () => void): () => void {
   const id = window.setInterval(onStoreChange, 30_000);

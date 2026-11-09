@@ -2,10 +2,10 @@
 
 import { useState, type FormEvent } from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button/Button";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import {
   authCredentialsSchema,
   authRegisterSchema,

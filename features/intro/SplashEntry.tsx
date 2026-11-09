@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { SplashScreen } from "@/features/intro/components/SplashScreen";
 import { playSplashExitHandoff } from "@/features/intro/model/playSplashExitHandoff";
-import { useJarvisShell } from "@/features/jarvis/context";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import { markSplashV1Done } from "@/lib/intro/splashV1Session";
 import { SPLASH_HOLD_AT_END } from "@/lib/intro/timings";
 import { ROUTES } from "@/lib/routes";

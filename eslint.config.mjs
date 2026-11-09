@@ -47,6 +47,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".venv-piper/**",
+    "src-tauri/target/**",
+    "src-tauri/gen/**",
   ]),
 ]);
 

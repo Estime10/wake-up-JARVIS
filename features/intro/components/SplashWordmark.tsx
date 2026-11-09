@@ -1,7 +1,7 @@
-import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { VisuallyHidden } from "@/components/ui/VisuallyHidden/VisuallyHidden";
 import { FLIP_ID } from "@/features/jarvis/model/markDom";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type SplashWordmarkProps = {
   /**

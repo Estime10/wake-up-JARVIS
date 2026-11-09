@@ -6,7 +6,7 @@ import { PersistentMark } from "@/features/jarvis/components/PersistentMark";
 import {
   JarvisShellContext,
   type JarvisShellValue,
-} from "@/features/jarvis/context";
+} from "@/features/jarvis/context/jarvisShellContext";
 import { createHomeEnterHandoff } from "@/features/jarvis/model/homeEnterHandoff";
 import { createMainFocusRequest } from "@/features/jarvis/model/mainFocusRequest";
 

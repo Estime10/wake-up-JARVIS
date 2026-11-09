@@ -1,5 +1,6 @@
 import { createBrowserVoice } from "@/adapters/browser/createBrowserVoice";
-import { createPiperVoice, withSpeakFallback } from "@/adapters/piper";
+import { createPiperVoice } from "@/adapters/piper/createPiperVoice";
+import { withSpeakFallback } from "@/adapters/piper/withSpeakFallback";
 import { createTauriPiperTransport } from "@/adapters/tauri/createTauriPiperTransport";
 import type { VoicePort } from "@/ports/voice-port";
 

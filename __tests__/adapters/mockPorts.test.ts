@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createMockPorts } from "@/adapters/mock";
+import { createMockPorts } from "@/adapters/mock/createMockPorts";
 
 describe("createMockPorts", () => {
   it("expose les six ports", () => {

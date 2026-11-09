@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/Button";
-import { HudModal } from "@/components/ui/HudModal";
+import { Button } from "@/components/ui/Button/Button";
+import { HudModal } from "@/components/layout/HudModal/HudModal";
 import { AuthForm, type AuthMode } from "@/features/auth/components/AuthForm";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type AuthModalProps = {
   onSuccess: () => void;

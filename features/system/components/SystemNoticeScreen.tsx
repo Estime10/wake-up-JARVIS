@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { HudAmbient } from "@/components/ui/HudAmbient";
-import { HudModal } from "@/components/ui/HudModal";
+import { HudAmbient } from "@/components/layout/HudAmbient/HudAmbient";
+import { HudModal } from "@/components/layout/HudModal/HudModal";
 import { cn } from "@/lib/cn";
 
 type SystemNoticeScreenProps = {

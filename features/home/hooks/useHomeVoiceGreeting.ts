@@ -7,7 +7,7 @@ import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useMailFeed } from "@/features/mail/MailFeedProvider";
 import { resolveDisplayName } from "@/features/profile/model/resolveDisplayName";
 import { spokenBriefing } from "@/lib/greeting";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { countMailsToday } from "@/lib/mail/countMailsToday";
 import { pickUserHonorific } from "@/lib/user/userHonorific";
 import {

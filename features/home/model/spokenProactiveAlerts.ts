@@ -1,7 +1,7 @@
 import { formatMailFromList } from "@/features/mail/model/formatMailFromList";
 import { mailSenderDisplayName } from "@/features/mail/model/mailSenderDisplayName";
 import type { SysPressureState } from "@/features/intro/model/sysPressureState";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 const PRESSURE_RANK: Record<SysPressureState, number> = {
   unknown: 0,

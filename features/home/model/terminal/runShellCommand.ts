@@ -5,7 +5,7 @@ import {
   resolvePath,
 } from "@/features/home/model/terminal/pathUtils";
 import { TERMINAL_HOME } from "@/features/home/model/terminal/mockFs";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 export type ShellSession = {
   cwd: string;

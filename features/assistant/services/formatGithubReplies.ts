@@ -4,7 +4,7 @@ import type {
   RepoPull,
   RepoSummary,
 } from "@/lib/schemas";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 export function formatGithubReposReply(repos: readonly RepoSummary[]): string {
   if (repos.length === 0) {

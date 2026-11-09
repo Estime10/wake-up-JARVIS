@@ -22,7 +22,7 @@ import { listGithubRepos } from "@/lib/github/listRepos";
 import { listGithubTree } from "@/lib/github/listTree";
 import { parseRepoId } from "@/lib/github/parseRepoId";
 import { githubGet } from "@/lib/github/request";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { createLogger } from "@/lib/logger";
 import type { RepoTreeNode } from "@/lib/schemas";
 

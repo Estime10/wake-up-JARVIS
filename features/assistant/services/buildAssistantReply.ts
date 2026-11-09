@@ -14,7 +14,7 @@ import {
   isSupabaseIntent,
 } from "@/features/assistant/services/executeSupabaseIntent";
 import { loadGithubConnectionToken } from "@/lib/github/connectionToken";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { createLogger } from "@/lib/logger";
 import type { MailPort } from "@/ports/mail-port";
 

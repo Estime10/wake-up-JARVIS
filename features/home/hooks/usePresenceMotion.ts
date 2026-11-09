@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { REPO_MOTION_MS } from "@/features/home/animations";
+import { REPO_MOTION_MS } from "@/features/home/animations/repoMotion";
 import { prefersReducedMotion } from "@/lib/motion/reducedMotion";
 
 export { REPO_MOTION_MS };

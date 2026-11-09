@@ -1,8 +1,8 @@
 "use client";
 
-import { HudCornerBracket } from "@/components/ui/HudCornerBracket";
+import { HudCornerBracket } from "@/components/layout/HudCornerBracket/HudCornerBracket";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type SplashHudChromeProps = {
   /** État final visible (home). */

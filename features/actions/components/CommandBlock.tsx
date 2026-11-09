@@ -1,5 +1,5 @@
-import { CopyButton } from "@/components/ui/CopyButton";
-import { t } from "@/lib/i18n";
+import { CopyButton } from "@/components/ui/Button/CopyButton";
+import { t } from "@/lib/i18n/t";
 
 type CommandBlockProps = {
   command: string;

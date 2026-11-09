@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { createAppPorts } from "@/adapters/createAppPorts";
 import { PortsProvider } from "@/app/ports-context";
-import { AuthProvider } from "@/features/auth";
+import { AuthProvider } from "@/features/auth/context/AuthProvider";
 import { MailFeedProvider } from "@/features/mail/MailFeedProvider";
 import { getRuntime } from "@/lib/runtime/getRuntime";
 

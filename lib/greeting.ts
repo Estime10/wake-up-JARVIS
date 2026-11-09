@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { pickUserHonorific } from "@/lib/user/userHonorific";
 
 function assertHour(hour: number): void {

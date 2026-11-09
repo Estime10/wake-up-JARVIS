@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { HudAmbient } from "@/components/ui/HudAmbient";
-import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { HudAmbient } from "@/components/layout/HudAmbient/HudAmbient";
+import { VisuallyHidden } from "@/components/ui/VisuallyHidden/VisuallyHidden";
 import { AuthModal } from "@/features/auth/components/AuthModal";
 import { AuthSkeleton } from "@/features/auth/components/AuthSkeleton";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { ROUTES } from "@/lib/routes";
 
 /**

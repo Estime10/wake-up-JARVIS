@@ -13,7 +13,7 @@ import {
 import { playHomeBriefingHold } from "@/features/home/model/playHomeBriefingHold";
 import { playHomeSettleTransition } from "@/features/home/model/playHomeSettleTransition";
 import type { HomeEnterPhase } from "@/features/home/model/homeEnterPhase";
-import { useJarvisShell } from "@/features/jarvis/context";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import { queryWordmark } from "@/features/jarvis/model/markDom";
 import { Flip } from "@/lib/gsap/flip";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";

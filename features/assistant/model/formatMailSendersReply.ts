@@ -1,6 +1,6 @@
 import { formatMailFromList } from "@/features/mail/model/formatMailFromList";
 import { mailSenderDisplayName } from "@/features/mail/model/mailSenderDisplayName";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 /**
  * Liste mail lecture seule — noms d’expéditeurs du jour uniquement (pas de sujet / snippet).

@@ -4,7 +4,7 @@ import { launchSupabaseStudioForQuery } from "@/features/assistant/services/laun
 import { stopSupabaseStudio } from "@/features/assistant/services/stopSupabaseStudio";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 import type { RepoTab } from "@/features/home/model/repoTab";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { setVoiceMuted } from "@/lib/voice/voiceMute";
 
 export type UiPanelId = "terminal" | "mail" | "repo";

@@ -16,7 +16,7 @@ import {
   initialFocusTarget,
   requiresSignature,
 } from "@/lib/actions/risk";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import type { ActionProposal } from "@/lib/schemas";
 
 export type ActionCardProps = {

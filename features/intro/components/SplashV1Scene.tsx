@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 
-import { HudAmbient } from "@/components/ui/HudAmbient";
+import { HudAmbient } from "@/components/layout/HudAmbient/HudAmbient";
 
 type SplashV1SceneProps = {
   /** Conteneur scope GSAP (ref parent). */
