@@ -73,37 +73,29 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
           {t(dockerErrorKey)}
         </p>
       ) : null}
-      <div className="flex min-w-0 items-center justify-between gap-2">
-        {platform.connection.selectedProjectName ? (
-          <p className="t-mono min-w-0 truncate text-sm text-text">
-            {t("home.supabaseActiveProject", {
-              name: platform.connection.selectedProjectName,
-            })}
-          </p>
-        ) : (
-          <p className="t-mono min-w-0 truncate text-sm text-text">
-            {t("home.supabasePickProject")}
-          </p>
-        )}
-        <Button
-          type="button"
-          variant="hud"
-          size="bare"
-          className="w-fit shrink-0"
-          disabled={
-            platform.studioStarting ||
-            platform.dockerEnsuring ||
-            !platform.connection.selectedProjectRef
-          }
-          onClick={() => {
-            void platform.startStudio();
-          }}
-        >
-          {platform.studioStarting
-            ? t("home.supabaseStudioStarting")
-            : t("home.supabaseStudioStart")}
-        </Button>
-      </div>
+      {!platform.connection.selectedProjectRef ? (
+        <p className="t-mono min-w-0 truncate text-sm text-text">
+          {t("home.supabasePickProject")}
+        </p>
+      ) : null}
+      <Button
+        type="button"
+        variant="hud"
+        size="bare"
+        className="w-fit shrink-0"
+        disabled={
+          platform.studioStarting ||
+          platform.dockerEnsuring ||
+          !platform.connection.selectedProjectRef
+        }
+        onClick={() => {
+          void platform.startStudio();
+        }}
+      >
+        {platform.studioStarting
+          ? t("home.supabaseStudioStarting")
+          : t("home.supabaseStudioStart")}
+      </Button>
       {studioErrorKey ? (
         <p className="t-mono text-sm text-danger" role="alert">
           {t(studioErrorKey)}
@@ -217,8 +209,15 @@ export function HomeSupabasePane({ reveal = false }: HomeSupabasePaneProps) {
                                 : "text-text hover:text-accent",
                             )}
                           >
-                            <span className="block truncate">
-                              {project.name}
+                            <span className="flex min-w-0 items-baseline gap-2">
+                              <span className="min-w-0 truncate">
+                                {project.name}
+                              </span>
+                              {selected ? (
+                                <span className="shrink-0 text-accent">
+                                  {t("home.supabaseActiveBadge")}
+                                </span>
+                              ) : null}
                             </span>
                             <span className="block truncate text-dial text-text">
                               {project.ref}

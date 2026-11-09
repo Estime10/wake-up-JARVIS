@@ -330,7 +330,7 @@ export const fr = {
     supabaseProjectsLoading: "Chargement des projets…",
     supabaseProjectsEmpty: "Aucun projet sur ce compte.",
     supabasePickProject: "Choisis un projet pour activer la session.",
-    supabaseActiveProject: "Actif · {name}",
+    supabaseActiveBadge: "Actif",
     supabaseDockerEnsuring: "Vérification Docker… démarrage si besoin.",
     supabaseStudioStart: "Lancer Studio (supabase start)",
     supabaseStudioStarting: "Démarrage Studio…",
