@@ -6,7 +6,7 @@ import { t } from "@/lib/i18n/t";
 export function ConversationSkeleton() {
   return (
     <div
-      className="flex min-h-0 w-full flex-1 flex-col justify-center gap-4 px-4 py-4 sm:px-5"
+      className="flex min-h-0 w-full flex-1 flex-col justify-center gap-4"
       aria-busy="true"
       role="status"
     >

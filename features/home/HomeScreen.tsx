@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-
 import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalogModal";
 import { HomeCenterColumn } from "@/features/home/components/layout/columns/HomeCenterColumn";
 import { HomeConversationColumn } from "@/features/home/components/layout/columns/HomeConversationColumn";
@@ -12,14 +10,12 @@ import { useMailPanel } from "@/features/home/context/mailPanelContext";
 import { useRepoPanel } from "@/features/home/context/repoPanelContext";
 import { useTerminalSession } from "@/features/home/context/terminalSessionContext";
 import { useAssistantSession } from "@/features/assistant/hooks/useAssistantSession";
-import { useHomeChromeReveal } from "@/features/home/hooks/useHomeChromeReveal";
 import { useHomeUiIntentBridge } from "@/features/home/hooks/useHomeUiIntentBridge";
 import { useHomeVoiceGreeting } from "@/features/home/hooks/useHomeVoiceGreeting";
 import { usePhraseCatalog } from "@/features/home/hooks/usePhraseCatalog";
 import { useProactiveMarkAlerts } from "@/features/home/hooks/useProactiveMarkAlerts";
+import { HOME_SIDE_INSET } from "@/features/home/model/homeColumnChrome";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
-import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
-import { SplashHudChrome } from "@/features/intro/components/SplashHudChrome";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
 import { SupabasePlatformProvider } from "@/features/supabase/context/supabasePlatformContext";
 import { SupabasePane } from "@/features/supabase/components/SupabasePane";
@@ -39,9 +35,6 @@ export function HomeScreen() {
 }
 
 function HomeScreenBody() {
-  const chromeRef = useRef<HTMLDivElement | null>(null);
-  useHomeChromeReveal(chromeRef);
-
   const { phase, skipCenteredBriefing, bootPlaying } = useHomeEnter();
   const briefing = phase === "briefing" && !skipCenteredBriefing;
   const settled = phase === "ready";
@@ -49,7 +42,6 @@ function HomeScreenBody() {
   const layoutSettled = phase === "settling" || phase === "ready";
   const composerPending =
     bootPlaying || briefing || (skipCenteredBriefing && phase === "briefing");
-  const showChrome = bootPlaying || layoutSettled;
   const showNav = !bootPlaying && layoutSettled;
 
   const {
@@ -88,19 +80,6 @@ function HomeScreenBody() {
       className="relative h-full w-full overflow-hidden"
       data-scroll-lock-target={conversationObscured ? "true" : undefined}
     >
-      <div
-        ref={chromeRef}
-        data-home="chrome"
-        className={cn(
-          "pointer-events-none absolute inset-0",
-          showChrome ? "opacity-100" : "opacity-0",
-          terminalOpen && TERMINAL_LAYER_CLASS.chrome,
-        )}
-      >
-        <SplashHudChrome settled showWake={false} />
-      </div>
-
-      <HomeTerminalPanel open={terminalOpen} />
       {phraseCatalog.open ? (
         <PhraseCatalogModal
           key={phraseCatalog.seed || "catalog"}
@@ -132,7 +111,12 @@ function HomeScreenBody() {
         <div className="grid min-h-0 w-full flex-1 grid-cols-3">
           <div
             data-home="side-left"
-            className="flex h-full min-h-0 min-w-0 flex-col"
+            className={cn(
+              "relative flex min-h-0 min-w-0 flex-col overflow-hidden",
+              HOME_SIDE_INSET,
+              // Glass seulement au settle — invisible pendant splash/briefing.
+              layoutSettled ? "liquid-glass" : "pointer-events-none opacity-0",
+            )}
           >
             <HomeConversationColumn
               settled={layoutSettled}
@@ -146,6 +130,7 @@ function HomeScreenBody() {
               onConfirmAction={session.confirmAction}
               onCancelAction={session.cancelAction}
             />
+            <HomeTerminalPanel open={terminalOpen} />
           </div>
           <HomeCenterColumn
             state={session.state}
@@ -159,7 +144,11 @@ function HomeScreenBody() {
           />
           <div
             data-home="side-right"
-            className="flex h-full min-h-0 min-w-0 flex-col"
+            className={cn(
+              "flex min-h-0 min-w-0 flex-col overflow-hidden",
+              HOME_SIDE_INSET,
+              layoutSettled ? "liquid-glass" : "pointer-events-none opacity-0",
+            )}
           >
             <SupabasePane reveal={layoutSettled} />
           </div>

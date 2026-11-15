@@ -513,7 +513,7 @@ export function LiveRepoPanelBody({
           }}
         />
         {activeRef ? (
-          <p className="t-mono text-dial text-text sm:text-sm">
+          <p className="t-mono text-text-muted">
             {t("home.repoBranch", { branch: activeRef })}
           </p>
         ) : null}
@@ -522,7 +522,7 @@ export function LiveRepoPanelBody({
           variant="ghost"
           size="bare"
           disabled={disconnecting}
-          className="t-mono self-start text-sm tracking-wide text-text uppercase hover:text-danger"
+          className="t-label self-start text-text hover:text-danger"
           onClick={onDisconnect}
         >
           {disconnecting
@@ -587,7 +587,7 @@ export function LiveRepoPanelBody({
             {tab === "branches" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {branches.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoBranchesEmpty")}
                   </p>
                 ) : (
@@ -601,17 +601,17 @@ export function LiveRepoPanelBody({
                             size="bare"
                             aria-pressed={selectedBranch}
                             className={cn(
-                              "t-mono flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-sm font-normal tracking-normal normal-case",
+                              "t-content flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-base leading-snug font-normal tracking-normal normal-case",
                               selectedBranch
                                 ? "border-line bg-surface-2 text-accent"
                                 : "border-transparent text-text hover:border-line-subtle hover:bg-surface-2/50",
                             )}
                             onClick={() => selectBranch(item.name)}
                           >
-                            <span className="min-w-0 truncate uppercase">
+                            <span className="min-w-0 truncate">
                               {item.name}
                             </span>
-                            <span className="shrink-0 text-dial text-text sm:text-sm">
+                            <span className="t-mono shrink-0 text-text-muted">
                               {item.isDefault
                                 ? t("home.repoBranchDefault")
                                 : item.protected
@@ -630,7 +630,7 @@ export function LiveRepoPanelBody({
             {tab === "files" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {tree.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoEmpty")}
                   </p>
                 ) : (
@@ -662,7 +662,7 @@ export function LiveRepoPanelBody({
             {tab === "pr" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {pulls.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoPrEmpty")}
                   </p>
                 ) : (
@@ -672,11 +672,9 @@ export function LiveRepoPanelBody({
                         key={pull.id}
                         className="rounded-md border border-line-subtle px-3 py-2.5"
                       >
-                        <p className="t-mono text-dial text-text sm:text-sm">
-                          #{pull.number}
-                        </p>
-                        <p className="t-mono text-sm text-text">{pull.title}</p>
-                        <p className="t-mono text-dial text-text sm:text-sm">
+                        <p className="t-mono text-text-muted">#{pull.number}</p>
+                        <p className="t-content leading-snug">{pull.title}</p>
+                        <p className="t-mono text-text-muted">
                           {pull.author} · {pull.relativeTime}
                         </p>
                       </li>

@@ -59,10 +59,10 @@ export function RepoCommitItem({
           {selected ? (
             <RepoCommitSelectIcon className="pointer-events-none absolute top-2.5 right-2.5 size-3.5 text-text" />
           ) : null}
-          <span className="t-mono w-full min-w-0 truncate text-sm text-text">
+          <span className="t-content w-full min-w-0 truncate leading-snug">
             {commit.message}
           </span>
-          <span className="t-mono w-full min-w-0 truncate text-dial text-text sm:text-sm">
+          <span className="t-mono w-full min-w-0 truncate text-text-muted">
             {authorLabel}
             {" · "}
             {branch}

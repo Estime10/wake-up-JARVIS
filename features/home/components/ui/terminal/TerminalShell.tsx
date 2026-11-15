@@ -44,7 +44,7 @@ function TerminalMockShell({ active }: TerminalShellProps) {
       <div
         ref={scrollerRef}
         data-scroll-lock-allow="true"
-        className="t-mono min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden text-left text-xs leading-loose tracking-wide text-text sm:text-sm"
+        className="t-mono min-h-0 flex-1 space-y-1.5 overflow-y-auto overflow-x-hidden text-left text-xs leading-loose tracking-wide text-text sm:text-sm"
       >
         {lines.map((line, index) => (
           <p key={`line-${index}`} className="whitespace-pre-wrap break-all">

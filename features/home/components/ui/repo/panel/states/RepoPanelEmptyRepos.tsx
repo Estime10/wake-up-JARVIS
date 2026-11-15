@@ -18,8 +18,10 @@ export function RepoPanelEmptyRepos({ live }: RepoPanelEmptyReposProps) {
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
       <RepoEmptyBoxIcon className="size-10 text-text" />
       <div className="flex flex-col gap-1">
-        <p className="t-body text-sm text-text">{t("home.repoEmptyTitle")}</p>
-        <p className="t-body text-sm text-text">
+        <p className="t-content text-base leading-snug">
+          {t("home.repoEmptyTitle")}
+        </p>
+        <p className="t-content text-base leading-snug">
           {t("home.repoConnectedHint", { login: live.login })}
         </p>
       </div>

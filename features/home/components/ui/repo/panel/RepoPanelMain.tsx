@@ -49,10 +49,10 @@ export function RepoPanelMain() {
   if (github.status === "unavailable") {
     return (
       <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-        <p className="t-body text-sm text-text">
+        <p className="t-content text-base leading-snug">
           {t("home.repoUnavailableTitle")}
         </p>
-        <p className="t-body text-sm text-text">
+        <p className="t-content text-base leading-snug">
           {t("home.repoUnavailableHint")}
         </p>
       </div>

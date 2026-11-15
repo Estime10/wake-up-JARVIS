@@ -5,6 +5,7 @@ import { ConversationLoadState } from "@/features/home/components/ui/conversatio
 import { ConversationThread } from "@/features/home/components/ui/conversation/thread/ConversationThread";
 import type { MemoryLoadStatus } from "@/features/assistant/hooks/useAssistantSession";
 import type { ConversationMessage } from "@/features/home/model/conversationMessage";
+import { HOME_SIDE_CONTENT_PAD } from "@/features/home/model/homeColumnChrome";
 import { PANEL_CONTENT_MOTION_CLASS } from "@/features/home/model/panelContentMotion";
 import { cn } from "@/lib/cn";
 
@@ -41,7 +42,8 @@ export function HomeConversationColumn({
   return (
     <div
       className={cn(
-        "relative flex min-h-0 min-w-0 flex-col pl-6 sm:pl-8",
+        "relative flex h-full min-h-0 min-w-0 flex-col",
+        HOME_SIDE_CONTENT_PAD,
         PANEL_CONTENT_MOTION_CLASS,
         obscured && "pointer-events-none opacity-0",
       )}

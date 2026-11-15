@@ -56,7 +56,7 @@ export function RepoFilePreview({
           ) : (
             <RepoFileIcon className="size-4 shrink-0 text-text" />
           )}
-          <p className="t-mono truncate text-sm text-text">{path}</p>
+          <p className="t-mono truncate text-text-muted">{path}</p>
         </div>
         <Button
           variant="ghost"
@@ -70,7 +70,7 @@ export function RepoFilePreview({
       </header>
 
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3">
-        <p className="t-mono text-dial text-text sm:text-sm">
+        <p className="t-mono text-text-muted">
           {[sizeLabel, linesLabel, branch].filter(Boolean).join(" · ")}
           {maskedCount > 0
             ? ` · ${t("home.repoPreviewMaskedBadge", { count: maskedCount })}`
@@ -80,7 +80,7 @@ export function RepoFilePreview({
           <Button
             variant="ghost"
             size="bare"
-            className="t-label flex items-center gap-1.5 text-sm text-text hover:text-accent"
+            className="t-label flex items-center gap-1.5 text-text hover:text-accent"
             aria-label={t("home.repoOpenGithubLabel")}
             onClick={() => undefined}
           >

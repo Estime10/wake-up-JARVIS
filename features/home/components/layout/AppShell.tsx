@@ -30,7 +30,7 @@ type AppShellProps = {
 type BootGate = "boot" | "playing" | "ready";
 
 /**
- * Coquille `(main)` — home visible pendant le boot (même mark / équerres),
+ * Coquille `(main)` — home visible pendant le boot (même mark),
  * overlay = scan + nom JARVIS seulement.
  */
 export function AppShell({ children, repo, mail }: AppShellProps) {
@@ -73,7 +73,7 @@ export function AppShell({ children, repo, mail }: AppShellProps) {
     >
       <div
         ref={shellRef}
-        className="relative grid h-dvh w-full grid-cols-1 overflow-hidden bg-bg text-text"
+        className="relative grid h-dvh w-full grid-cols-1 overflow-hidden text-text"
       >
         <HudAmbient />
         {repo}

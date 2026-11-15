@@ -77,7 +77,7 @@ export function ConversationMessageBubble({
       </header>
       <div
         className={cn(
-          "t-body max-w-[min(100%,36rem)] whitespace-pre-wrap rounded-md px-3.5 py-3 text-lg leading-relaxed",
+          "t-content max-w-[min(100%,36rem)] whitespace-pre-wrap rounded-md px-3.5 py-3",
           isUser ? "bg-surface-2 text-text" : "bg-surface/50 text-text",
         )}
       >

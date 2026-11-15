@@ -76,7 +76,7 @@ function RepoTreeNode({
           variant="ghost"
           size="bare"
           className={cn(
-            "t-mono flex w-full items-center gap-1.5 py-1 pr-2 text-sm font-normal tracking-normal normal-case",
+            "t-content flex w-full items-center gap-1.5 py-1 pr-2 text-base leading-snug font-normal tracking-normal normal-case",
             selected
               ? "bg-surface-2 text-accent"
               : "text-text hover:bg-surface-2/60 hover:text-accent",
@@ -110,7 +110,7 @@ function RepoTreeNode({
         variant="ghost"
         size="bare"
         aria-expanded={expanded}
-        className="t-mono w-full justify-start gap-1.5 py-1 text-sm font-normal tracking-normal normal-case text-text hover:text-accent"
+        className="t-content w-full justify-start gap-1.5 py-1 text-base leading-snug font-normal tracking-normal normal-case text-text hover:text-accent"
         style={{ paddingLeft: `${depth * 0.75 + 0.25}rem` }}
         onClick={() => setExpanded((value) => !value)}
       >

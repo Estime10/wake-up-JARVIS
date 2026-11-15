@@ -23,7 +23,7 @@ export function NowPlayingTransport({
         type="button"
         variant="ghost"
         size="bare"
-        className="t-mono px-1 text-sm leading-none text-text"
+        className="t-content px-1 text-base leading-none"
         aria-label={t("music.previous")}
         onClick={onPrevious}
       >
@@ -33,7 +33,7 @@ export function NowPlayingTransport({
         type="button"
         variant="ghost"
         size="bare"
-        className="t-mono px-1 text-sm leading-none text-accent"
+        className="t-content px-1 text-base leading-none text-accent"
         aria-label={playing ? t("music.pause") : t("music.play")}
         aria-pressed={playing}
         onClick={onTogglePlay}
@@ -44,7 +44,7 @@ export function NowPlayingTransport({
         type="button"
         variant="ghost"
         size="bare"
-        className="t-mono px-1 text-sm leading-none text-text"
+        className="t-content px-1 text-base leading-none"
         aria-label={t("music.next")}
         onClick={onNext}
       >

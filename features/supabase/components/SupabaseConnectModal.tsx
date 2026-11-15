@@ -80,7 +80,7 @@ export function SupabaseConnectModal({
           data-scroll-lock-allow="true"
         >
           <div className="flex items-start justify-between gap-3">
-            <h2 className="t-mono text-sm tracking-wide text-text uppercase">
+            <h2 className="t-title text-text">
               {t("home.supabaseConnectTitle")}
             </h2>
             <Button type="button" variant="hud" size="bare" onClick={onClose}>
@@ -88,7 +88,7 @@ export function SupabaseConnectModal({
             </Button>
           </div>
 
-          <p className="t-body text-sm text-text">
+          <p className="t-content text-base leading-snug">
             {t("home.supabaseConnectHint")}
           </p>
 
@@ -101,7 +101,7 @@ export function SupabaseConnectModal({
             <div className="flex flex-col gap-1">
               <label
                 htmlFor={`${idPrefix}-label`}
-                className="t-mono text-sm tracking-wide text-text uppercase"
+                className="t-label text-text"
               >
                 {t("home.supabaseAccountLabel")}
               </label>
@@ -116,13 +116,13 @@ export function SupabaseConnectModal({
                 value={accountLabel}
                 onChange={(event) => setAccountLabel(event.target.value)}
                 placeholder={t("home.supabaseAccountPlaceholder")}
-                className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-sm text-text outline-none focus-visible:border-accent"
+                className="t-content min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-base leading-snug outline-none focus-visible:border-accent"
               />
             </div>
             <div className="flex flex-col gap-1">
               <label
                 htmlFor={`${idPrefix}-token`}
-                className="t-mono text-sm tracking-wide text-text uppercase"
+                className="t-label text-text"
               >
                 {t("home.supabaseTokenLabel")}
               </label>
@@ -138,14 +138,17 @@ export function SupabaseConnectModal({
                 value={token}
                 onChange={(event) => setToken(event.target.value)}
                 placeholder={t("home.supabaseTokenPlaceholder")}
-                className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-sm text-text outline-none focus-visible:border-accent"
+                className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-text outline-none focus-visible:border-accent"
               />
             </div>
-            <p className="t-mono text-sm text-text">
+            <p className="t-content text-base leading-snug text-text-muted">
               {t("home.supabaseTokenHint")}
             </p>
             {errorKey ? (
-              <p className="t-mono text-sm text-danger" role="alert">
+              <p
+                className="t-content text-base leading-snug text-danger"
+                role="alert"
+              >
                 {t(errorKey)}
               </p>
             ) : null}

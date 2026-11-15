@@ -309,7 +309,7 @@ export const fr = {
     supabaseAccountLabel: "nom du compte",
     supabaseAccountPlaceholder: "Perso, Client Acme…",
     supabaseAccountsTitle: "Comptes",
-    supabaseAddAccount: "+ compte",
+    supabaseAddAccount: "Ajouter un compte Supabase",
     supabaseDisconnectAccount: "Retirer {label}",
     supabaseTokenLabel: "access token",
     supabaseTokenPlaceholder: "sbp_…",

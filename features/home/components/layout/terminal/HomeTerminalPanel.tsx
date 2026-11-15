@@ -3,7 +3,6 @@
 import { HudModal } from "@/components/layout/HudModal/HudModal";
 import { TerminalShell } from "@/features/home/components/ui/terminal/TerminalShell";
 import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
-import { HOME_LEFT_SECTION_WIDTH_CLASS } from "@/features/home/model/homeColumnLayout";
 import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
@@ -13,15 +12,14 @@ type HomeTerminalPanelProps = {
 };
 
 /**
- * Modale terminal — bornée à la section gauche (1/3), centrée verticalement.
- * Pas plein hauteur : hauteur modale classique dans la colonne.
+ * Terminal — même cadre que le liquid glass messages (`side-left`).
+ * Absolute inset-0 dans le panneau parent.
  */
 export function HomeTerminalPanel({ open }: HomeTerminalPanelProps) {
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-y-0 left-0 flex items-center justify-center px-3",
-        HOME_LEFT_SECTION_WIDTH_CLASS,
+        "pointer-events-none absolute inset-0",
         TERMINAL_LAYER_CLASS.panel,
         HUD_OVERLAY_MOTION_CLASS,
         open ? "opacity-100" : "opacity-0",
@@ -29,11 +27,12 @@ export function HomeTerminalPanel({ open }: HomeTerminalPanelProps) {
       aria-hidden={!open || undefined}
     >
       <HudModal
+        surface="plain"
         data-terminal-modal
         data-scroll-lock-allow="true"
         aria-label={t("home.terminalShellLabel")}
         className={cn(
-          "flex h-[min(65vh,28rem)] w-full max-w-none flex-col",
+          "flex h-full w-full max-w-none flex-col",
           open ? "pointer-events-auto" : "pointer-events-none",
         )}
       >

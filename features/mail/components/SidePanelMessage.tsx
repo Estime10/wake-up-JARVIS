@@ -21,8 +21,8 @@ export function SidePanelMessage({
       <p
         className={
           tone === "danger"
-            ? "t-mono text-sm text-danger"
-            : "t-mono text-sm text-text"
+            ? "t-content text-base leading-snug text-danger"
+            : "t-content text-base leading-snug"
         }
         role={tone === "danger" ? "alert" : "status"}
       >

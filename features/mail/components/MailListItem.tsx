@@ -41,23 +41,20 @@ export function MailListItem({
       <div className="flex items-baseline justify-between gap-2">
         <p
           className={cn(
-            "t-mono truncate text-sm",
-            mail.unread ? "font-medium text-accent" : "text-text",
+            "t-content truncate leading-snug",
+            mail.unread ? "font-medium text-accent" : null,
           )}
         >
           {mail.from}
         </p>
-        <time className="t-mono shrink-0 text-sm text-text">{mail.time}</time>
+        <time className="t-mono shrink-0 text-text-muted">{mail.time}</time>
       </div>
-      <p className="t-mono mt-0.5 truncate text-sm leading-snug text-text">
+      <p className="t-content mt-0.5 truncate leading-snug">
         {mail.subject || t("home.mailNoSubject")}
       </p>
       {labelText ? (
         <p
-          className={cn(
-            "t-mono mt-0.5 truncate text-sm uppercase",
-            !labelColor && "text-text",
-          )}
+          className={cn("t-label mt-0.5 truncate", !labelColor && "text-text")}
           style={labelColor ? { color: labelColor } : undefined}
         >
           {labelText}
@@ -66,7 +63,7 @@ export function MailListItem({
             : null}
         </p>
       ) : null}
-      <p className="t-mono mt-0.5 line-clamp-1 text-sm text-text">
+      <p className="t-content mt-0.5 line-clamp-1 text-base leading-snug text-text-muted">
         {mail.excerpt}
       </p>
     </button>

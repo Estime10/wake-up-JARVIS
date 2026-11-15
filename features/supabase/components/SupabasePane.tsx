@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button/Button";
 import { StudioBrowserSplit } from "@/features/supabase/components/StudioBrowserSplit";
 import { SupabaseConnectModal } from "@/features/supabase/components/SupabaseConnectModal";
-import { REPO_CHROME } from "@/features/home/model/repoChrome";
+import { HOME_SIDE_CONTENT_PAD } from "@/features/home/model/homeColumnChrome";
 import { useSupabasePlatformContext } from "@/features/supabase/context/supabasePlatformContext";
 import { cn } from "@/lib/cn";
 import type { MessageKey } from "@/lib/i18n/types";
@@ -62,19 +62,30 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
     : null;
 
   const studioLaunch = platform.connection ? (
-    <div className="flex shrink-0 flex-col gap-2 border-t border-line-subtle pt-3">
+    <div
+      className={cn(
+        "mt-auto flex shrink-0 flex-col items-center justify-center gap-2 border-t border-line-subtle text-center",
+        HOME_SIDE_CONTENT_PAD,
+      )}
+    >
       {platform.dockerEnsuring ? (
-        <p className="t-mono text-sm text-accent" role="status">
+        <p
+          className="t-content text-base leading-snug text-accent"
+          role="status"
+        >
           {t("home.supabaseDockerEnsuring")}
         </p>
       ) : null}
       {dockerErrorKey ? (
-        <p className="t-mono text-sm text-danger" role="alert">
+        <p
+          className="t-content text-base leading-snug text-danger"
+          role="alert"
+        >
           {t(dockerErrorKey)}
         </p>
       ) : null}
       {!platform.connection.selectedProjectRef ? (
-        <p className="t-mono min-w-0 truncate text-sm text-text">
+        <p className="t-content min-w-0 text-base leading-snug">
           {t("home.supabasePickProject")}
         </p>
       ) : null}
@@ -97,7 +108,10 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
           : t("home.supabaseStudioStart")}
       </Button>
       {studioErrorKey ? (
-        <p className="t-mono text-sm text-danger" role="alert">
+        <p
+          className="t-content text-base leading-snug text-danger"
+          role="alert"
+        >
           {t(studioErrorKey)}
         </p>
       ) : null}
@@ -106,13 +120,19 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
 
   const accountsFallback = (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain pr-1">
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain",
+          HOME_SIDE_CONTENT_PAD,
+          platform.connection && "pb-0",
+        )}
+      >
         {platform.status === "loading" ? (
-          <p className="t-mono text-sm text-text">
+          <p className="t-content text-base leading-snug">
             {t("home.supabaseLoading")}
           </p>
         ) : platform.status === "unavailable" ? (
-          <p className="t-mono text-sm text-text">
+          <p className="t-content text-base leading-snug">
             {t("home.supabaseUnavailable")}
           </p>
         ) : !hasAccounts ? (
@@ -124,122 +144,120 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
               aria-label={t("home.supabaseConnectLabel")}
               onClick={platform.openConnect}
             >
-              {t("home.supabaseConnect")}
+              {t("home.supabaseAddAccount")}
             </Button>
-            <p className="t-mono max-w-[16rem] text-sm text-text">
+            <p className="t-content max-w-[16rem] text-base leading-snug">
               {t("home.supabaseConnectDrawerHint")}
             </p>
           </div>
         ) : (
-          <>
-            <ul className="flex flex-col gap-1">
-              {platform.connections.map((account) => (
-                <li key={account.id} className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    aria-pressed={account.isActive}
-                    onClick={() => {
-                      void platform.setActiveAccount(account.id);
-                    }}
-                    className={cn(
-                      "t-mono min-w-0 flex-1 px-1 py-2 text-left text-sm transition-colors",
-                      account.isActive
-                        ? "text-text"
-                        : "text-text hover:text-accent",
-                    )}
-                  >
-                    <span className="block truncate">
+          <ul className="flex flex-col">
+            {platform.connections.map((account) => {
+              const showProjects =
+                account.isActive && platform.connection != null;
+              return (
+                <li
+                  key={account.id}
+                  className="border-b border-line-subtle pb-3 mb-3 last:mb-0"
+                >
+                  <div className="flex items-baseline justify-between gap-3 px-1">
+                    <button
+                      type="button"
+                      aria-pressed={account.isActive}
+                      onClick={() => {
+                        void platform.setActiveAccount(account.id);
+                      }}
+                      className={cn(
+                        "t-content min-w-0 flex-1 truncate py-2 text-left text-base leading-snug uppercase transition-colors",
+                        account.isActive
+                          ? "text-text"
+                          : "text-text hover:text-accent",
+                      )}
+                    >
                       {account.accountLabel}
-                    </span>
-                    {account.selectedProjectName ? (
-                      <span className="block truncate text-dial text-text">
-                        {account.selectedProjectName}
-                      </span>
-                    ) : null}
-                  </button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="bare"
-                    className={REPO_CHROME.closeButton}
-                    aria-label={t("home.supabaseDisconnectAccount", {
-                      label: account.accountLabel,
-                    })}
-                    onClick={() => {
-                      void platform.disconnect(account.id);
-                    }}
-                  >
-                    {t("home.supabaseDisconnect")}
-                  </Button>
-                </li>
-              ))}
-            </ul>
+                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="bare"
+                      className="t-label shrink-0 text-text hover:text-accent"
+                      aria-label={t("home.supabaseDisconnectAccount", {
+                        label: account.accountLabel,
+                      })}
+                      onClick={() => {
+                        void platform.disconnect(account.id);
+                      }}
+                    >
+                      {t("home.supabaseDisconnect")}
+                    </Button>
+                  </div>
 
-            {platform.connection ? (
-              <div className="flex flex-col gap-2">
-                <p className="t-mono text-sm tracking-wide text-text uppercase">
-                  {t("home.supabaseProjectsTitle")}
-                </p>
-                {platform.projectsLoading ? (
-                  <p className="t-mono text-sm text-text">
-                    {t("home.supabaseProjectsLoading")}
-                  </p>
-                ) : platform.projects.length === 0 ? (
-                  <p className="t-mono text-sm text-text">
-                    {t("home.supabaseProjectsEmpty")}
-                  </p>
-                ) : (
-                  <ul className="flex flex-col gap-1">
-                    {platform.projects.map((project) => {
-                      const selected =
-                        platform.connection?.selectedProjectRef === project.ref;
-                      return (
-                        <li key={project.id}>
-                          <button
-                            type="button"
-                            aria-pressed={selected}
-                            disabled={platform.dockerEnsuring}
-                            onClick={() => {
-                              void platform.selectProject(project);
-                            }}
-                            className={cn(
-                              "t-mono w-full px-1 py-2 text-left text-sm transition-colors",
-                              selected
-                                ? "text-text"
-                                : "text-text hover:text-accent",
-                            )}
-                          >
-                            <span className="flex min-w-0 items-baseline gap-2">
-                              <span className="min-w-0 truncate">
-                                {project.name}
-                              </span>
-                              {selected ? (
-                                <span className="shrink-0 text-accent">
-                                  {t("home.supabaseActiveBadge")}
-                                </span>
-                              ) : null}
-                            </span>
-                            <span className="block truncate text-dial text-text">
-                              {project.ref}
-                              {project.region ? ` · ${project.region}` : ""}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            ) : null}
-          </>
+                  {showProjects ? (
+                    <div className="flex flex-col gap-1">
+                      {platform.projectsLoading ? (
+                        <p className="t-content px-1 text-base leading-snug">
+                          {t("home.supabaseProjectsLoading")}
+                        </p>
+                      ) : platform.projects.length === 0 ? (
+                        <p className="t-content px-1 text-base leading-snug">
+                          {t("home.supabaseProjectsEmpty")}
+                        </p>
+                      ) : (
+                        <ul className="flex flex-col gap-1">
+                          {platform.projects.map((project) => {
+                            const selected =
+                              platform.connection?.selectedProjectRef ===
+                              project.ref;
+                            return (
+                              <li key={project.id}>
+                                <button
+                                  type="button"
+                                  aria-pressed={selected}
+                                  disabled={platform.dockerEnsuring}
+                                  onClick={() => {
+                                    void platform.selectProject(project);
+                                  }}
+                                  className={cn(
+                                    "t-content w-full px-1 py-2 text-left text-base leading-snug transition-colors",
+                                    selected
+                                      ? "text-text"
+                                      : "text-text hover:text-accent",
+                                  )}
+                                >
+                                  <span className="flex min-w-0 items-baseline gap-2">
+                                    <span className="min-w-0 truncate uppercase">
+                                      {project.name}
+                                    </span>
+                                    {selected ? (
+                                      <span className="t-label shrink-0 text-accent">
+                                        {t("home.supabaseActiveBadge")}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className="t-mono block truncate text-text-muted">
+                                    {project.ref}
+                                    {project.region
+                                      ? ` · ${project.region}`
+                                      : ""}
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
       {studioLaunch}
     </div>
   );
-
-  const studioOpen = platform.studioUrl != null;
 
   return (
     <>
@@ -252,13 +270,7 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
           <div
             key="supabase-pane-enter"
             data-scroll-lock-allow="true"
-            className={cn(
-              // Entrée initiale = GSAP sur `[data-home="side-right"]`.
-              "flex min-h-0 flex-1 flex-col overflow-hidden pr-6 pl-3 sm:pr-8 sm:pl-4",
-              // Studio : bas collé, haut un peu rentré (header Studio visible).
-              // Comptes : HUD sous équerres.
-              studioOpen ? "pt-5 pb-0 sm:pt-6" : "pb-6 sm:pb-8",
-            )}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
             <StudioBrowserSplit
               studioUrl={platform.studioUrl}

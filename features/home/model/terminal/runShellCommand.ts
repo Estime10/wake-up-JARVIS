@@ -104,13 +104,14 @@ export function runShellCommand(
           lines: [noSuchFile("ls", target)],
         };
       }
+      // Une entrée par ligne (même logique que le PTY Tauri / `ls -1`).
       const labeled = entries.map((name) => {
         const child = getNode(resolvePath(path, name));
         return child?.kind === "dir" ? `${name}/` : name;
       });
       return {
         cwd: session.cwd,
-        lines: labeled.length === 0 ? [] : [labeled.join("  ")],
+        lines: labeled,
       };
     }
     case "cat": {

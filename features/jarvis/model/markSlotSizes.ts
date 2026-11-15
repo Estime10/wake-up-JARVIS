@@ -1,9 +1,8 @@
 /**
  * Taille MarkSlot — bornée à la **colonne centrale** (parent `w-full`).
  *
- * Le chrome SVG (`overflow: visible`, crosshairs ≈ −56…304 sur viewBox 248)
- * déborde d’un facteur ~1.45. On plafonne donc le slot splash à ~64 % de la
- * colonne pour que le dessin reste dans le tiers milieu.
+ * Le chrome SVG boot (`overflow: visible`) déborde hors du viewBox.
+ * On plafonne le slot splash à ~64 % de la colonne.
  *
  * `home` = taille compacte post-settle (mark en haut, musique en dessous).
  */
@@ -24,7 +23,7 @@ export const MARK_SLOT_SIZE = {
 } as const;
 
 /**
- * Réserve sous le MarkSlot pour le chrome SVG (réticules) — en flux pour
+ * Réserve sous le MarkSlot pour le chrome SVG boot — en flux pour
  * laisser de la place au libellé / wordmark.
  */
 export const MARK_HOME_CHROME_BELOW = "h-10 sm:h-12";

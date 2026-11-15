@@ -142,16 +142,13 @@ export function HomeTopBar({
         ) : hasAccounts ? (
           <div
             key="accounts-chrome"
-            className="flex min-w-0 flex-1 items-center justify-between gap-2"
+            className="flex min-w-0 flex-1 items-center justify-end"
           >
-            <p className="t-mono text-sm tracking-wide text-text uppercase">
-              {t("home.supabaseAccountsTitle")}
-            </p>
             <Button
               type="button"
               variant="ghost"
               size="bare"
-              className={REPO_CHROME.closeButton}
+              className="t-label text-text hover:text-accent"
               onClick={platform.openConnect}
             >
               {t("home.supabaseAddAccount")}

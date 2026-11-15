@@ -57,7 +57,7 @@ export function HomeComposer({
           pendant réflexion/parole ; les handlers ignorent l'action. */}
       {/* Textarea sans outline propre : l'anneau de focus est porté par le
           conteneur (même token que les Button). */}
-      <div className="flex items-end gap-2 rounded-md border border-line bg-surface/80 px-3 py-2 shadow-glass backdrop-blur-md has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-accent has-[textarea:focus-visible]:outline-solid">
+      <div className="liquid-glass relative z-10 flex items-end gap-2 px-3 py-2 has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-accent has-[textarea:focus-visible]:outline-solid">
         <Button
           type="button"
           variant="ghost"
@@ -93,7 +93,7 @@ export function HomeComposer({
           aria-disabled={disabled || undefined}
           autoComplete="off"
           enterKeyHint="send"
-          className="t-body max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 text-text placeholder:text-text outline-hidden aria-disabled:cursor-not-allowed"
+          className="t-content max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 placeholder:text-text-muted outline-hidden aria-disabled:cursor-not-allowed"
         />
         <Button
           type="submit"

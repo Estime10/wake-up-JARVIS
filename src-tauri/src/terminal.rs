@@ -3,7 +3,9 @@
 //! unique, cwd = $HOME, binaire fixé `/bin/zsh`.
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
+use std::fs;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::thread;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -26,10 +28,35 @@ impl TerminalPtyState {
     }
 }
 
-fn home_dir() -> std::path::PathBuf {
+fn home_dir() -> PathBuf {
     std::env::var_os("HOME")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| std::path::PathBuf::from("/"))
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/"))
+}
+
+/// ZDOTDIR éphémère : relais vers les dotfiles user, puis `ls -1`
+/// (une entrée par ligne — jamais en colonnes).
+fn ensure_elsa_zdotdir() -> Result<PathBuf, String> {
+    let dir = std::env::temp_dir().join("elsa-zsh");
+    fs::create_dir_all(&dir).map_err(|e| format!("zsh_dotdir: {e}"))?;
+    fs::write(
+        dir.join(".zprofile"),
+        concat!(
+            "# E.L.S.A. terminal — généré, ne pas éditer\n",
+            "[[ -r \"$HOME/.zprofile\" ]] && source \"$HOME/.zprofile\"\n",
+        ),
+    )
+    .map_err(|e| format!("zsh_zprofile_write: {e}"))?;
+    fs::write(
+        dir.join(".zshrc"),
+        concat!(
+            "# E.L.S.A. terminal — généré, ne pas éditer\n",
+            "[[ -r \"$HOME/.zshrc\" ]] && source \"$HOME/.zshrc\"\n",
+            "alias ls='command ls -1'\n",
+        ),
+    )
+    .map_err(|e| format!("zsh_zshrc_write: {e}"))?;
+    Ok(dir)
 }
 
 fn spawn_reader(app: AppHandle, mut reader: Box<dyn Read + Send>) {
@@ -69,8 +96,11 @@ pub async fn terminal_pty_start(
         })
         .map_err(|e| format!("pty_open: {e}"))?;
 
+    let zdotdir = ensure_elsa_zdotdir()?;
+
     let mut cmd = CommandBuilder::new(ZSH);
-    cmd.arg("-l");
+    // Login + interactif ; ZDOTDIR = relais user + alias ls -1.
+    cmd.arg("-il");
     cmd.cwd(home_dir());
     // PATH raisonnable pour un login shell Finder / .app
     cmd.env(
@@ -81,6 +111,7 @@ pub async fn terminal_pty_start(
         ),
     );
     cmd.env("TERM", "xterm-256color");
+    cmd.env("ZDOTDIR", zdotdir);
 
     let child = pair
         .slave

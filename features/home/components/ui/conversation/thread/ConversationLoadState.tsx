@@ -19,7 +19,7 @@ export function ConversationLoadState({
       <div className="flex min-h-0 w-full flex-1 flex-col">
         <ConversationSkeleton />
         <p
-          className="t-mono px-4 pb-4 text-center text-sm tracking-wide text-text uppercase sm:px-5"
+          className="t-mono pb-2 text-center text-sm tracking-wide text-text uppercase"
           aria-hidden
         >
           {t("home.conversationLoading")}
@@ -30,7 +30,7 @@ export function ConversationLoadState({
 
   return (
     <div
-      className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4 px-4 py-4 sm:px-5"
+      className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-4"
       role="alert"
     >
       <p className="t-body text-sm text-danger">

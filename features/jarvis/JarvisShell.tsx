@@ -2,6 +2,7 @@
 
 import { createRef, useState, type ReactNode } from "react";
 
+import { AppWallpaper } from "@/components/layout/AppWallpaper/AppWallpaper";
 import { PersistentMark } from "@/features/jarvis/components/PersistentMark";
 import {
   JarvisShellContext,
@@ -24,8 +25,11 @@ export function JarvisShell({ children }: { children: ReactNode }) {
 
   return (
     <JarvisShellContext value={shell}>
+      <AppWallpaper />
       <PersistentMark />
-      {children}
+      <div className="relative z-10 flex min-h-full flex-1 flex-col">
+        {children}
+      </div>
     </JarvisShellContext>
   );
 }

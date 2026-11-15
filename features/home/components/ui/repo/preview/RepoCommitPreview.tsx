@@ -34,7 +34,7 @@ export function RepoCommitPreview({ model, onClose }: RepoCommitPreviewProps) {
       <header className={cn(REPO_CHROME.header, "justify-between gap-3")}>
         <div className="flex min-w-0 items-center gap-2">
           <RepoCommitIcon className="size-4 shrink-0 text-text" />
-          <p className="t-mono truncate text-sm text-text">{commit.sha}</p>
+          <p className="t-mono truncate text-text-muted">{commit.sha}</p>
         </div>
         <Button
           variant="ghost"
@@ -48,7 +48,7 @@ export function RepoCommitPreview({ model, onClose }: RepoCommitPreviewProps) {
       </header>
 
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-3">
-        <p className="t-mono inline-flex items-center gap-1.5 text-dial text-text sm:text-sm">
+        <p className="t-mono inline-flex items-center gap-1.5 text-text-muted">
           <RepoBranchIcon className="size-3.5 shrink-0" />
           {t("home.repoCommitPointed", { branch })}
         </p>
@@ -57,7 +57,7 @@ export function RepoCommitPreview({ model, onClose }: RepoCommitPreviewProps) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={t("home.repoCommitOpenGithubLabel")}
-          className="t-label inline-flex items-center gap-1.5 text-sm text-text outline-hidden transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid"
+          className="t-label inline-flex items-center gap-1.5 text-text outline-hidden transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent focus-visible:outline-solid"
         >
           <RepoExternalIcon className="size-3.5" />
           {t("home.repoOpenGithub")}
@@ -65,29 +65,27 @@ export function RepoCommitPreview({ model, onClose }: RepoCommitPreviewProps) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-4 pb-4">
-        <p className="t-mono text-base leading-relaxed whitespace-pre-wrap text-text">
-          {commit.message}
-        </p>
+        <p className="t-content whitespace-pre-wrap">{commit.message}</p>
         <dl className="mt-6 space-y-3 border-t border-line-subtle pt-4">
           <div>
-            <dt className="t-mono text-dial text-text uppercase sm:text-sm">
+            <dt className="t-label text-text-muted">
               {t("home.repoCommitAuthor")}
             </dt>
-            <dd className="t-mono mt-1 text-sm text-text">{authorLabel}</dd>
-          </div>
-          <div>
-            <dt className="t-mono text-dial text-text uppercase sm:text-sm">
-              {t("home.repoCommitHash")}
-            </dt>
-            <dd className="t-mono mt-1 break-all text-sm text-text">
-              {commit.id}
+            <dd className="t-content mt-1 text-base leading-snug">
+              {authorLabel}
             </dd>
           </div>
           <div>
-            <dt className="t-mono text-dial text-text uppercase sm:text-sm">
+            <dt className="t-label text-text-muted">
+              {t("home.repoCommitHash")}
+            </dt>
+            <dd className="t-mono mt-1 break-all text-text">{commit.id}</dd>
+          </div>
+          <div>
+            <dt className="t-label text-text-muted">
               {t("home.repoCommitDate")}
             </dt>
-            <dd className="t-mono mt-1 text-sm text-text">
+            <dd className="t-mono mt-1 text-text-muted">
               {absolute}
               {" · "}
               {commit.relativeTime}

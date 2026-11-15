@@ -105,7 +105,7 @@ export function RepoPreviewBody({
             <RepoWarningIcon className="size-3.5 shrink-0" />
             <p className="t-label text-sm">{t("home.repoErrorTitle")}</p>
           </div>
-          <p className="t-body text-sm text-text">
+          <p className="t-content text-base leading-snug">
             {t("home.repoPreviewErrorBody", { path })}
           </p>
           <p className="t-mono text-dial text-text sm:text-sm">

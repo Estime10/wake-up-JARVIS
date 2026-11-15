@@ -6,6 +6,7 @@ import { HomeComposer } from "@/features/home/components/ui/conversation/compose
 import { HomeStatusHeader } from "@/features/home/components/ui/conversation/stage/HomeStatusHeader";
 import { StatusAnnouncer } from "@/features/home/components/ui/conversation/stage/StatusAnnouncer";
 import type { AssistantState } from "@/features/home/model/assistantMachine";
+import { HOME_COMPOSER_BOTTOM } from "@/features/home/model/homeColumnChrome";
 import { PANEL_CONTENT_MOTION_CLASS } from "@/features/home/model/panelContentMotion";
 import { cn } from "@/lib/cn";
 
@@ -53,7 +54,8 @@ export function HomeCenterColumn({
         <div
           data-home="composer"
           className={cn(
-            "absolute inset-x-0 bottom-5 z-20 mb-0 flex w-full justify-center px-2 sm:bottom-6",
+            "absolute inset-x-0 z-20 mb-0 flex w-full justify-center px-2",
+            HOME_COMPOSER_BOTTOM,
             composerPending && "pointer-events-none opacity-0",
           )}
           aria-hidden={composerPending || undefined}

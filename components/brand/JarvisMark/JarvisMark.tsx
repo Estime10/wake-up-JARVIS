@@ -8,10 +8,7 @@ import {
   TRAIL_HEAD,
   TRAIL_MAIN_D,
 } from "@/components/brand/JarvisMark/markPathsV2";
-import {
-  BOOT_GRADUATIONS_D,
-  CROSSHAIR_AND_RETICLES_D,
-} from "@/components/brand/JarvisMark/splashChromePaths";
+import { BOOT_GRADUATIONS_D } from "@/components/brand/JarvisMark/splashChromePaths";
 import { TRAIL_ARCS_V2 } from "@/components/brand/JarvisMark/trailArcsV2";
 import {
   ERROR_EXCLAMATION_D,
@@ -28,8 +25,8 @@ import {
 const TRAIL_FADE_ARCS = TRAIL_ARCS_V2.filter((arc) => arc.d !== TRAIL_MAIN_D);
 
 /**
- * Logo / anneau JARVIS — mark v2 = état final splash (viewBox 248).
- * Chrome boot/réticules inclus (même dessin que splash `#layer-rig`).
+ * Logo / anneau JARVIS — mark v2 (viewBox 248).
+ * Chrome boot (anneaux) inclus — sans équerres/réticules.
  * Modes `data-jarvis="mode-*"` pilotés par GSAP.
  */
 
@@ -75,7 +72,7 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
         </radialGradient>
       </defs>
 
-      {/* Chrome splash — boot-r150 / boot-r160 dérivent en idle (comme le splash). */}
+      {/* Chrome splash — anneaux boot (équerres/réticules retirées). */}
       <g data-jarvis="splash-chrome">
         <circle
           data-jarvis="boot-r138"
@@ -105,12 +102,6 @@ export function JarvisMark({ title, className }: JarvisMarkProps) {
           stroke="currentColor"
           strokeOpacity="1"
           strokeWidth="0.8"
-        />
-        <path
-          d={CROSSHAIR_AND_RETICLES_D}
-          fill="none"
-          stroke="currentColor"
-          strokeOpacity="1"
         />
       </g>
 

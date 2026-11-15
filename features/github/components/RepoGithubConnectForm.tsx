@@ -42,10 +42,7 @@ export function RepoGithubConnectForm({
       }}
     >
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor={`${idPrefix}-token`}
-          className="t-mono text-sm tracking-wide text-text uppercase"
-        >
+        <label htmlFor={`${idPrefix}-token`} className="t-label text-text">
           {t("home.repoPatLabel")}
         </label>
         <input
@@ -60,12 +57,17 @@ export function RepoGithubConnectForm({
           value={token}
           onChange={(event) => setToken(event.target.value)}
           placeholder={t("home.repoPatPlaceholder")}
-          className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-sm text-text outline-none focus-visible:border-accent"
+          className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-text outline-none focus-visible:border-accent"
         />
       </div>
-      <p className="t-mono text-sm text-text">{t("home.repoPatPrivateHint")}</p>
+      <p className="t-content text-base leading-snug text-text-muted">
+        {t("home.repoPatPrivateHint")}
+      </p>
       {errorKey ? (
-        <p className="t-mono text-sm text-danger" role="alert">
+        <p
+          className="t-content text-base leading-snug text-danger"
+          role="alert"
+        >
           {t(errorKey)}
         </p>
       ) : null}

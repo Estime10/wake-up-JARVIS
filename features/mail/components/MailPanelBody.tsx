@@ -210,14 +210,14 @@ export function MailPanelBody() {
                 })}
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setAccountId(account.id)}
-                className="min-w-0 flex-1 justify-center text-sm font-medium tracking-wide uppercase"
+                className="t-label min-w-0 flex-1 justify-center"
               >
                 <span
-                  className="inline-flex max-w-full items-baseline gap-1.5 text-sm"
+                  className="inline-flex max-w-full items-baseline gap-1.5"
                   aria-hidden
                 >
-                  <span className="truncate uppercase">{account.label}</span>
-                  <span className="shrink-0 font-mono text-sm font-normal tracking-normal tabular-nums text-text normal-case">
+                  <span className="truncate">{account.label}</span>
+                  <span className="t-mono shrink-0 text-text-muted">
                     {count}
                   </span>
                 </span>

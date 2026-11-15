@@ -7,7 +7,7 @@ type NowPlayingMetaProps = {
 /** Ligne artiste — titre. */
 export function NowPlayingMeta({ identity }: NowPlayingMetaProps) {
   return (
-    <p className="t-mono truncate text-center text-sm leading-none text-text">
+    <p className="t-content truncate text-center leading-snug">
       {identity.artist}
       <span aria-hidden> — </span>
       {identity.title}

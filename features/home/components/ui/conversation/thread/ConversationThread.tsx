@@ -189,8 +189,8 @@ export function ConversationThread({
       ref={listRef}
       data-scroll-lock-target
       className={cn(
-        // Pleine largeur section + padding. `mt-auto` sur le corps : fil collé en bas.
-        "flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 py-4 sm:px-5",
+        // Padding = parent liquid-glass (`HOME_SIDE_CONTENT_PAD`). Fil collé en bas.
+        "flex h-full min-h-0 w-full flex-col overflow-y-auto",
       )}
       role="log"
       aria-label={t("home.conversationLabel")}

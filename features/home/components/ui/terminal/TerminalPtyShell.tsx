@@ -37,7 +37,8 @@ export function TerminalPtyShell({ active }: TerminalPtyShellProps) {
       cursorBlink: true,
       fontFamily: "var(--font-mono), ui-monospace, monospace",
       fontSize: 13,
-      lineHeight: 1.35,
+      // Air entre lignes — listings `ls -1` lisibles, pas collés.
+      lineHeight: 1.55,
       letterSpacing: 0.5,
       theme: {
         background: "#0B0B0C",
