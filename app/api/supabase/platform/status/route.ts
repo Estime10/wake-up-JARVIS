@@ -47,7 +47,7 @@ export async function GET() {
     .select(
       "id, account_label, status, selected_project_ref, selected_project_name, is_active, connected_at",
     )
-    .order("connected_at", { ascending: true });
+    .order("connected_at", { ascending: false });
 
   if (error) {
     return NextResponse.json({ ok: false, error: "config" }, { status: 500 });

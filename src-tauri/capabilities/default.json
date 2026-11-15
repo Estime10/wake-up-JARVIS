@@ -20,6 +20,7 @@
     "core:event:default",
     "allow-voice-speak",
     "allow-voice-stop",
+    "allow-open-external-url",
     "allow-webview-pane-set-studio",
     "allow-webview-pane-clear-studio",
     "allow-webview-pane-debug"

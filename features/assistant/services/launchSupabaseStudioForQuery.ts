@@ -1,7 +1,7 @@
 "use client";
 
 import { resolveSupabaseProjectQuery } from "@/features/assistant/model/resolveSupabaseProjectQuery";
-import { ensureLocalStudioViaTauri } from "@/features/home/tauri/studioEnsure";
+import { launchLocalStudioStaged } from "@/features/home/tauri/studioEnsure";
 import { ROUTES } from "@/lib/routes";
 import { isTauri } from "@/lib/runtime/isTauri";
 import {
@@ -10,6 +10,7 @@ import {
   type SupabasePlatformConnection,
   type SupabasePlatformProjectSummary,
 } from "@/lib/schemas";
+import { localStudioBrowserUrl } from "@/lib/supabase/platform/localStudioUrl";
 
 export type StudioLaunchResult =
   | { ok: true; projectName: string; accountLabel: string; studioUrl: string }
@@ -23,7 +24,8 @@ type FlatProject = {
 };
 
 /**
- * Résout un projet parmi tous les comptes, bascule le compte si besoin, lance Studio.
+ * Résout un projet cloud, lie le CLI local à ce ref, démarre Studio local,
+ * renvoie l’URL loopback (navigateur) — jamais le dashboard prod.
  */
 export async function launchSupabaseStudioForQuery(
   projectQuery: string,
@@ -117,14 +119,37 @@ export async function launchSupabaseStudioForQuery(
     return { ok: false, reason: "failed" };
   }
 
+  const fallbackUrl = localStudioBrowserUrl(match.project.ref);
+
   if (isTauri()) {
     try {
-      const ensured = await ensureLocalStudioViaTauri();
+      const prepareResponse = await fetch(
+        ROUTES.supabasePlatformStudioPrepare,
+        { method: "POST", credentials: "same-origin" },
+      );
+      const prepareJson = (await prepareResponse.json()) as {
+        ok?: boolean;
+        projectRef?: string;
+        accessToken?: string;
+      };
+      if (
+        !prepareResponse.ok ||
+        !prepareJson.ok ||
+        !prepareJson.projectRef ||
+        !prepareJson.accessToken
+      ) {
+        return { ok: false, reason: "failed" };
+      }
+
+      const ensured = await launchLocalStudioStaged({
+        projectRef: prepareJson.projectRef,
+        accessToken: prepareJson.accessToken,
+      });
       return {
         ok: true,
         projectName: match.project.name,
         accountLabel: match.connection.accountLabel,
-        studioUrl: ensured.studioUrl,
+        studioUrl: ensured.studioUrl || fallbackUrl,
       };
     } catch {
       return { ok: false, reason: "failed" };
@@ -142,7 +167,6 @@ export async function launchSupabaseStudioForQuery(
   });
   const studioJson = (await studioResponse.json()) as {
     ok?: boolean;
-    embedUrl?: string;
     studioUrl?: string;
   };
   if (!studioResponse.ok || !studioJson.ok) {
@@ -153,6 +177,6 @@ export async function launchSupabaseStudioForQuery(
     ok: true,
     projectName: match.project.name,
     accountLabel: match.connection.accountLabel,
-    studioUrl: studioJson.embedUrl ?? studioJson.studioUrl ?? "",
+    studioUrl: studioJson.studioUrl ?? fallbackUrl,
   };
 }

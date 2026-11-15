@@ -52,3 +52,7 @@ yarn-error.log*
 next-env.d.ts
 tmp/
 bootstrap.log
+
+# Supabase CLI local (link + sync schéma Studio)
+supabase/.temp/
+supabase/snippets/

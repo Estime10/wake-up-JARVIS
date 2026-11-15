@@ -1,14 +1,10 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/Button/Button";
 import { HudModal } from "@/components/layout/HudModal/HudModal";
-import { HudOverlay } from "@/features/home/components/layout/HudOverlay";
-import {
-  mainSectionBoxStyle,
-  useMainSectionBox,
-} from "@/features/home/hooks/useMainSectionBox";
 import type { MessageKey } from "@/lib/i18n/types";
 import { useScrollLock } from "@/lib/hooks/useScrollLock";
 import { t } from "@/lib/i18n/t";
@@ -24,7 +20,8 @@ type SupabaseConnectModalProps = {
 const MIN_TOKEN_LENGTH = 20;
 
 /**
- * Modale Connect — libellé compte + access token (1 token / compte Supabase).
+ * Modale Connect — plein viewport opaque (header / mask / composer masqués).
+ * 1 libellé compte + 1 access token Management API.
  */
 export function SupabaseConnectModal({
   open,
@@ -34,7 +31,6 @@ export function SupabaseConnectModal({
   onConnect,
 }: SupabaseConnectModalProps) {
   const idPrefix = useId();
-  const box = useMainSectionBox(open);
   useScrollLock(open);
   const [accountLabel, setAccountLabel] = useState("");
   const [token, setToken] = useState("");
@@ -55,121 +51,109 @@ export function SupabaseConnectModal({
     setAccountLabel("");
   }
 
-  return (
-    <>
-      <HudOverlay visible className="z-[72]" />
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-bg px-2">
       <Button
         type="button"
         variant="ghost"
         size="bare"
         aria-label={t("home.supabaseConnectClose")}
-        className="pointer-events-auto fixed z-[72] block cursor-default rounded-none bg-transparent opacity-100"
-        style={mainSectionBoxStyle(box)}
+        className="absolute inset-0 z-0 block cursor-default rounded-none bg-transparent opacity-100"
         onClick={onClose}
       >
         <span className="sr-only">{t("home.supabaseConnectClose")}</span>
       </Button>
 
-      <div
-        className="pointer-events-none fixed z-[73] flex items-center justify-center px-2 opacity-100"
-        style={mainSectionBoxStyle(box)}
+      <HudModal
+        aria-label={t("home.supabaseConnectTitle")}
+        className="relative z-10 flex w-full max-w-md flex-col gap-4 p-4 sm:p-6"
+        data-scroll-lock-allow="true"
       >
-        <HudModal
-          aria-label={t("home.supabaseConnectTitle")}
-          className="pointer-events-auto flex w-full max-w-md flex-col gap-4 p-4 sm:p-6"
-          data-scroll-lock-allow="true"
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="t-title text-text">
+            {t("home.supabaseConnectTitle")}
+          </h2>
+          <Button type="button" variant="hud" size="bare" onClick={onClose}>
+            {t("home.supabaseConnectClose")}
+          </Button>
+        </div>
+
+        <p className="t-content text-base leading-snug">
+          {t("home.supabaseConnectHint")}
+        </p>
+
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(event) => {
+            void handleSubmit(event);
+          }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="t-title text-text">
-              {t("home.supabaseConnectTitle")}
-            </h2>
-            <Button type="button" variant="hud" size="bare" onClick={onClose}>
-              {t("home.supabaseConnectClose")}
-            </Button>
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`${idPrefix}-label`} className="t-label text-text">
+              {t("home.supabaseAccountLabel")}
+            </label>
+            <input
+              id={`${idPrefix}-label`}
+              name="supabase_account_label"
+              type="text"
+              autoComplete="off"
+              required
+              maxLength={80}
+              disabled={submitting}
+              value={accountLabel}
+              onChange={(event) => setAccountLabel(event.target.value)}
+              placeholder={t("home.supabaseAccountPlaceholder")}
+              className="t-content min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-base leading-snug outline-none focus-visible:border-accent"
+            />
           </div>
-
-          <p className="t-content text-base leading-snug">
-            {t("home.supabaseConnectHint")}
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`${idPrefix}-token`} className="t-label text-text">
+              {t("home.supabaseTokenLabel")}
+            </label>
+            <input
+              id={`${idPrefix}-token`}
+              name="supabase_access_token"
+              type="password"
+              autoComplete="off"
+              spellCheck={false}
+              required
+              minLength={MIN_TOKEN_LENGTH}
+              disabled={submitting}
+              value={token}
+              onChange={(event) => setToken(event.target.value)}
+              placeholder={t("home.supabaseTokenPlaceholder")}
+              className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-text outline-none focus-visible:border-accent"
+            />
+          </div>
+          <p className="t-content text-base leading-snug text-text-muted">
+            {t("home.supabaseTokenHint")}
           </p>
-
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={(event) => {
-              void handleSubmit(event);
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor={`${idPrefix}-label`}
-                className="t-label text-text"
-              >
-                {t("home.supabaseAccountLabel")}
-              </label>
-              <input
-                id={`${idPrefix}-label`}
-                name="supabase_account_label"
-                type="text"
-                autoComplete="off"
-                required
-                maxLength={80}
-                disabled={submitting}
-                value={accountLabel}
-                onChange={(event) => setAccountLabel(event.target.value)}
-                placeholder={t("home.supabaseAccountPlaceholder")}
-                className="t-content min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-base leading-snug outline-none focus-visible:border-accent"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor={`${idPrefix}-token`}
-                className="t-label text-text"
-              >
-                {t("home.supabaseTokenLabel")}
-              </label>
-              <input
-                id={`${idPrefix}-token`}
-                name="supabase_access_token"
-                type="password"
-                autoComplete="off"
-                spellCheck={false}
-                required
-                minLength={MIN_TOKEN_LENGTH}
-                disabled={submitting}
-                value={token}
-                onChange={(event) => setToken(event.target.value)}
-                placeholder={t("home.supabaseTokenPlaceholder")}
-                className="t-mono min-h-touch w-full rounded-md border border-line-subtle bg-surface-2/40 px-3 py-2 text-text outline-none focus-visible:border-accent"
-              />
-            </div>
-            <p className="t-content text-base leading-snug text-text-muted">
-              {t("home.supabaseTokenHint")}
-            </p>
-            {errorKey ? (
-              <p
-                className="t-content text-base leading-snug text-danger"
-                role="alert"
-              >
-                {t(errorKey)}
-              </p>
-            ) : null}
-            <Button
-              type="submit"
-              variant="bordered"
-              size="md"
-              disabled={
-                submitting ||
-                accountLabel.trim().length === 0 ||
-                token.trim().length < MIN_TOKEN_LENGTH
-              }
-              className="self-center"
+          {errorKey ? (
+            <p
+              className="t-content text-base leading-snug text-danger"
+              role="alert"
             >
-              {submitting
-                ? t("home.supabaseTokenSubmitting")
-                : t("home.supabaseTokenSubmit")}
-            </Button>
-          </form>
-        </HudModal>
-      </div>
-    </>
+              {t(errorKey)}
+            </p>
+          ) : null}
+          <Button
+            type="submit"
+            variant="bordered"
+            size="md"
+            disabled={
+              submitting ||
+              accountLabel.trim().length === 0 ||
+              token.trim().length < MIN_TOKEN_LENGTH
+            }
+            className="self-center"
+          >
+            {submitting
+              ? t("home.supabaseTokenSubmitting")
+              : t("home.supabaseTokenSubmit")}
+          </Button>
+        </form>
+      </HudModal>
+    </div>,
+    document.body,
   );
 }

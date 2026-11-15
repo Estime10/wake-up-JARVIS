@@ -1,4 +1,5 @@
 mod elsa_paths;
+mod open_external;
 mod piper_runtime;
 mod studio_local;
 mod terminal;
@@ -50,13 +51,16 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            studio_local::studio_ensure,
+            studio_local::studio_docker_ensure,
+            studio_local::studio_stack_ensure,
+            studio_local::studio_schema_sync,
             terminal::terminal_pty_start,
             terminal::terminal_pty_stop,
             terminal::terminal_pty_write,
             terminal::terminal_pty_resize,
             voice::voice_speak,
             voice::voice_stop,
+            open_external::open_external_url,
             webview_pane::webview_pane_set_studio,
             webview_pane::webview_pane_clear_studio,
             webview_pane::webview_pane_debug,

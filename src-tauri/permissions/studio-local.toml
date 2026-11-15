@@ -1,4 +1,4 @@
 [[permission]]
 identifier = "allow-studio-ensure"
-description = "Probe Studio local :54323 depuis le shell."
-commands.allow = ["studio_ensure"]
+description = "Studio local séquentiel : Docker → stack Supabase → sync schéma."
+commands.allow = ["studio_docker_ensure", "studio_stack_ensure", "studio_schema_sync"]

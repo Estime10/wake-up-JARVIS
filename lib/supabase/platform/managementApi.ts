@@ -8,9 +8,20 @@ const projectSchema = z.object({
   ref: z.string().min(1),
   organization_id: z.string().optional(),
   region: z.string().optional(),
+  created_at: z.string().optional(),
 });
 
 export type SupabasePlatformProject = z.infer<typeof projectSchema>;
+
+function sortProjectsNewestFirst(
+  projects: SupabasePlatformProject[],
+): SupabasePlatformProject[] {
+  return [...projects].sort((a, b) => {
+    const tb = Date.parse(b.created_at ?? "") || 0;
+    const ta = Date.parse(a.created_at ?? "") || 0;
+    return tb - ta;
+  });
+}
 
 export type ManagementApiResult<T> =
   | { ok: true; data: T }
@@ -52,7 +63,7 @@ export async function listSupabasePlatformProjects(
       return { ok: false, reason: "invalid" };
     }
 
-    return { ok: true, data: parsed.data };
+    return { ok: true, data: sortProjectsNewestFirst(parsed.data) };
   } catch {
     return { ok: false, reason: "upstream" };
   }

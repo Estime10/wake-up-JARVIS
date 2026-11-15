@@ -1,7 +1,6 @@
 "use client";
 
-import { TauriWebviewHost } from "@/features/supabase/components/TauriWebviewHost";
-import { useIsTauriClient } from "@/features/home/hooks/useIsTauriClient";
+import { isCloudStudioUrl } from "@/lib/supabase/platform/cloudStudioUrl";
 import { t } from "@/lib/i18n/t";
 
 type SupabaseStudioBrowserProps = {
@@ -9,20 +8,26 @@ type SupabaseStudioBrowserProps = {
 };
 
 /**
- * Surface Studio — iframe proxy :54332 (web) · WebView :54323 (shell Tauri).
+ * Fallback web si un embed était encore demandé — le flux nominal ouvre
+ * le navigateur système (`openExternalUrl`).
  */
 export function SupabaseStudioBrowser({
   studioUrl,
 }: SupabaseStudioBrowserProps) {
-  const native = useIsTauriClient();
-
-  if (native) {
+  if (isCloudStudioUrl(studioUrl)) {
     return (
-      <div
-        data-tauri-webview-frame
-        className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden border border-transparent"
-      >
-        <TauriWebviewHost url={studioUrl} className="min-h-0 h-full flex-1" />
+      <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="t-content text-base leading-snug">
+          {t("home.supabaseStudioBrowserTitle")}
+        </p>
+        <a
+          href={studioUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="t-label text-accent hover:text-text"
+        >
+          {studioUrl}
+        </a>
       </div>
     );
   }

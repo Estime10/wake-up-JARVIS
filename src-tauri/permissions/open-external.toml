@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-open-external-url"
+description = "Ouvre une URL allowlistée (Studio cloud) dans le navigateur système."
+commands.allow = ["open_external_url"]

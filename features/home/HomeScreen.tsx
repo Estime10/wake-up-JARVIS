@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalogModal";
 import { HomeCenterColumn } from "@/features/home/components/layout/columns/HomeCenterColumn";
 import { HomeConversationColumn } from "@/features/home/components/layout/columns/HomeConversationColumn";
@@ -19,7 +21,10 @@ import { useProactiveMarkAlerts } from "@/features/home/hooks/useProactiveMarkAl
 import { HOME_SIDE_INSET } from "@/features/home/model/homeColumnChrome";
 import { MAIN_TITLE_ID } from "@/features/home/model/landmarks";
 import { useVoiceRingMotion } from "@/features/jarvis/hooks/useVoiceRingMotion";
-import { SupabasePlatformProvider } from "@/features/supabase/context/supabasePlatformContext";
+import {
+  SupabasePlatformProvider,
+  useSupabasePlatformContext,
+} from "@/features/supabase/context/supabasePlatformContext";
 import { SupabasePane } from "@/features/supabase/components/SupabasePane";
 import { cn } from "@/lib/cn";
 import { useScrollLock } from "@/lib/hooks/useScrollLock";
@@ -73,6 +78,14 @@ function HomeScreenBody() {
     assistantState: session.state,
     speakAlert: session.speakAlert,
   });
+
+  const { setStudioSpeakAlert } = useSupabasePlatformContext();
+  useEffect(() => {
+    setStudioSpeakAlert(session.speakAlert);
+    return () => {
+      setStudioSpeakAlert(null);
+    };
+  }, [setStudioSpeakAlert, session.speakAlert]);
 
   const conversationObscured = terminalOpen || repoOpen || mailOpen;
   useScrollLock(terminalOpen || repoOpen || mailOpen || phraseCatalog.open);

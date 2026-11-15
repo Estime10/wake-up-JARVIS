@@ -40,9 +40,12 @@ export async function debugWebviewPane(
   return invoke<WebviewPaneDebugInfo>("webview_pane_debug", { bounds, label });
 }
 
+/** Aligné sur `--radius-sm` du liquid-glass — inset pour rester dans le chrome. */
+const LIQUID_GLASS_RADIUS_PX = 4;
+
 /**
- * Mesure l’intérieur de `[data-tauri-webview-frame]` via clientLeft/Top/Width/Height
- * (content-box = zone iframe). Le frame **doit** garder un `border` (même
+ * Mesure l’intérieur de `[data-tauri-webview-frame]`, borné au liquid-glass
+ * `side-right` si présent. Le frame **doit** garder un `border` (même
  * transparent) : sans border, clientLeft/Top changent et le WKWebView décale.
  *
  * Valeurs en CSS px (= points logiques Tauri pour le child WKWebView).
@@ -50,13 +53,37 @@ export async function debugWebviewPane(
 export function measureElementBounds(element: HTMLElement): WebviewPaneBounds {
   const frame =
     element.closest<HTMLElement>("[data-tauri-webview-frame]") ?? element;
-  const rect = frame.getBoundingClientRect();
-  return {
-    x: Math.round(rect.left + frame.clientLeft),
-    y: Math.round(rect.top + frame.clientTop),
-    width: Math.round(frame.clientWidth),
-    height: Math.round(frame.clientHeight),
-  };
+  const glass =
+    element.closest<HTMLElement>("[data-home='side-right']") ?? frame;
+
+  const frameRect = frame.getBoundingClientRect();
+  const glassRect = glass.getBoundingClientRect();
+
+  // Content-box frame ∩ content-box glass, puis inset radius (coins liquid).
+  const left = Math.max(
+    frameRect.left + frame.clientLeft,
+    glassRect.left + glass.clientLeft,
+  );
+  const top = Math.max(
+    frameRect.top + frame.clientTop,
+    glassRect.top + glass.clientTop,
+  );
+  const right = Math.min(
+    frameRect.left + frame.clientLeft + frame.clientWidth,
+    glassRect.left + glass.clientLeft + glass.clientWidth,
+  );
+  const bottom = Math.min(
+    frameRect.top + frame.clientTop + frame.clientHeight,
+    glassRect.top + glass.clientTop + glass.clientHeight,
+  );
+
+  const inset = LIQUID_GLASS_RADIUS_PX;
+  const x = Math.round(left + inset);
+  const y = Math.round(top + inset);
+  const width = Math.round(Math.max(0, right - left - inset * 2));
+  const height = Math.round(Math.max(0, bottom - top - inset * 2));
+
+  return { x, y, width, height };
 }
 
 export function boundsEqual(
