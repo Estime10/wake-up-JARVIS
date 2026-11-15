@@ -1,13 +1,7 @@
 "use client";
 
 import { MailPreview } from "@/features/home/components/ui/mail/MailPreview";
-import {
-  REPO_MOTION_CLASS,
-  REPO_SLIDE_IN,
-  REPO_SLIDE_OUT,
-} from "@/features/home/animations/repoMotion";
-import { HOME_LEFT_HALF_INSET_CLASS } from "@/features/home/model/homeColumnLayout";
-import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
+import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
 import type { MailSummary } from "@/lib/schemas";
@@ -19,8 +13,7 @@ type MailPreviewDrawerProps = {
 };
 
 /**
- * Tiroir 2 — pleine colonne gauche (couvre la liste).
- * Clip overflow pour le slide.
+ * Aperçu mail — couvre la liste dans le même liquid-glass.
  */
 export function MailPreviewDrawer({
   visible,
@@ -30,28 +23,20 @@ export function MailPreviewDrawer({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-y-0 overflow-hidden",
-        HOME_LEFT_HALF_INSET_CLASS,
-        REPO_LAYER_CLASS.preview,
+        "absolute inset-0 z-10 flex flex-col",
+        HUD_OVERLAY_MOTION_CLASS,
+        visible
+          ? "pointer-events-auto opacity-100"
+          : "pointer-events-none opacity-0",
       )}
       data-scroll-lock-allow="true"
+      aria-label={t("home.mailPreviewLabel", {
+        subject: mail.subject || t("home.mailNoSubject"),
+      })}
+      aria-hidden={!visible || undefined}
+      inert={!visible ? true : undefined}
     >
-      <aside
-        className={cn(
-          "absolute inset-0 flex flex-col border-r border-line-subtle bg-bg isolate transition-transform",
-          REPO_MOTION_CLASS,
-          visible
-            ? `pointer-events-auto ${REPO_SLIDE_IN}`
-            : `pointer-events-none ${REPO_SLIDE_OUT}`,
-        )}
-        aria-label={t("home.mailPreviewLabel", {
-          subject: mail.subject || t("home.mailNoSubject"),
-        })}
-        aria-hidden={!visible || undefined}
-        inert={!visible ? true : undefined}
-      >
-        <MailPreview mail={mail} onClose={onClose} />
-      </aside>
+      <MailPreview mail={mail} onClose={onClose} />
     </div>
   );
 }

@@ -3,43 +3,25 @@
 import { Suspense } from "react";
 
 import { Button } from "@/components/ui/Button/Button";
-import {
-  REPO_MOTION_CLASS,
-  REPO_SLIDE_IN,
-  REPO_SLIDE_OUT,
-} from "@/features/home/animations/repoMotion";
 import { MailPanelBody } from "@/features/mail/components/MailPanelBody";
-import { HOME_LEFT_HALF_WIDTH_CLASS } from "@/features/home/model/homeColumnLayout";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
-import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
 
 type MailListDrawerProps = {
-  visible: boolean;
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — liste / boîtes (pleine colonne gauche). */
-export function MailListDrawer({ visible, onDismiss }: MailListDrawerProps) {
+/** Liste mails — remplit le liquid-glass `side-left` (comme le terminal). */
+export function MailListDrawer({ onDismiss }: MailListDrawerProps) {
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 flex flex-col border-r border-line-subtle bg-bg isolate transition-transform",
-        HOME_LEFT_HALF_WIDTH_CLASS,
-        REPO_MOTION_CLASS,
-        REPO_LAYER_CLASS.panel,
-        visible ? REPO_SLIDE_IN : REPO_SLIDE_OUT,
-      )}
+    <div
+      className="relative flex h-full min-h-0 w-full flex-col"
       data-scroll-lock-allow="true"
       aria-label={t("home.mailPanelLabel")}
-      aria-hidden={!visible || undefined}
-      inert={!visible ? true : undefined}
     >
-      <header className={cn(REPO_CHROME.header, "justify-between")}>
-        <p className="t-mono text-sm tracking-wide text-text uppercase">
-          {t("home.email")}
-        </p>
+      <header className={cn(REPO_CHROME.header, "justify-between gap-3")}>
+        <p className="t-label text-text">{t("home.email")}</p>
         <Button
           variant="ghost"
           size="bare"
@@ -56,6 +38,6 @@ export function MailListDrawer({ visible, onDismiss }: MailListDrawerProps) {
           <MailPanelBody />
         </Suspense>
       </div>
-    </aside>
+    </div>
   );
 }

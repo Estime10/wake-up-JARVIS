@@ -15,34 +15,31 @@ import {
   usePresenceMotion,
 } from "@/features/home/hooks/usePresenceMotion";
 import { usePreviewSnapshot } from "@/features/home/hooks/usePreviewSnapshot";
+import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
+import { TERMINAL_LAYER_CLASS } from "@/features/home/model/terminalLayers";
+import { cn } from "@/lib/cn";
+
+type HomeRepoPanelProps = {
+  open: boolean;
+};
 
 /**
- * Orchestrateur panneau REPO — live GitHub + chrome animé.
- * Pas d’overlay / hit-layer : tiroirs seuls dans la colonne gauche.
+ * GitHub — même cadre liquid-glass que messages / terminal / mail (`side-left`).
  */
-export function HomeRepoPanel() {
-  const { open, close } = useRepoPanel();
-
+export function HomeRepoPanel({ open }: HomeRepoPanelProps) {
   return (
     <LiveRepoPreviewProvider>
-      <HomeRepoPanelView open={open} close={close} />
+      <HomeRepoPanelView open={open} />
     </LiveRepoPreviewProvider>
   );
 }
 
-function HomeRepoPanelView({
-  open,
-  close,
-}: {
-  open: boolean;
-  close: () => void;
-}) {
+function HomeRepoPanelView({ open }: HomeRepoPanelProps) {
+  const { close } = useRepoPanel();
   const livePreview = useLiveRepoPreview();
-  // Lié à `open` pour outro synchronisée liste + aperçu.
   const fileActive = open && Boolean(livePreview.preview);
   const commitActive = open && Boolean(livePreview.commitPreview);
 
-  const panelMotion = usePresenceMotion(open, REPO_MOTION_MS);
   const fileMotion = usePresenceMotion(fileActive, REPO_MOTION_MS);
   const commitMotion = usePresenceMotion(commitActive, REPO_MOTION_MS);
   const fileSnapshot = usePreviewSnapshot(
@@ -55,6 +52,7 @@ function HomeRepoPanelView({
   );
 
   const closePreview = livePreview.closePreview;
+  const previewVisible = fileMotion.visible || commitMotion.visible;
 
   useEffect(() => {
     if (open) {
@@ -66,33 +64,47 @@ function HomeRepoPanelView({
     return () => window.clearTimeout(id);
   }, [open, closePreview]);
 
-  function dismissPanel(): void {
-    close();
-  }
-
   return (
-    <>
-      {panelMotion.mounted ? (
-        <RepoPanelFilesDrawer
-          visible={panelMotion.visible}
-          onDismiss={dismissPanel}
-        />
-      ) : null}
-      {fileMotion.mounted && fileSnapshot ? (
-        <RepoPanelPreviewDrawer
-          visible={fileMotion.visible}
-          model={fileSnapshot}
-          onClose={livePreview.closePreview}
-          onRetry={livePreview.retryPreview}
-        />
-      ) : null}
-      {commitMotion.mounted && commitSnapshot ? (
-        <RepoPanelCommitDrawer
-          visible={commitMotion.visible}
-          model={commitSnapshot}
-          onClose={livePreview.closePreview}
-        />
-      ) : null}
-    </>
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-0",
+        TERMINAL_LAYER_CLASS.panel,
+        HUD_OVERLAY_MOTION_CLASS,
+        open ? "opacity-100" : "opacity-0",
+      )}
+      aria-hidden={!open || undefined}
+    >
+      <div
+        className={cn(
+          "relative flex h-full w-full flex-col",
+          open ? "pointer-events-auto" : "pointer-events-none",
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-full min-h-0 flex-col",
+            previewVisible && "pointer-events-none opacity-0",
+          )}
+          aria-hidden={previewVisible || undefined}
+        >
+          <RepoPanelFilesDrawer onDismiss={close} />
+        </div>
+        {fileMotion.mounted && fileSnapshot ? (
+          <RepoPanelPreviewDrawer
+            visible={fileMotion.visible}
+            model={fileSnapshot}
+            onClose={livePreview.closePreview}
+            onRetry={livePreview.retryPreview}
+          />
+        ) : null}
+        {commitMotion.mounted && commitSnapshot ? (
+          <RepoPanelCommitDrawer
+            visible={commitMotion.visible}
+            model={commitSnapshot}
+            onClose={livePreview.closePreview}
+          />
+        ) : null}
+      </div>
+    </div>
   );
 }

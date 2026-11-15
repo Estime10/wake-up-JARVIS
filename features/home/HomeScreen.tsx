@@ -4,6 +4,8 @@ import { PhraseCatalogModal } from "@/features/assistant/components/PhraseCatalo
 import { HomeCenterColumn } from "@/features/home/components/layout/columns/HomeCenterColumn";
 import { HomeConversationColumn } from "@/features/home/components/layout/columns/HomeConversationColumn";
 import { HomeTopBar } from "@/features/home/components/layout/HomeTopBar";
+import { HomeMailPanel } from "@/features/home/components/layout/mail/HomeMailPanel";
+import { HomeRepoPanel } from "@/features/home/components/layout/repo/HomeRepoPanel";
 import { HomeTerminalPanel } from "@/features/home/components/layout/terminal/HomeTerminalPanel";
 import { useHomeEnter } from "@/features/home/context/homeEnterContext";
 import { useMailPanel } from "@/features/home/context/mailPanelContext";
@@ -131,6 +133,8 @@ function HomeScreenBody() {
               onCancelAction={session.cancelAction}
             />
             <HomeTerminalPanel open={terminalOpen} />
+            <HomeMailPanel open={mailOpen} />
+            <HomeRepoPanel open={repoOpen} />
           </div>
           <HomeCenterColumn
             state={session.state}

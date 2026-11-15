@@ -16,11 +16,6 @@ import { cn } from "@/lib/cn";
 
 type AppShellProps = {
   children: ReactNode;
-  /** Étape 1 refonte-ui : sidebar désactivée (`null`). Conservé pour restauration. */
-  side?: ReactNode | null;
-  repo: ReactNode;
-  /** Tiroir mails — section gauche plein cadre. */
-  mail?: ReactNode;
 };
 
 /**
@@ -33,7 +28,7 @@ type BootGate = "boot" | "playing" | "ready";
  * Coquille `(main)` — home visible pendant le boot (même mark),
  * overlay = scan + nom JARVIS seulement.
  */
-export function AppShell({ children, repo, mail }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const { mainFocus } = useJarvisShell();
   const [gate, setGate] = useState<BootGate>("boot");
 
@@ -76,8 +71,6 @@ export function AppShell({ children, repo, mail }: AppShellProps) {
         className="relative grid h-dvh w-full grid-cols-1 overflow-hidden text-text"
       >
         <HudAmbient />
-        {repo}
-        {mail}
 
         {bootPlaying ? <HomeBootOverlay onFinished={onBootFinished} /> : null}
 
@@ -95,8 +88,7 @@ export function AppShell({ children, repo, mail }: AppShellProps) {
           {children}
         </main>
 
-        {/* Étape 1 refonte-ui — sidebar (MailPanelBody) désactivée.
-            Restaurer : prop `side` + aside visible + grille 75/25. */}
+        {/* Ancre GSAP settle (sideRef) — panneau UI retiré. */}
         <aside ref={sideRef} className="hidden" aria-hidden="true" />
       </div>
     </HomeEnterProvider>

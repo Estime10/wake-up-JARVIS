@@ -36,7 +36,7 @@ const OAUTH_FLASH = {
 
 /**
  * Corps tiroir mails — boîtes Gmail + mails relevés (live).
- * Shell / ouverture : `HomeMailDrawer` (section gauche).
+ * Shell / ouverture : `HomeMailPanel` (liquid-glass `side-left`).
  */
 export function MailPanelBody() {
   const searchParams = useSearchParams();
@@ -182,7 +182,7 @@ export function MailPanelBody() {
         <div
           role="tablist"
           aria-label={t("home.sideTabsLabel")}
-          className="flex shrink-0 justify-between gap-2 border-b border-line-subtle px-3 pt-4 sm:gap-3 sm:px-4"
+          className="flex shrink-0 justify-between gap-2 border-b border-line-subtle px-4 pt-3 sm:gap-3"
           onKeyDown={handleTabKeyDown}
         >
           {accounts.map((account) => {
@@ -230,7 +230,7 @@ export function MailPanelBody() {
       <div
         id={panelId}
         data-scroll-lock-allow="true"
-        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 pt-3 pb-4"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-3 pb-4"
         role="tabpanel"
         aria-labelledby={
           selectedAccountId ? tabId(selectedAccountId) : undefined

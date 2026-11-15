@@ -1,12 +1,8 @@
+"use client";
+
 import type { RepoFilePreviewModel } from "@/features/home/components/ui/repo/preview/RepoFilePreview";
 import { RepoFilePreview } from "@/features/home/components/ui/repo/preview/RepoFilePreview";
-import {
-  REPO_MOTION_CLASS,
-  REPO_SLIDE_IN,
-  REPO_SLIDE_OUT,
-} from "@/features/home/animations/repoMotion";
-import { REPO_PREVIEW_INSET_CLASS } from "@/features/home/model/repoDrawerLayout";
-import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
+import { HUD_OVERLAY_MOTION_CLASS } from "@/features/home/model/hudOverlay";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
 
@@ -17,9 +13,7 @@ type RepoPanelPreviewDrawerProps = {
   onRetry: () => void;
 };
 
-/**
- * Tiroir 2 — pleine colonne gauche (couvre la liste fichiers).
- */
+/** Aperçu fichier — couvre la liste dans le même liquid-glass. */
 export function RepoPanelPreviewDrawer({
   visible,
   model,
@@ -29,26 +23,18 @@ export function RepoPanelPreviewDrawer({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-y-0 overflow-hidden",
-        REPO_PREVIEW_INSET_CLASS,
-        REPO_LAYER_CLASS.preview,
+        "absolute inset-0 z-10 flex flex-col",
+        HUD_OVERLAY_MOTION_CLASS,
+        visible
+          ? "pointer-events-auto opacity-100"
+          : "pointer-events-none opacity-0",
       )}
       data-scroll-lock-allow="true"
+      aria-label={t("home.repoPreviewLabel", { path: model.path })}
+      aria-hidden={!visible || undefined}
+      inert={!visible ? true : undefined}
     >
-      <aside
-        className={cn(
-          "absolute inset-0 flex flex-col border-r border-line-subtle bg-bg isolate transition-transform",
-          REPO_MOTION_CLASS,
-          visible
-            ? `pointer-events-auto ${REPO_SLIDE_IN}`
-            : `pointer-events-none ${REPO_SLIDE_OUT}`,
-        )}
-        aria-label={t("home.repoPreviewLabel", { path: model.path })}
-        aria-hidden={!visible || undefined}
-        inert={!visible ? true : undefined}
-      >
-        <RepoFilePreview model={model} onClose={onClose} onRetry={onRetry} />
-      </aside>
+      <RepoFilePreview model={model} onClose={onClose} onRetry={onRetry} />
     </div>
   );
 }

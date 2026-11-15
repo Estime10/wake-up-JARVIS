@@ -582,7 +582,7 @@ export function LiveRepoPanelBody({
             role="tabpanel"
             aria-labelledby={tabId(tab)}
             tabIndex={0}
-            className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-3"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3"
           >
             {tab === "branches" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">

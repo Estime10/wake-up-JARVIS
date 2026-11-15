@@ -25,7 +25,7 @@ export function MailAccountsBar({
   onDisconnect,
 }: MailAccountsBarProps) {
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-b border-line-subtle px-3 py-3 sm:px-4">
+    <div className="flex shrink-0 flex-col gap-2 border-b border-line-subtle px-4 py-3">
       <div className="flex items-center justify-between gap-2">
         <p className="t-label text-text">{t("home.mailboxesTitle")}</p>
         <div className="flex items-center gap-3">
@@ -67,31 +67,34 @@ export function MailAccountsBar({
                 className="flex items-center justify-between gap-2"
               >
                 <div className="min-w-0">
-                  <p className="t-content truncate leading-snug">
+                  <p className="t-content truncate leading-snug uppercase">
                     {account.label}
                   </p>
-                  {needsReauth ? (
-                    <p className="t-label text-attention">
-                      {t("home.mailNeedsReauth")}
-                    </p>
-                  ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="bare"
-                    className={cn(
-                      "t-label",
-                      enabled ? "text-success" : "text-text",
-                    )}
-                    disabled={needsReauth}
-                    onClick={() => onToggle(account.id, !enabled)}
-                  >
-                    {enabled
-                      ? t("home.mailStatusActive")
-                      : t("home.mailStatusDisabled")}
-                  </Button>
+                  {needsReauth ? (
+                    <a
+                      href={ROUTES.googleOAuthConnect}
+                      className="t-label text-attention transition-colors hover:text-accent"
+                    >
+                      {t("home.mailNeedsReauth")}
+                    </a>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="bare"
+                      className={cn(
+                        "t-label",
+                        enabled ? "text-success" : "text-text",
+                      )}
+                      onClick={() => onToggle(account.id, !enabled)}
+                    >
+                      {enabled
+                        ? t("home.mailStatusActive")
+                        : t("home.mailStatusDisabled")}
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"

@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { type ReactNode } from "react";
 
 import { AppShell } from "@/features/home/components/layout/AppShell";
-import { HomeMailDrawer } from "@/features/home/components/layout/mail/HomeMailDrawer";
-import { HomeRepoPanel } from "@/features/home/components/layout/repo/HomeRepoPanel";
 import { MailPanelProvider } from "@/features/home/context/mailPanelContext";
 import { RepoPanelProvider } from "@/features/home/context/repoPanelContext";
 import { TerminalSessionProvider } from "@/features/home/context/terminalSessionContext";
@@ -30,13 +28,7 @@ export default async function MainLayout({
     <RepoPanelProvider>
       <MailPanelProvider>
         <TerminalSessionProvider>
-          <AppShell
-            side={null}
-            repo={<HomeRepoPanel />}
-            mail={<HomeMailDrawer />}
-          >
-            {children}
-          </AppShell>
+          <AppShell>{children}</AppShell>
         </TerminalSessionProvider>
       </MailPanelProvider>
     </RepoPanelProvider>

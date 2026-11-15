@@ -2,65 +2,42 @@
 
 import { Button } from "@/components/ui/Button/Button";
 import { RepoPanelMain } from "@/features/home/components/ui/repo/panel/RepoPanelMain";
-import {
-  REPO_MOTION_CLASS,
-  REPO_SLIDE_IN,
-  REPO_SLIDE_OUT,
-} from "@/features/home/animations/repoMotion";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
-import { REPO_FILES_DRAWER_WIDTH_CLASS } from "@/features/home/model/repoDrawerLayout";
-import { REPO_LAYER_CLASS } from "@/features/home/model/repoLayers";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
 
 type RepoPanelFilesDrawerProps = {
-  visible: boolean;
   onDismiss: () => void;
 };
 
-/** Tiroir 1 — connexion / lecture GitHub live. */
-export function RepoPanelFilesDrawer({
-  visible,
-  onDismiss,
-}: RepoPanelFilesDrawerProps) {
+/** Liste repo — remplit le liquid-glass `side-left` (comme mail / terminal). */
+export function RepoPanelFilesDrawer({ onDismiss }: RepoPanelFilesDrawerProps) {
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 flex flex-col border-r border-line-subtle bg-bg isolate transition-transform",
-        REPO_FILES_DRAWER_WIDTH_CLASS,
-        REPO_MOTION_CLASS,
-        REPO_LAYER_CLASS.panel,
-        visible ? REPO_SLIDE_IN : REPO_SLIDE_OUT,
-      )}
+    <div
+      className="relative flex h-full min-h-0 w-full flex-col"
       data-scroll-lock-allow="true"
       aria-label={t("home.repoPanelLabel")}
-      aria-hidden={!visible || undefined}
-      inert={!visible ? true : undefined}
     >
-      <div className="relative flex h-full min-h-0 flex-col">
-        <header className={cn(REPO_CHROME.header, "justify-between")}>
-          <p className="t-mono text-sm tracking-wide text-text uppercase">
-            {t("home.repoTitle")}
-          </p>
-          <Button
-            variant="ghost"
-            size="bare"
-            className={REPO_CHROME.closeButton}
-            aria-label={t("home.repoCloseLabel")}
-            onClick={onDismiss}
-          >
-            {t("home.repoClose")}
-          </Button>
-        </header>
+      <header className={cn(REPO_CHROME.header, "justify-between gap-3")}>
+        <p className="t-label text-text">{t("home.repoTitle")}</p>
+        <Button
+          variant="ghost"
+          size="bare"
+          className={REPO_CHROME.closeButton}
+          aria-label={t("home.repoCloseLabel")}
+          onClick={onDismiss}
+        >
+          {t("home.repoClose")}
+        </Button>
+      </header>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <RepoPanelMain />
-        </div>
-
-        <footer className={REPO_CHROME.footer}>
-          <p className={REPO_CHROME.footerText}>{t("home.repoFooterGithub")}</p>
-        </footer>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <RepoPanelMain />
       </div>
-    </aside>
+
+      <footer className={REPO_CHROME.footer}>
+        <p className={REPO_CHROME.footerText}>{t("home.repoFooterGithub")}</p>
+      </footer>
+    </div>
   );
 }

@@ -123,6 +123,25 @@
     @apply outline-2 outline-offset-2 outline-accent;
   }
 
+  /* CTA cliquables — pointer partout (Button + <button>/<a> natifs). */
+  :where(
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [role="button"],
+    a[href],
+    summary,
+    select,
+    label[for]
+  ) {
+    cursor: pointer;
+  }
+
+  :where(button:disabled, [aria-disabled="true"]) {
+    cursor: not-allowed;
+  }
+
   /* Garde Mono (HACKER) : jamais de tracking / uppercase hérités sur le code. */
   .t-mono,
   .mono,
@@ -203,7 +222,8 @@
     content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    /* Sous le contenu — ne bloque pas hover / cursor des CTA. */
+    z-index: -1;
     border-radius: inherit;
     pointer-events: none;
     background: linear-gradient(158deg, var(--glass-sheen) 0%, transparent 40%);
