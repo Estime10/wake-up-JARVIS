@@ -10,6 +10,10 @@ export const MARK_DOM = {
   wordmark: '[data-intro="wordmark"]',
   composer: '[data-home="composer"]',
   chrome: '[data-home="chrome"]',
+  nowPlaying: '[data-home="now-playing"]',
+  topbar: '[data-home="topbar"]',
+  sideLeft: '[data-home="side-left"]',
+  sideRight: '[data-home="side-right"]',
 } as const;
 
 /**
@@ -42,4 +46,20 @@ export function queryComposer(root: ParentNode): HTMLElement | null {
 
 export function queryChrome(root: ParentNode): HTMLElement | null {
   return root.querySelector<HTMLElement>(MARK_DOM.chrome);
+}
+
+export function queryNowPlaying(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>(MARK_DOM.nowPlaying);
+}
+
+export function queryTopbar(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>(MARK_DOM.topbar);
+}
+
+export function querySideLeft(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>(MARK_DOM.sideLeft);
+}
+
+export function querySideRight(root: ParentNode): HTMLElement | null {
+  return root.querySelector<HTMLElement>(MARK_DOM.sideRight);
 }

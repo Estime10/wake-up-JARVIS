@@ -45,10 +45,12 @@ function HomeScreenBody() {
   const { phase, skipCenteredBriefing, bootPlaying } = useHomeEnter();
   const briefing = phase === "briefing" && !skipCenteredBriefing;
   const settled = phase === "ready";
+  /** Monte sides/header-right dès settling pour un layout final stable (mark cible juste). */
+  const layoutSettled = phase === "settling" || phase === "ready";
   const composerPending =
     bootPlaying || briefing || (skipCenteredBriefing && phase === "briefing");
-  const showChrome = bootPlaying || settled || phase === "settling";
-  const showNav = !bootPlaying && (settled || phase === "settling");
+  const showChrome = bootPlaying || layoutSettled;
+  const showNav = !bootPlaying && layoutSettled;
 
   const {
     open: terminalOpen,
@@ -114,7 +116,7 @@ function HomeScreenBody() {
         </h1>
         <HomeTopBar
           visible={showNav}
-          revealRight={settled}
+          revealRight={layoutSettled}
           terminalOpen={terminalOpen}
           terminalDisabled={repoOpen || mailOpen}
           terminalTriggerRef={triggerRef}
@@ -128,18 +130,23 @@ function HomeScreenBody() {
         />
 
         <div className="grid min-h-0 w-full flex-1 grid-cols-3">
-          <HomeConversationColumn
-            settled={settled}
-            obscured={conversationObscured}
-            memoryStatus={session.memoryStatus}
-            messages={session.messages}
-            hasMoreOlder={session.hasMoreOlder}
-            loadingOlder={session.loadingOlder}
-            onLoadOlder={session.loadOlderMessages}
-            onRetryMemory={session.retryMemory}
-            onConfirmAction={session.confirmAction}
-            onCancelAction={session.cancelAction}
-          />
+          <div
+            data-home="side-left"
+            className="flex h-full min-h-0 min-w-0 flex-col"
+          >
+            <HomeConversationColumn
+              settled={layoutSettled}
+              obscured={conversationObscured}
+              memoryStatus={session.memoryStatus}
+              messages={session.messages}
+              hasMoreOlder={session.hasMoreOlder}
+              loadingOlder={session.loadingOlder}
+              onLoadOlder={session.loadOlderMessages}
+              onRetryMemory={session.retryMemory}
+              onConfirmAction={session.confirmAction}
+              onCancelAction={session.cancelAction}
+            />
+          </div>
           <HomeCenterColumn
             state={session.state}
             settled={settled}
@@ -150,8 +157,11 @@ function HomeScreenBody() {
             onSubmit={session.submit}
             onToggleListening={session.toggleListen}
           />
-          <div className="flex h-full min-h-0 min-w-0 flex-col">
-            <SupabasePane reveal={settled} />
+          <div
+            data-home="side-right"
+            className="flex h-full min-h-0 min-w-0 flex-col"
+          >
+            <SupabasePane reveal={layoutSettled} />
           </div>
         </div>
       </div>

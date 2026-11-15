@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { HudFrameBrackets } from "@/components/layout/HudFrameBrackets/HudFrameBrackets";
 import { NowPlayingMeta } from "@/features/music/components/NowPlayingMeta";
 import { NowPlayingTimeline } from "@/features/music/components/NowPlayingTimeline";
 import { NowPlayingTransport } from "@/features/music/components/NowPlayingTransport";
@@ -28,12 +27,11 @@ export function NowPlayingCard({
   return (
     <section
       className={cn(
-        "relative flex w-full max-w-[16rem] flex-col items-stretch gap-3 px-5 py-4 sm:max-w-[18rem] sm:px-6 sm:py-5",
+        "relative mx-auto flex w-full max-w-[16rem] flex-col items-stretch gap-3 px-5 py-4 sm:max-w-[18rem] sm:px-6 sm:py-5",
         className,
       )}
       aria-label={t("music.nowPlayingLabel")}
     >
-      <HudFrameBrackets />
       <NowPlayingMeta identity={track} />
       <NowPlayingTimeline playback={{ ...track, playing }} />
       <NowPlayingTransport

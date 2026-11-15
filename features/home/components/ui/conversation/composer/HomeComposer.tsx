@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button/Button";
 import { MicIcon } from "@/features/home/components/ui/conversation/composer/MicIcon";
 import { useHomeComposer } from "@/features/home/hooks/useHomeComposer";
+import { HOME_CENTER_CHROME_WIDTH } from "@/features/home/model/homeColumnChrome";
 import { COMPOSER_DRAFT_MAX_CHARS } from "@/features/home/model/normalizeComposerDraft";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
@@ -45,11 +46,7 @@ export function HomeComposer({
 
   return (
     <form
-      className={cn(
-        // Étape 2 refonte-ui : largeur main plein viewport (ex-max-w-xl colonne 75%).
-        "w-full max-w-3xl px-2 sm:px-4",
-        ghost && "opacity-45",
-      )}
+      className={cn(HOME_CENTER_CHROME_WIDTH, ghost && "opacity-45")}
       onSubmit={handleSubmit}
       aria-label={t("home.composerLabel")}
     >

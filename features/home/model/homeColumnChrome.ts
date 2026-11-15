@@ -4,3 +4,9 @@
  */
 export const HOME_COLUMN_HEADER =
   "z-20 flex w-full shrink-0 items-center pt-5 pb-2 sm:pt-6";
+
+/**
+ * Largeur commune nav centre + composer — même axe vertical.
+ */
+export const HOME_CENTER_CHROME_WIDTH =
+  "w-full max-w-[18rem] sm:max-w-[20rem] lg:max-w-[22rem]";

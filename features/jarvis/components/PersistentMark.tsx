@@ -58,6 +58,10 @@ function attachSlotSync(mark: HTMLElement, slotName: MarkSlotName): () => void {
   function syncToSlot(): void {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
+      // Pendant Flip settle : ne pas écraser la timeline GSAP.
+      if (mark.dataset.markFlip === "1") {
+        return;
+      }
       const slot = queryMarkSlot(mark.ownerDocument, slotName);
       if (!slot) {
         return;

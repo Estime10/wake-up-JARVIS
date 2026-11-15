@@ -4,7 +4,10 @@ import type { Ref } from "react";
 
 import { Button } from "@/components/ui/Button/Button";
 import { HomeClock } from "@/features/home/components/layout/HomeClock";
-import { HOME_COLUMN_HEADER } from "@/features/home/model/homeColumnChrome";
+import {
+  HOME_CENTER_CHROME_WIDTH,
+  HOME_COLUMN_HEADER,
+} from "@/features/home/model/homeColumnChrome";
 import { REPO_CHROME } from "@/features/home/model/repoChrome";
 import { useSupabasePlatformContext } from "@/features/supabase/context/supabasePlatformContext";
 import { cn } from "@/lib/cn";
@@ -12,7 +15,7 @@ import { t } from "@/lib/i18n/t";
 
 type HomeTopBarProps = {
   visible?: boolean;
-  /** Colonne droite (comptes / Studio) — après settle, comme le fil. */
+  /** Colonne droite (comptes / Studio) — montée dès settling (layout final). */
   revealRight?: boolean;
   terminalOpen?: boolean;
   terminalDisabled?: boolean;
@@ -50,6 +53,7 @@ export function HomeTopBar({
 
   return (
     <header
+      data-home="topbar"
       className={cn(
         HOME_COLUMN_HEADER,
         "grid w-full grid-cols-3",
@@ -61,7 +65,10 @@ export function HomeTopBar({
       </div>
 
       <nav
-        className="flex items-center justify-center gap-8 px-3 sm:gap-12 sm:px-4 lg:gap-16"
+        className={cn(
+          "mx-auto flex items-center justify-between gap-4 px-1",
+          HOME_CENTER_CHROME_WIDTH,
+        )}
         aria-label={t("home.navLabel")}
       >
         <Button
@@ -123,21 +130,12 @@ export function HomeTopBar({
               type="button"
               variant="ghost"
               size="bare"
-              data-entrance-side="right"
-              className={cn(
-                REPO_CHROME.closeButton,
-                "conversation-bubble-enter",
-              )}
-              style={{ animationDelay: "0ms" }}
+              className={REPO_CHROME.closeButton}
               onClick={platform.clearStudio}
             >
               {t("home.supabaseStudioBack")}
             </Button>
-            <p
-              data-entrance-side="right"
-              className="t-mono conversation-bubble-enter min-w-0 truncate text-dial text-text sm:text-sm"
-              style={{ animationDelay: "140ms" }}
-            >
+            <p className="t-mono min-w-0 truncate text-dial text-text sm:text-sm">
               {studioUrl}
             </p>
           </div>
@@ -146,23 +144,14 @@ export function HomeTopBar({
             key="accounts-chrome"
             className="flex min-w-0 flex-1 items-center justify-between gap-2"
           >
-            <p
-              data-entrance-side="right"
-              className="t-mono conversation-bubble-enter text-sm tracking-wide text-text uppercase"
-              style={{ animationDelay: "0ms" }}
-            >
+            <p className="t-mono text-sm tracking-wide text-text uppercase">
               {t("home.supabaseAccountsTitle")}
             </p>
             <Button
               type="button"
               variant="ghost"
               size="bare"
-              data-entrance-side="right"
-              className={cn(
-                REPO_CHROME.closeButton,
-                "conversation-bubble-enter",
-              )}
-              style={{ animationDelay: "140ms" }}
+              className={REPO_CHROME.closeButton}
               onClick={platform.openConnect}
             >
               {t("home.supabaseAddAccount")}

@@ -252,9 +252,9 @@ export function SupabasePane({ reveal = false }: SupabasePaneProps) {
           <div
             key="supabase-pane-enter"
             data-scroll-lock-allow="true"
-            data-entrance-side="right"
             className={cn(
-              "conversation-bubble-enter flex min-h-0 flex-1 flex-col overflow-hidden pr-6 pl-3 sm:pr-8 sm:pl-4",
+              // Entrée initiale = GSAP sur `[data-home="side-right"]`.
+              "flex min-h-0 flex-1 flex-col overflow-hidden pr-6 pl-3 sm:pr-8 sm:pl-4",
               // Studio : bas collé, haut un peu rentré (header Studio visible).
               // Comptes : HUD sous équerres.
               studioOpen ? "pt-5 pb-0 sm:pt-6" : "pb-6 sm:pb-8",
