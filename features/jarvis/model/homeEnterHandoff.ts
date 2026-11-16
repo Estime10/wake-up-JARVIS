@@ -50,7 +50,7 @@ export function createHomeEnterHandoff(): HomeEnterHandoff {
     begin(snapshot) {
       pending = snapshot;
       enterSettled = false;
-      // Reset aussi dans SplashEntry.onComplete (reduced motion sans Flip).
+      // Reset aussi en reduced motion (sans Flip).
       resetWelcomeSpeakSession();
     },
     hasPending() {

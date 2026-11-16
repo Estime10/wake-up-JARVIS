@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
 import type { AssistantState } from "@/features/home/model/assistantMachine";
-import { useJarvisShell } from "@/features/jarvis/context";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
 import { applyVoiceRingState } from "@/features/jarvis/model/voiceRing/applyVoiceRingState";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 

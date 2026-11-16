@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { AuthScreen } from "@/features/auth";
+import { AuthScreen } from "@/features/auth/components/AuthScreen";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";

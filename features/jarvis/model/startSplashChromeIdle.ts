@@ -1,6 +1,6 @@
 import gsap from "gsap";
 
-import { MARK_SVG_ORIGIN } from "@/components/ui/JarvisMark/voiceRingGeometry";
+import { MARK_SVG_ORIGIN } from "@/components/brand/JarvisMark/voiceRingGeometry";
 
 /** État final splash (dérive acte 2) — point de départ home. */
 const BOOT_150_START_DEG = 10.84;

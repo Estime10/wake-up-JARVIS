@@ -2,9 +2,9 @@
 
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
-import { Button } from "@/components/ui/Button";
-import { SystemNoticeScreen } from "@/features/system";
-import { t } from "@/lib/i18n";
+import { Button } from "@/components/ui/Button/Button";
+import { SystemNoticeScreen } from "@/features/system/components/SystemNoticeScreen";
+import { t } from "@/lib/i18n/t";
 
 import "./globals.css";
 

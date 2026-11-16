@@ -1,6 +1,6 @@
 import gsap from "gsap";
 
-import { MARK_SVG_ORIGIN } from "@/components/ui/JarvisMark/voiceRingGeometry";
+import { MARK_SVG_ORIGIN } from "@/components/brand/JarvisMark/voiceRingGeometry";
 import { DIAL_IDLE_SPIN_SECONDS } from "@/lib/intro/timings";
 
 /**

@@ -1,5 +1,5 @@
 import { REPLIES_FR_V2 } from "@/features/assistant/model/intents/v2/replies.fr.v2";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { withUserHonorific } from "@/lib/user/userHonorific";
 
 function fillTemplate(

@@ -1,4 +1,4 @@
-import type { MessageKey } from "@/lib/i18n";
+import type { MessageKey } from "@/lib/i18n/types";
 
 /**
  * Mappe les erreurs Auth Supabase vers des clés i18n.

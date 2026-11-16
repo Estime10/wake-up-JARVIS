@@ -11,7 +11,7 @@ import {
 } from "@/features/assistant/model/filterMailItems";
 import { formatMailSendersReply } from "@/features/assistant/model/formatMailSendersReply";
 import { formatMailTitlesReply } from "@/features/assistant/model/formatMailTitlesReply";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import type { MailPort } from "@/ports/mail-port";
 
 const WINDOW = 500;

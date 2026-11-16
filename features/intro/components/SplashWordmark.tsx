@@ -1,7 +1,7 @@
-import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
+import { VisuallyHidden } from "@/components/ui/VisuallyHidden/VisuallyHidden";
 import { FLIP_ID } from "@/features/jarvis/model/markDom";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type SplashWordmarkProps = {
   /**
@@ -30,7 +30,10 @@ export function SplashWordmark({
       data-flip-id={FLIP_ID.wordmark}
       className={cn(
         "t-wordmark text-center text-text will-change-transform",
-        size === "display" ? "text-wordmark-display" : "text-wordmark",
+        // `home` : forcer le petit corps — `.t-wordmark` bump en display dès lg.
+        size === "display"
+          ? "text-wordmark-display"
+          : "text-wordmark lg:text-wordmark",
         bootActive ? null : settled ? "opacity-100" : "opacity-0",
       )}
     >

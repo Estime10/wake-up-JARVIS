@@ -11,7 +11,6 @@ import {
 } from "@/lib/google/oauthState";
 import { createLogger } from "@/lib/logger";
 import { ROUTES } from "@/lib/routes";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import { hasSupabaseServiceRole } from "@/lib/supabase/admin";
 
@@ -50,26 +49,9 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { count, error } = await supabase
-    .from("mail_accounts")
-    .select("id", { count: "exact", head: true });
-
-  if (error) {
-    pushOAuthDebug("connect.count_fail", error.message);
-    log.error("count_failed", { message: error.message });
-    return NextResponse.redirect(
-      new URL(`${ROUTES.home}?mail_oauth=error`, request.url),
-    );
-  }
-
-  if ((count ?? 0) >= 3) {
-    pushOAuthDebug("connect.limit");
-    log.warn("account_limit");
-    return NextResponse.redirect(
-      new URL(`${ROUTES.home}?mail_oauth=limit`, request.url),
-    );
-  }
+  // Pas de garde count ici : une boîte `needs_reauth` doit pouvoir
+  // repasser OAuth même à 3 comptes. La limite « 4ᵉ boîte » est
+  // appliquée dans `admin_mail_account_store_token` (upsert).
 
   const state = createOAuthState();
   const authorizeUrl = buildGoogleAuthorizeUrl(state);

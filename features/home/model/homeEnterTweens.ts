@@ -4,8 +4,8 @@ import gsap from "gsap";
 export const MARK_ENTER_DURATION = 1.2;
 export const MARK_ENTER_EASE = "power3.inOut";
 
-/** Vague UI après landing du mark (chrome + input + panneau). */
-export const HOME_CHROME_DURATION = 0.75;
+/** Décalage entrée colonnes G/D (aligné CSS conversation-bubble-enter). */
+export const HOME_SIDE_ENTER_X = 56;
 
 /** État initial composer — avant la timeline (handoff + entrée directe). */
 export function prepareComposerHidden(composer: HTMLElement | null): void {

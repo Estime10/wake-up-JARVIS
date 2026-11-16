@@ -1,10 +1,15 @@
 import gsap from "gsap";
 
 import {
-  HOME_CHROME_DURATION,
+  HOME_SIDE_ENTER_X,
   MARK_ENTER_DURATION,
   MARK_ENTER_EASE,
 } from "@/features/home/model/homeEnterTweens";
+import {
+  clearMarkClusterFromPose,
+  type MarkClusterFromPose,
+} from "@/features/home/model/markClusterFromPose";
+import { playMarkClusterRise } from "@/features/home/model/playMarkClusterRise";
 import {
   setSidePanelOffscreen,
   setSidePanelOpen,
@@ -13,53 +18,159 @@ import {
   queryChrome,
   queryComposer,
   queryMarkSlot,
+  queryNowPlaying,
+  querySideLeft,
+  querySideRight,
+  queryTopbar,
   queryWordmark,
 } from "@/features/jarvis/model/markDom";
 import { placeOnRect, showMark } from "@/features/jarvis/model/markPlacement";
-import { Flip } from "@/lib/gsap/flip";
+
+type SettleTimeline = ReturnType<typeof gsap.timeline>;
 
 type PlayHomeSettleTransitionArgs = {
   root: HTMLElement;
   mark: HTMLElement | null;
   aside: HTMLElement | null;
   reducedMotion: boolean;
-  /**
-   * Snapshot Flip pris AVANT le passage briefing → settling
-   * (sinon mark + JARVIS sont déjà au layout home).
-   */
-  flipSnapshot: ReturnType<typeof Flip.getState> | null;
-  /**
-   * Splash v1 : ne pas re-poser / Flip le mark (pose capture déjà correcte).
-   * Une seule animation : révélation composer (+ chrome si besoin).
-   */
-  preserveMarkPose?: boolean;
+  fromPose?: MarkClusterFromPose | null;
+  /** Fin de settle — unlock composer / phase ready. */
   onEnd: () => void;
 };
 
+function fadeInChrome(
+  tl: SettleTimeline,
+  {
+    topbar,
+    sideLeft,
+    sideRight,
+    nowPlaying,
+    composer,
+    chrome,
+  }: {
+    topbar: HTMLElement | null;
+    sideLeft: HTMLElement | null;
+    sideRight: HTMLElement | null;
+    nowPlaying: HTMLElement | null;
+    composer: HTMLElement | null;
+    chrome: HTMLElement | null;
+  },
+): void {
+  if (topbar) {
+    tl.to(
+      topbar,
+      {
+        opacity: 1,
+        y: 0,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+        clearProps: "transform",
+      },
+      0,
+    );
+  }
+  if (sideLeft) {
+    tl.to(
+      sideLeft,
+      {
+        opacity: 1,
+        x: 0,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+        clearProps: "transform",
+      },
+      0,
+    );
+  }
+  if (sideRight) {
+    tl.to(
+      sideRight,
+      {
+        opacity: 1,
+        x: 0,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+        clearProps: "transform",
+      },
+      0,
+    );
+  }
+  if (nowPlaying) {
+    tl.to(
+      nowPlaying,
+      {
+        opacity: 1,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+      },
+      0,
+    );
+  }
+  if (composer) {
+    tl.to(
+      composer,
+      {
+        opacity: 1,
+        y: 0,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+      },
+      0,
+    );
+  }
+  if (chrome) {
+    tl.to(
+      chrome,
+      {
+        opacity: 1,
+        duration: MARK_ENTER_DURATION,
+        ease: MARK_ENTER_EASE,
+      },
+      0,
+    );
+  }
+}
+
 /**
- * Settle après briefing :
- * - legacy : mark Flip vers slot home, puis input
- * - splash v1 (`preserveMarkPose`) : mark inchangé, fade composer seulement
+ * Settle home : mark + header + sides G/D + musique + composer — tout en même temps.
  */
 export function playHomeSettleTransition({
   root,
   mark,
   aside,
   reducedMotion,
-  flipSnapshot,
-  preserveMarkPose = false,
+  fromPose = null,
   onEnd,
 }: PlayHomeSettleTransitionArgs): () => void {
   const wordmark = queryWordmark(root);
   const composer = queryComposer(root);
   const chrome = queryChrome(root);
   const homeSlot = queryMarkSlot(root, "home");
+  const nowPlaying = queryNowPlaying(root);
+  const topbar = queryTopbar(root);
+  const sideLeft = querySideLeft(root);
+  const sideRight = querySideRight(root);
 
-  if (reducedMotion || (!homeSlot && !preserveMarkPose)) {
-    setSidePanelOpen(aside);
-    if (mark && homeSlot && !preserveMarkPose) {
-      placeOnRect(mark, homeSlot.getBoundingClientRect());
-      showMark(mark);
+  const revealUi = (): void => {
+    if (nowPlaying) {
+      gsap.set(nowPlaying, { clearProps: "opacity", opacity: 1 });
+    }
+    if (topbar) {
+      gsap.set(topbar, { clearProps: "opacity,transform", opacity: 1, y: 0 });
+    }
+    if (sideLeft) {
+      gsap.set(sideLeft, {
+        clearProps: "opacity,transform",
+        opacity: 1,
+        x: 0,
+      });
+    }
+    if (sideRight) {
+      gsap.set(sideRight, {
+        clearProps: "opacity,transform",
+        opacity: 1,
+        x: 0,
+      });
     }
     if (composer) {
       gsap.set(composer, { clearProps: "opacity,transform" });
@@ -70,21 +181,39 @@ export function playHomeSettleTransition({
     if (wordmark) {
       gsap.set(wordmark, { clearProps: "opacity,transform", opacity: 1, y: 0 });
     }
+  };
+
+  if (reducedMotion || !homeSlot) {
+    setSidePanelOpen(aside);
+    if (mark && homeSlot) {
+      delete mark.dataset.markFlip;
+      placeOnRect(mark, homeSlot.getBoundingClientRect());
+      showMark(mark);
+    }
+    revealUi();
     onEnd();
     return () => {};
   }
 
-  if (preserveMarkPose) {
-    setSidePanelOpen(aside);
-  } else {
-    setSidePanelOffscreen(aside);
-  }
+  setSidePanelOffscreen(aside);
 
   if (composer) {
     gsap.set(composer, { opacity: 0, y: 36 });
   }
-  if (chrome && !preserveMarkPose) {
+  if (chrome) {
     gsap.set(chrome, { opacity: 0 });
+  }
+  if (nowPlaying) {
+    gsap.set(nowPlaying, { opacity: 0 });
+  }
+  if (topbar) {
+    gsap.set(topbar, { opacity: 0, y: -28 });
+  }
+  if (sideLeft) {
+    gsap.set(sideLeft, { opacity: 0, x: -HOME_SIDE_ENTER_X });
+  }
+  if (sideRight) {
+    gsap.set(sideRight, { opacity: 0, x: HOME_SIDE_ENTER_X });
   }
   if (wordmark) {
     gsap.set(wordmark, { opacity: 1, y: 0 });
@@ -92,90 +221,59 @@ export function playHomeSettleTransition({
 
   const tl = gsap.timeline({
     defaults: { ease: MARK_ENTER_EASE },
-    onComplete: onEnd,
+    onComplete: () => {
+      if (mark) {
+        // Déjà piné sur la cible figée par playMarkClusterRise — ne pas
+        // re-mesurer ni dispatcher resize (redescente post-anim).
+        gsap.set(mark, {
+          x: 0,
+          y: 0,
+          scale: 1,
+          xPercent: 0,
+          yPercent: 0,
+        });
+        delete mark.dataset.markFlip;
+      }
+      clearMarkClusterFromPose();
+      onEnd();
+    },
   });
 
-  if (!preserveMarkPose) {
-    // 1) Mark + JARVIS : Flip depuis snapshot briefing → layout home
-    if (mark && homeSlot) {
-      placeOnRect(mark, homeSlot.getBoundingClientRect());
-      showMark(mark);
-    }
+  const clustered = Boolean(mark && fromPose);
 
-    if (flipSnapshot) {
-      const targets: HTMLElement[] = [];
-      if (mark) {
-        targets.push(mark);
-      }
-      if (wordmark) {
-        targets.push(wordmark);
-      }
-      tl.add(
-        Flip.from(flipSnapshot, {
-          targets,
-          scale: true,
-          duration: MARK_ENTER_DURATION,
-          ease: MARK_ENTER_EASE,
-        }),
-        0,
-      );
-    }
-
-    if (aside) {
-      tl.to(
-        aside,
-        {
-          xPercent: 0,
-          opacity: 1,
-          duration: MARK_ENTER_DURATION,
-          ease: MARK_ENTER_EASE,
-        },
-        0,
-      );
-    }
+  if (clustered && mark && fromPose) {
+    playMarkClusterRise({
+      root,
+      mark,
+      fromPose,
+      duration: MARK_ENTER_DURATION,
+      ease: MARK_ENTER_EASE,
+      timeline: tl,
+      at: 0,
+    });
+  } else if (mark) {
+    mark.dataset.markFlip = "1";
+    placeOnRect(mark, homeSlot.getBoundingClientRect());
+    showMark(mark);
   }
 
-  // Composer (+ chrome legacy) — seule anim post-splash.
-  const inputAt = preserveMarkPose ? 0 : MARK_ENTER_DURATION;
-  if (composer) {
-    tl.to(
-      composer,
-      {
-        opacity: 1,
-        y: 0,
-        duration: HOME_CHROME_DURATION,
-        ease: "power2.out",
-      },
-      inputAt,
-    );
-  }
-  if (chrome && !preserveMarkPose) {
-    tl.to(
-      chrome,
-      { opacity: 1, duration: HOME_CHROME_DURATION, ease: "power2.out" },
-      inputAt,
-    );
-  }
-
-  // Splash v1 : timeline peut n’avoir que le composer — garantir onComplete.
-  if (preserveMarkPose && !composer) {
-    onEnd();
-    return () => {};
-  }
+  fadeInChrome(tl, {
+    topbar,
+    sideLeft,
+    sideRight,
+    nowPlaying,
+    composer,
+    chrome,
+  });
 
   return () => {
     tl.kill();
+    if (mark) {
+      delete mark.dataset.markFlip;
+    }
     setSidePanelOpen(aside);
-    if (composer) {
-      gsap.set(composer, { clearProps: "opacity,transform" });
-    }
-    if (chrome) {
-      gsap.set(chrome, { opacity: 1 });
-    }
-    if (wordmark) {
-      gsap.set(wordmark, { clearProps: "opacity,transform", opacity: 1, y: 0 });
-    }
-    if (mark && homeSlot && !preserveMarkPose) {
+    revealUi();
+    if (mark && homeSlot) {
       gsap.set(mark, {
         opacity: 1,
         clearProps: "x,y,scale,xPercent,yPercent,transform",

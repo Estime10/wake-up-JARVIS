@@ -79,11 +79,7 @@ export function mailLabelTopFolder(label: string): string {
     .trim();
 }
 
-export function isGmailSystemLabelId(id: string): boolean {
-  return SYSTEM_LABELS.has(id) || id.startsWith("CATEGORY_");
-}
-
-export function isGmailSystemLabelName(name: string): boolean {
+function isGmailSystemLabelName(name: string): boolean {
   const upper = name.trim().toUpperCase();
   return SYSTEM_LABELS.has(upper) || upper.startsWith("CATEGORY_");
 }

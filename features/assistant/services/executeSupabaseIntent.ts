@@ -3,7 +3,7 @@ import "server-only";
 import type { AssistantIntent } from "@/features/assistant/model/assistantIntent";
 import { formatSupabaseProjectsReply } from "@/features/assistant/model/formatSupabaseProjectsReply";
 import { resolveSupabaseProjectQuery } from "@/features/assistant/model/resolveSupabaseProjectQuery";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { loadSupabasePlatformToken } from "@/lib/supabase/platform/connectionToken";
 import { listSupabasePlatformProjects } from "@/lib/supabase/platform/managementApi";
 import { createSupabaseServerClient } from "@/lib/supabase/server";

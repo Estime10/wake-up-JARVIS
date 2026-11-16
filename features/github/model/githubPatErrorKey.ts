@@ -1,4 +1,4 @@
-import type { MessageKey } from "@/lib/i18n";
+import type { MessageKey } from "@/lib/i18n/types";
 
 const ERROR_MAP: Record<string, MessageKey> = {
   unauthorized: "home.repoPatErrorUnauthorized",

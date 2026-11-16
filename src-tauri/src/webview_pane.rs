@@ -4,6 +4,8 @@ use url::Url;
 const STUDIO_LABEL: &str = "elsa-studio";
 const STUDIO_DIRECT: &str = "http://127.0.0.1:54323/project/default";
 const MAIN_LABEL: &str = "main";
+/// Largeur « design » dashboard Supabase — zoom pour tenir dans le side panel.
+const CLOUD_STUDIO_DESIGN_WIDTH: f64 = 1280.0;
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -31,14 +33,21 @@ pub struct PaneDebugInfo {
 }
 
 fn resolve_studio_url(raw: &str) -> Result<Url, String> {
-    let candidate = if raw.is_empty() || raw.contains("54332") {
+    let trimmed = raw.trim();
+    // Proxy embed local (:54332) → Studio CLI direct. Les URLs cloud
+    // (`supabase.com/dashboard/project/{ref}`) passent telles quelles.
+    let candidate = if trimmed.is_empty() || trimmed.contains("54332") {
         STUDIO_DIRECT
     } else {
-        raw
+        trimmed
     };
     let url = Url::parse(candidate).map_err(|e| e.to_string())?;
     let host = url.host_str().unwrap_or("");
-    if host != "127.0.0.1" && host != "localhost" {
+    let path = url.path();
+    let local_ok = host == "127.0.0.1" || host == "localhost";
+    let cloud_ok =
+        host == "supabase.com" && path.starts_with("/dashboard/project/");
+    if !local_ok && !cloud_ok {
         return Err("studio host not allowed".into());
     }
     Ok(url)
@@ -77,44 +86,65 @@ fn main_webview_top_inset(app: &AppHandle) -> f64 {
     (win_h - main_h).max(0.0)
 }
 
-fn apply_bounds(app: &AppHandle, webview: &tauri::Webview, bounds: &PaneBounds) -> Result<(), String> {
+fn window_logical_size(app: &AppHandle) -> Option<(f64, f64)> {
+    let win = app.get_webview_window(MAIN_LABEL)?;
+    let scale = win.scale_factor().ok()?;
+    let PhysicalSize { width, height } = win.inner_size().ok()?;
+    Some((width as f64 / scale, height as f64 / scale))
+}
+
+fn clamp_pane_bounds(app: &AppHandle, bounds: &PaneBounds) -> PaneBounds {
+    let inset_y = main_webview_top_inset(app);
+    let x = bounds.x.max(0.0);
+    let y = (bounds.y + inset_y).max(0.0);
+    let (win_w, win_h) = window_logical_size(app).unwrap_or((f64::MAX, f64::MAX));
+    let width = bounds.width.max(1.0).min((win_w - x).max(1.0));
+    let height = bounds.height.max(1.0).min((win_h - y).max(1.0));
+    PaneBounds {
+        x,
+        y,
+        width,
+        height,
+    }
+}
+
+fn is_cloud_studio_url(url: &Url) -> bool {
+    url.host_str() == Some("supabase.com")
+        && url.path().starts_with("/dashboard/project/")
+}
+
+fn apply_cloud_fit_zoom(webview: &tauri::Webview, bounds: &PaneBounds, url: &Url) {
+    if !is_cloud_studio_url(url) {
+        let _ = webview.set_zoom(1.0);
+        return;
+    }
+    // Dashboard desktop → zoom pour tenir dans la largeur du liquid-glass.
+    let zoom = (bounds.width / CLOUD_STUDIO_DESIGN_WIDTH).clamp(0.35, 1.0);
+    let _ = webview.set_zoom(zoom);
+}
+
+fn apply_bounds(
+    app: &AppHandle,
+    webview: &tauri::Webview,
+    bounds: &PaneBounds,
+    url: &Url,
+) -> Result<(), String> {
     if bounds.width < 1.0 || bounds.height < 1.0 {
         let _ = webview.hide();
         return Ok(());
     }
 
-    let inset_y = main_webview_top_inset(app);
-    let y = bounds.y + inset_y;
-    // Bride la hauteur : un frame trop haut + inset titlebar déborde la fenêtre
-    // et masque le header Studio (projets / back / https).
-    let height = clamp_pane_height(app, y, bounds.height);
+    let clamped = clamp_pane_bounds(app, bounds);
     // Logical = CSS px du getBoundingClientRect (même espace que le WKWebView principal).
     webview
-        .set_position(LogicalPosition::new(bounds.x, y))
+        .set_position(LogicalPosition::new(clamped.x, clamped.y))
         .map_err(|e| e.to_string())?;
     webview
-        .set_size(LogicalSize::new(bounds.width, height))
+        .set_size(LogicalSize::new(clamped.width, clamped.height))
         .map_err(|e| e.to_string())?;
+    apply_cloud_fit_zoom(webview, &clamped, url);
     webview.show().map_err(|e| e.to_string())?;
     Ok(())
-}
-
-fn clamp_pane_height(app: &AppHandle, y: f64, height: f64) -> f64 {
-    let Some(win) = app.get_webview_window(MAIN_LABEL) else {
-        return height.max(1.0);
-    };
-    let Ok(scale) = win.scale_factor() else {
-        return height.max(1.0);
-    };
-    let Ok(PhysicalSize {
-        height: win_h_px, ..
-    }) = win.inner_size()
-    else {
-        return height.max(1.0);
-    };
-    let win_h = win_h_px as f64 / scale;
-    let max_h = (win_h - y).max(1.0);
-    height.max(1.0).min(max_h)
 }
 
 fn upsert_child(
@@ -132,30 +162,28 @@ fn upsert_child(
             if current.as_ref() == Some(&url) {
                 wv.reload().map_err(|e| e.to_string())?;
             } else {
-                wv.navigate(url).map_err(|e| e.to_string())?;
+                wv.navigate(url.clone()).map_err(|e| e.to_string())?;
             }
         } else if current.as_ref() != Some(&url) {
-            wv.navigate(url).map_err(|e| e.to_string())?;
+            wv.navigate(url.clone()).map_err(|e| e.to_string())?;
         }
-        return apply_bounds(app, &wv, bounds);
+        return apply_bounds(app, &wv, bounds, &url);
     }
 
     let window = app
         .get_window(MAIN_LABEL)
         .ok_or_else(|| "main window missing".to_string())?;
 
-    let inset_y = main_webview_top_inset(app);
-    let y = bounds.y + inset_y;
-    let height = clamp_pane_height(app, y, bounds.height);
-    let builder = tauri::webview::WebviewBuilder::new(label, WebviewUrl::External(url));
+    let clamped = clamp_pane_bounds(app, bounds);
+    let builder = tauri::webview::WebviewBuilder::new(label, WebviewUrl::External(url.clone()));
     let wv = window
         .add_child(
             builder,
-            LogicalPosition::new(bounds.x, y),
-            LogicalSize::new(bounds.width.max(1.0), height),
+            LogicalPosition::new(clamped.x, clamped.y),
+            LogicalSize::new(clamped.width, clamped.height),
         )
         .map_err(|e| e.to_string())?;
-    apply_bounds(app, &wv, bounds)
+    apply_bounds(app, &wv, bounds, &url)
 }
 
 fn clear_child(app: &AppHandle, label: &str) -> Result<(), String> {

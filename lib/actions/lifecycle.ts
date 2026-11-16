@@ -25,10 +25,6 @@ const TERMINAL: ReadonlySet<ActionStatus> = new Set([
   "expired",
 ]);
 
-export function isTerminalActionStatus(status: ActionStatus): boolean {
-  return TERMINAL.has(status);
-}
-
 /**
  * Transitions de la carte d'action (domaine pur).
  * Refus de signature → `pending` (pas `cancelled`).

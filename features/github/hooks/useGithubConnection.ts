@@ -15,8 +15,6 @@ import { ROUTES } from "@/lib/routes";
 import { githubConnectionSchema, type GithubConnection } from "@/lib/schemas";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 
-export type { GithubConnectionLoadStatus };
-
 type UseGithubConnectionResult = {
   connection: GithubConnection | null;
   status: GithubConnectionLoadStatus;

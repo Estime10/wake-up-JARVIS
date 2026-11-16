@@ -1,5 +1,5 @@
 /** Scopes Gmail — ADR 0010 : readonly uniquement (+ openid/email identité). */
-export const GMAIL_OAUTH_SCOPES = [
+const GMAIL_OAUTH_SCOPES = [
   "openid",
   "email",
   "https://www.googleapis.com/auth/gmail.readonly",

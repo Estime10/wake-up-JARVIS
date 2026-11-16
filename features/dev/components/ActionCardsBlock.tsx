@@ -3,7 +3,7 @@
 import { ActionCard } from "@/features/actions/components/ActionCard";
 import { MOCK_ACTION_PROPOSALS } from "@/fixtures/actionProposals";
 import type { ActionStatus } from "@/lib/actions/lifecycle";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 const STATUSES: ActionStatus[] = [
   "pending",

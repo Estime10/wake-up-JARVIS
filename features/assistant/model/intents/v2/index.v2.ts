@@ -1219,13 +1219,4 @@ export const INTENTS_V2: readonly IntentV2[] = [
   },
 ];
 
-export const SLOT_NAMES_V2 = [
-  "label",
-  "repo",
-  "folder",
-  "file",
-  "n",
-  "account",
-  "text",
-] as const;
 export const MAX_PHRASE_SLOTS_V2 = 2;

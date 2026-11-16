@@ -1,14 +1,10 @@
 import { redirect } from "next/navigation";
 import { type ReactNode } from "react";
 
-import { AppShell } from "@/features/home/components/AppShell";
-import { HomeMailDrawer } from "@/features/home/components/HomeMailDrawer";
-import { HomeRepoPanel } from "@/features/home/components/HomeRepoPanel";
-import {
-  MailPanelProvider,
-  RepoPanelProvider,
-  TerminalSessionProvider,
-} from "@/features/home/context";
+import { AppShell } from "@/features/home/components/layout/AppShell";
+import { MailPanelProvider } from "@/features/home/context/mailPanelContext";
+import { RepoPanelProvider } from "@/features/home/context/repoPanelContext";
+import { TerminalSessionProvider } from "@/features/home/context/terminalSessionContext";
 import { ROUTES } from "@/lib/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
@@ -32,13 +28,7 @@ export default async function MainLayout({
     <RepoPanelProvider>
       <MailPanelProvider>
         <TerminalSessionProvider>
-          <AppShell
-            side={null}
-            repo={<HomeRepoPanel />}
-            mail={<HomeMailDrawer />}
-          >
-            {children}
-          </AppShell>
+          <AppShell>{children}</AppShell>
         </TerminalSessionProvider>
       </MailPanelProvider>
     </RepoPanelProvider>

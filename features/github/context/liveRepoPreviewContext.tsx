@@ -10,8 +10,8 @@ import {
   type ReactNode,
 } from "react";
 
-import type { RepoCommitPreviewModel } from "@/features/home/components/repo/RepoCommitPreview";
-import type { RepoFilePreviewModel } from "@/features/home/components/repo/RepoFilePreview";
+import type { RepoCommitPreviewModel } from "@/features/home/components/ui/repo/preview/RepoCommitPreview";
+import type { RepoFilePreviewModel } from "@/features/home/components/ui/repo/preview/RepoFilePreview";
 
 type LiveRepoPreviewValue = {
   preview: RepoFilePreviewModel | null;

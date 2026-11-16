@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 /**
  * Priorité affichage : display_name → username → fallback i18n.

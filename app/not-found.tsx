@@ -4,9 +4,9 @@ import {
   BUTTON_SIZE_CLASS,
   BUTTON_VARIANT_CLASS,
 } from "@/components/ui/Button/buttonVariants";
-import { SystemNoticeScreen } from "@/features/system";
+import { SystemNoticeScreen } from "@/features/system/components/SystemNoticeScreen";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { ROUTES } from "@/lib/routes";
 
 export default function NotFoundPage() {

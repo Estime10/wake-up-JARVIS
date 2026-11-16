@@ -1,6 +1,6 @@
 import { riskLabelKey, type RiskLevel } from "@/lib/actions/risk";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type RiskBadgeProps = {
   risk: RiskLevel;

@@ -1,0 +1,21 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "remote-prod",
+  "description": "UI Vercel packagée — musique/voix/open uniquement (pas de PTY/Studio locaux).",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://wake-up-jarvis.vercel.app/*"]
+  },
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "allow-voice-speak",
+    "allow-voice-stop",
+    "allow-music-now-playing",
+    "allow-music-transport",
+    "allow-open-external-url",
+    "allow-webview-pane-set-studio",
+    "allow-webview-pane-clear-studio",
+    "allow-webview-pane-debug"
+  ]
+}

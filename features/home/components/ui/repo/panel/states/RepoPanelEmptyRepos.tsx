@@ -1,0 +1,40 @@
+"use client";
+
+import { Button } from "@/components/ui/Button/Button";
+import { RepoEmptyBoxIcon } from "@/features/home/components/ui/repo/icons/RepoEmptyBoxIcon";
+import { t } from "@/lib/i18n/t";
+
+type RepoPanelEmptyReposProps = {
+  live: {
+    login: string;
+    disconnecting: boolean;
+    onDisconnect: () => void;
+  };
+};
+
+/** Aucun repo accessible avec le PAT courant. */
+export function RepoPanelEmptyRepos({ live }: RepoPanelEmptyReposProps) {
+  return (
+    <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
+      <RepoEmptyBoxIcon className="size-10 text-text" />
+      <div className="flex flex-col gap-1">
+        <p className="t-content text-base leading-snug">
+          {t("home.repoEmptyTitle")}
+        </p>
+        <p className="t-content text-base leading-snug">
+          {t("home.repoConnectedHint", { login: live.login })}
+        </p>
+      </div>
+      <Button
+        variant="bordered"
+        size="md"
+        disabled={live.disconnecting}
+        onClick={live.onDisconnect}
+      >
+        {live.disconnecting
+          ? t("home.repoDisconnecting")
+          : t("home.repoDisconnect")}
+      </Button>
+    </div>
+  );
+}

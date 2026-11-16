@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import { userProfileSchema } from "@/lib/schemas";
 import type { ProfilePort } from "@/ports/profile-port";
 

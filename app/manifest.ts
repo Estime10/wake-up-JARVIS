@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
-import { icons } from "@/lib/assets";
-import { t } from "@/lib/i18n";
+import { icons } from "@/lib/assets/assets";
+import { t } from "@/lib/i18n/t";
 import { theme } from "@/lib/theme/tokens";
 
 /** Seul manifest de l'app (pas de public/manifest.json). Couleurs = tokens DA. */

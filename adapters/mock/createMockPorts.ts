@@ -3,10 +3,11 @@ import { createMockAction } from "@/adapters/mock/createMockAction";
 import { createMockLlm } from "@/adapters/mock/createMockLlm";
 import { createMockMail } from "@/adapters/mock/createMockMail";
 import { createMockMemory } from "@/adapters/mock/createMockMemory";
+import { createMockMusic } from "@/adapters/mock/createMockMusic";
 import { createMockProfile } from "@/adapters/mock/createMockProfile";
 import { createMockRepo } from "@/adapters/mock/createMockRepo";
 import { createMockVoice } from "@/adapters/mock/createMockVoice";
-import type { Ports } from "@/ports";
+import type { Ports } from "@/ports/ports";
 
 /** Compose tous les adapters mock (seul point de branchement V0). */
 export function createMockPorts(): Ports {
@@ -19,5 +20,6 @@ export function createMockPorts(): Ports {
     mail,
     profile: createMockProfile(),
     repo: createMockRepo(),
+    music: createMockMusic(),
   };
 }

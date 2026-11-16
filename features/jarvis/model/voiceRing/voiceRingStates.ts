@@ -1,6 +1,6 @@
 import gsap from "gsap";
 
-import { MARK_SVG_ORIGIN } from "@/components/ui/JarvisMark/voiceRingGeometry";
+import { MARK_SVG_ORIGIN } from "@/components/brand/JarvisMark/voiceRingGeometry";
 import type { RingLayers } from "@/features/jarvis/model/voiceRing/voiceRingLayers";
 import { startDialIdleSpin } from "@/features/jarvis/model/startDialIdleSpin";
 import {

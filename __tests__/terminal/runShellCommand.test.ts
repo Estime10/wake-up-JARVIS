@@ -24,7 +24,8 @@ describe("runShellCommand", () => {
 
   it("ls liste et cat lit", () => {
     const ls = runShellCommand(session, "ls");
-    expect(ls.lines[0]).toContain("Desktop/");
+    expect(ls.lines).toContain("Desktop/");
+    expect(ls.lines.every((line) => !line.includes("  "))).toBe(true);
 
     const cat = runShellCommand(
       { cwd: `${TERMINAL_HOME}/Desktop` },

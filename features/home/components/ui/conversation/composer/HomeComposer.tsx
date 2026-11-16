@@ -1,0 +1,119 @@
+"use client";
+
+import { Button } from "@/components/ui/Button/Button";
+import { MicIcon } from "@/features/home/components/ui/conversation/composer/MicIcon";
+import { useHomeComposer } from "@/features/home/hooks/useHomeComposer";
+import { HOME_CENTER_CHROME_WIDTH } from "@/features/home/model/homeColumnChrome";
+import { COMPOSER_DRAFT_MAX_CHARS } from "@/features/home/model/normalizeComposerDraft";
+import { cn } from "@/lib/cn";
+import { t } from "@/lib/i18n/t";
+
+type HomeComposerProps = {
+  onSubmit?: (text: string) => void;
+  listening: boolean;
+  onToggleListening: () => void;
+  disabled?: boolean;
+  ghost?: boolean;
+  listenSeed?: string | undefined;
+};
+
+/** Barre de saisie home — textarea, micro, envoi. */
+export function HomeComposer({
+  onSubmit,
+  listening,
+  onToggleListening,
+  disabled = false,
+  ghost = false,
+  listenSeed,
+}: HomeComposerProps) {
+  const {
+    draft,
+    setDraft,
+    canSubmit,
+    textareaRef,
+    handleSubmit,
+    handleKeyDown,
+    handleMicClick,
+  } = useHomeComposer({
+    onSubmit,
+    listening,
+    onToggleListening,
+    disabled,
+    listenSeed,
+  });
+
+  const caption = listening ? t("home.composerMicActive") : null;
+
+  return (
+    <form
+      className={cn(HOME_CENTER_CHROME_WIDTH, ghost && "opacity-45")}
+      onSubmit={handleSubmit}
+      aria-label={t("home.composerLabel")}
+    >
+      <label htmlFor="composer" className="sr-only">
+        {t("home.composerLabel")}
+      </label>
+      {/* aria-disabled (pas disabled) : le focus reste dans le composer
+          pendant réflexion/parole ; les handlers ignorent l'action. */}
+      {/* Textarea sans outline propre : l'anneau de focus est porté par le
+          conteneur (même token que les Button). */}
+      <div className="liquid-glass relative z-10 flex items-end gap-2 px-3 py-2 has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-accent has-[textarea:focus-visible]:outline-solid">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={
+            listening ? t("home.composerMicStop") : t("home.composerMic")
+          }
+          aria-pressed={listening}
+          aria-disabled={disabled || undefined}
+          onClick={handleMicClick}
+          className={cn(
+            "mb-0.5 shrink-0 text-text hover:text-accent",
+            listening && "text-accent hover:text-accent",
+          )}
+        >
+          <MicIcon className="size-5" />
+        </Button>
+        <textarea
+          ref={textareaRef}
+          id="composer"
+          name="composer"
+          rows={1}
+          value={draft}
+          maxLength={COMPOSER_DRAFT_MAX_CHARS}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={
+            listening
+              ? t("home.composerListening")
+              : t("home.composerPlaceholder")
+          }
+          readOnly={disabled}
+          aria-disabled={disabled || undefined}
+          autoComplete="off"
+          enterKeyHint="send"
+          className="t-content max-h-40 min-h-touch w-full resize-none bg-transparent py-2.5 placeholder:text-text-muted outline-hidden aria-disabled:cursor-not-allowed"
+        />
+        <Button
+          type="submit"
+          variant="light"
+          size="icon"
+          aria-disabled={!canSubmit || undefined}
+          aria-label={t("home.composerSend")}
+          className="mb-0.5 shrink-0"
+        >
+          <span aria-hidden>→</span>
+        </Button>
+      </div>
+      {caption ? (
+        <p
+          className="t-mono mt-2 text-center text-sm text-text"
+          aria-hidden={listening || undefined}
+        >
+          {caption}
+        </p>
+      ) : null}
+    </form>
+  );
+}

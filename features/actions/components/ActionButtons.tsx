@@ -1,9 +1,9 @@
 import type { Ref } from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button/Button";
 import type { ActionStatus } from "@/lib/actions/lifecycle";
 import { requiresSignature, type RiskLevel } from "@/lib/actions/risk";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 
 type ActionButtonsProps = {
   risk: RiskLevel;

@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-music-now-playing"
+description = "Lit le Now Playing macOS local (pmset + menus Deezer)."
+commands.allow = ["music_now_playing"]
+
+[[permission]]
+identifier = "allow-music-transport"
+description = "Transport Now Playing macOS (média + menu Deezer sans focus)."
+commands.allow = ["music_transport"]

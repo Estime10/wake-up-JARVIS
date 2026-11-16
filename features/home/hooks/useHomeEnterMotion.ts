@@ -5,6 +5,7 @@ import gsap from "gsap";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type RefObject,
@@ -12,10 +13,18 @@ import {
 
 import { playHomeBriefingHold } from "@/features/home/model/playHomeBriefingHold";
 import { playHomeSettleTransition } from "@/features/home/model/playHomeSettleTransition";
+import {
+  peekMarkClusterFromPose,
+  stashMarkClusterFromPose,
+} from "@/features/home/model/markClusterFromPose";
 import type { HomeEnterPhase } from "@/features/home/model/homeEnterPhase";
-import { useJarvisShell } from "@/features/jarvis/context";
-import { queryWordmark } from "@/features/jarvis/model/markDom";
-import { Flip } from "@/lib/gsap/flip";
+import { HOME_SIDE_ENTER_X } from "@/features/home/model/homeEnterTweens";
+import { useJarvisShell } from "@/features/jarvis/context/jarvisShellContext";
+import {
+  querySideLeft,
+  querySideRight,
+  queryTopbar,
+} from "@/features/jarvis/model/markDom";
 import { matchReducedMotion } from "@/lib/motion/reducedMotion";
 
 gsap.registerPlugin(useGSAP);
@@ -30,9 +39,8 @@ type UseHomeEnterMotionResult = {
 };
 
 /**
- * Entrée home après splash overlay (même page) :
- * mark déjà posé → fade input seulement (`preserveMarkPose`).
- * Tant que `splashDone` est false, aucune timeline home.
+ * Entrée home après boot overlay : hold briefing puis settle clusteré
+ * (mark + header + sides + musique, même timeline).
  */
 export function useHomeEnterMotion(
   splashDone: boolean,
@@ -45,7 +53,6 @@ export function useHomeEnterMotion(
   /** Boot = overlay scan+nom sur home — jamais de briefing mark géant legacy. */
   const skipCenteredBriefing = true;
   const settleStartedRef = useRef(false);
-  const flipSnapshotRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
   useGSAP(
     (owner) => {
@@ -95,57 +102,40 @@ export function useHomeEnterMotion(
     { scope: shellRef, dependencies: [splashDone] },
   );
 
-  const runSettle = useCallback(() => {
-    const shell = shellRef.current;
-    if (!shell) {
-      setPhase("ready");
-      return;
-    }
-    const aside = sideRef.current;
-
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    playHomeSettleTransition({
-      root: shell,
-      mark: markRef.current,
-      aside,
-      reducedMotion,
-      flipSnapshot: flipSnapshotRef.current,
-      onEnd: () => {
-        flipSnapshotRef.current = null;
-        if (handoff.hasPending()) {
-          handoff.end();
-        } else {
-          handoff.notifyEnterComplete();
-        }
-        setPhase("ready");
-      },
-    });
-  }, [handoff, markRef]);
-
   const beginSettle = useCallback(() => {
     if (settleStartedRef.current) {
       return;
     }
     settleStartedRef.current = true;
 
-    // Post-splash home : pose mark figée — fade composer seulement.
-    if (skipCenteredBriefing) {
-      const shell = shellRef.current;
-      const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      setPhase("settling");
-      if (shell) {
+    const shell = shellRef.current;
+    const mark = markRef.current;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    stashMarkClusterFromPose({
+      mark: mark ? mark.getBoundingClientRect() : null,
+    });
+    setPhase("settling");
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!shell) {
+          if (handoff.hasPending()) {
+            handoff.end();
+          } else {
+            handoff.notifyEnterComplete();
+          }
+          setPhase("ready");
+          return;
+        }
         playHomeSettleTransition({
           root: shell,
-          mark: markRef.current,
+          mark,
           aside: sideRef.current,
           reducedMotion,
-          flipSnapshot: null,
-          preserveMarkPose: true,
+          fromPose: peekMarkClusterFromPose(),
           onEnd: () => {
             if (handoff.hasPending()) {
               handoff.end();
@@ -155,37 +145,32 @@ export function useHomeEnterMotion(
             setPhase("ready");
           },
         });
-      } else {
-        if (handoff.hasPending()) {
-          handoff.end();
-        } else {
-          handoff.notifyEnterComplete();
-        }
-        setPhase("ready");
-      }
-      return;
-    }
-
-    const shell = shellRef.current;
-    const mark = markRef.current;
-    const wordmark = shell ? queryWordmark(shell) : null;
-    const flipTargets: HTMLElement[] = [];
-    if (mark) {
-      flipTargets.push(mark);
-    }
-    if (wordmark) {
-      flipTargets.push(wordmark);
-    }
-    flipSnapshotRef.current =
-      flipTargets.length > 0 ? Flip.getState(flipTargets) : null;
-
-    setPhase("settling");
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        runSettle();
       });
     });
-  }, [handoff, markRef, runSettle, skipCenteredBriefing]);
+  }, [handoff, markRef]);
+
+  /** Avant paint settling : UI hors écran — tout arrive ensemble dans la timeline. */
+  useLayoutEffect(() => {
+    if (phase !== "settling") {
+      return;
+    }
+    const shell = shellRef.current;
+    if (!shell) {
+      return;
+    }
+    const topbar = queryTopbar(shell);
+    if (topbar) {
+      gsap.set(topbar, { opacity: 0, y: -28 });
+    }
+    const sideLeft = querySideLeft(shell);
+    if (sideLeft) {
+      gsap.set(sideLeft, { opacity: 0, x: -HOME_SIDE_ENTER_X });
+    }
+    const sideRight = querySideRight(shell);
+    if (sideRight) {
+      gsap.set(sideRight, { opacity: 0, x: HOME_SIDE_ENTER_X });
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (!splashDone || phase !== "briefing") {

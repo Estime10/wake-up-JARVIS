@@ -9,10 +9,10 @@ import {
 } from "react";
 
 import { usePorts } from "@/app/ports-context";
-import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button/Button";
+import { Select } from "@/components/ui/Select/Select";
 import { useLiveRepoPreview } from "@/features/github/context/liveRepoPreviewContext";
-import { useRepoPanel } from "@/features/home/context";
+import { useRepoPanel } from "@/features/home/context/repoPanelContext";
 import { normalizeIntentText } from "@/features/assistant/model/normalizeIntentText";
 import {
   getLiveRepoDetailCache,
@@ -25,18 +25,18 @@ import {
   setLiveRepoSelectionCache,
   type LiveRepoDetailSnapshot,
 } from "@/features/github/model/liveRepoSessionCache";
-import { RepoFileTree } from "@/features/home/components/RepoFileTree";
-import { RepoCommitsList } from "@/features/home/components/repo/RepoCommitsList";
-import { RepoPanelEmptyCommits } from "@/features/home/components/repo/RepoPanelEmptyCommits";
-import { RepoPanelEmptyRepos } from "@/features/home/components/repo/RepoPanelEmptyRepos";
-import { RepoPanelError } from "@/features/home/components/repo/RepoPanelError";
-import { RepoPanelLoading } from "@/features/home/components/repo/RepoPanelLoading";
+import { RepoFileTree } from "@/features/home/components/ui/repo/files/RepoFileTree";
+import { RepoCommitsList } from "@/features/home/components/ui/repo/commits/RepoCommitsList";
+import { RepoPanelEmptyCommits } from "@/features/home/components/ui/repo/panel/states/RepoPanelEmptyCommits";
+import { RepoPanelEmptyRepos } from "@/features/home/components/ui/repo/panel/states/RepoPanelEmptyRepos";
+import { RepoPanelError } from "@/features/home/components/ui/repo/panel/states/RepoPanelError";
+import { RepoPanelLoading } from "@/features/home/components/ui/repo/panel/states/RepoPanelLoading";
 import type { RepoPreviewKind } from "@/features/home/model/repoPanelScenario";
 import { REPO_TABS, type RepoTab } from "@/features/home/model/repoTab";
 import { REPO_TAB_LABEL_KEY } from "@/features/home/model/repoTabsUi";
 import { nextTabIndex } from "@/features/home/model/tabKeyboard";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { t } from "@/lib/i18n/t";
 import type {
   RepoBranch,
   RepoCommit,
@@ -513,7 +513,7 @@ export function LiveRepoPanelBody({
           }}
         />
         {activeRef ? (
-          <p className="t-mono text-dial text-text sm:text-sm">
+          <p className="t-mono text-text-muted">
             {t("home.repoBranch", { branch: activeRef })}
           </p>
         ) : null}
@@ -522,7 +522,7 @@ export function LiveRepoPanelBody({
           variant="ghost"
           size="bare"
           disabled={disconnecting}
-          className="t-mono self-start text-sm tracking-wide text-text uppercase hover:text-danger"
+          className="t-label self-start text-text hover:text-danger"
           onClick={onDisconnect}
         >
           {disconnecting
@@ -582,12 +582,12 @@ export function LiveRepoPanelBody({
             role="tabpanel"
             aria-labelledby={tabId(tab)}
             tabIndex={0}
-            className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-3"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3"
           >
             {tab === "branches" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {branches.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoBranchesEmpty")}
                   </p>
                 ) : (
@@ -601,17 +601,17 @@ export function LiveRepoPanelBody({
                             size="bare"
                             aria-pressed={selectedBranch}
                             className={cn(
-                              "t-mono flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-sm font-normal tracking-normal normal-case",
+                              "t-content flex w-full items-baseline justify-between gap-2 rounded-md border px-3 py-2.5 text-left text-base leading-snug font-normal tracking-normal normal-case",
                               selectedBranch
                                 ? "border-line bg-surface-2 text-accent"
                                 : "border-transparent text-text hover:border-line-subtle hover:bg-surface-2/50",
                             )}
                             onClick={() => selectBranch(item.name)}
                           >
-                            <span className="min-w-0 truncate uppercase">
+                            <span className="min-w-0 truncate">
                               {item.name}
                             </span>
-                            <span className="shrink-0 text-dial text-text sm:text-sm">
+                            <span className="t-mono shrink-0 text-text-muted">
                               {item.isDefault
                                 ? t("home.repoBranchDefault")
                                 : item.protected
@@ -630,7 +630,7 @@ export function LiveRepoPanelBody({
             {tab === "files" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {tree.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoEmpty")}
                   </p>
                 ) : (
@@ -662,7 +662,7 @@ export function LiveRepoPanelBody({
             {tab === "pr" ? (
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 {pulls.length === 0 ? (
-                  <p className="t-mono px-1 text-sm text-text">
+                  <p className="t-content px-1 text-base leading-snug">
                     {t("home.repoPrEmpty")}
                   </p>
                 ) : (
@@ -672,11 +672,9 @@ export function LiveRepoPanelBody({
                         key={pull.id}
                         className="rounded-md border border-line-subtle px-3 py-2.5"
                       >
-                        <p className="t-mono text-dial text-text sm:text-sm">
-                          #{pull.number}
-                        </p>
-                        <p className="t-mono text-sm text-text">{pull.title}</p>
-                        <p className="t-mono text-dial text-text sm:text-sm">
+                        <p className="t-mono text-text-muted">#{pull.number}</p>
+                        <p className="t-content leading-snug">{pull.title}</p>
+                        <p className="t-mono text-text-muted">
                           {pull.author} · {pull.relativeTime}
                         </p>
                       </li>

@@ -53,10 +53,6 @@ export type MailSummary = z.infer<typeof mailSummarySchema>;
 
 export const githubConnectionStatusSchema = z.enum(["active", "needs_reauth"]);
 
-export type GithubConnectionStatus = z.infer<
-  typeof githubConnectionStatusSchema
->;
-
 /** Connexion GitHub UI — sans PAT ni vault_secret_id. */
 export const githubConnectionSchema = z.object({
   id: z.string().min(1),
@@ -72,10 +68,6 @@ export const supabasePlatformConnectionStatusSchema = z.enum([
   "active",
   "needs_reauth",
 ]);
-
-export type SupabasePlatformConnectionStatus = z.infer<
-  typeof supabasePlatformConnectionStatusSchema
->;
 
 /** Connexion platform Supabase UI — sans access token / vault_secret_id. */
 export const supabasePlatformConnectionSchema = z.object({
@@ -268,5 +260,3 @@ export const authRegisterSchema = authCredentialsSchema
     path: ["confirmPassword"],
     message: "password_mismatch",
   });
-
-export type AuthRegisterInput = z.infer<typeof authRegisterSchema>;
