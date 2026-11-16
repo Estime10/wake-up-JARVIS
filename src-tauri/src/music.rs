@@ -188,8 +188,7 @@ fn deezer_track() -> Option<(String, String)> {
         .filter(|l| !l.is_empty())
         .collect();
     let hit = lines.into_iter().find(|line| {
-        let lower = line.to_ascii_lowercase();
-        lower.ends_with("- deezer")
+        line.to_ascii_lowercase().ends_with(" - deezer")
     })?;
     let lower = hit.to_ascii_lowercase();
     let body = lower

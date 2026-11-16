@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { usePorts } from "@/app/ports-context";
 import type { NowPlayingSnapshot } from "@/features/music/model/nowPlayingSnapshot";
 import type { NowPlayingView } from "@/features/music/model/nowPlayingView";
-import { fetchNowPlayingSnapshot } from "@/features/music/services/fetchNowPlayingSnapshot";
-import { postMusicTransport } from "@/features/music/services/postMusicTransport";
 import type { MusicTransportAction } from "@/lib/music/musicTransportAction";
 
 const POLL_MS = 2000;
@@ -55,7 +53,7 @@ export function useNowPlayingTrack(): NowPlayingControls {
       if (lockRef.current || document.hidden) {
         return;
       }
-      const next = await fetchNowPlayingSnapshot(music, ac.signal);
+      const next = await music.getNowPlaying(ac.signal);
       if (cancelled || !next) {
         return;
       }
@@ -99,13 +97,11 @@ export function useNowPlayingTrack(): NowPlayingControls {
         });
       }
       try {
-        const result = await postMusicTransport(music, action);
+        const result = await music.transport(action);
         if (result?.accepted) {
-          // Snapshot réel du port — pas d'override !before.
           playingPinRef.current = null;
           setSnapshot(result.snapshot);
         } else if (action === "toggle") {
-          // Échec : annuler le pin optimiste au prochain poll.
           playingPinRef.current = null;
         }
       } finally {
