@@ -11,15 +11,17 @@ APPS_DIR="${ELSA_APPS_DIR:-/Applications}"
 APP_DEST="${APPS_DIR}/ELSA.app"
 
 echo "== identities codesign =="
-if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-  echo "AVERTISSEMENT: aucun « Developer ID Application » — build ad-hoc / unsigned."
-  echo "Gatekeeper : clic droit → Ouvrir si besoin. Voir docs/runbooks/PACKAGING-macos.md"
-fi
-
+# Identité STABLE obligatoire : sans ça, TCC (Automation/Accessibility) est
+# piqué au CDHash ad-hoc → chaque rebuild = Now Playing/play morts, sans popup.
 if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
-  echo "APPLE_SIGNING_IDENTITY défini."
+  SIGN_IDENTITY="$APPLE_SIGNING_IDENTITY"
+  echo "APPLE_SIGNING_IDENTITY=$SIGN_IDENTITY"
+elif security find-identity -v -p codesigning 2>/dev/null | grep -q "Developer ID Application"; then
+  SIGN_IDENTITY="$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed -E 's/.*"(.+)"/\1/')"
+  echo "Developer ID: $SIGN_IDENTITY"
 else
-  echo "APPLE_SIGNING_IDENTITY non défini (signing optionnel)."
+  SIGN_IDENTITY="$("$ROOT/scripts/ensure-elsa-codesign-identity.sh")"
+  echo "Identité locale stable: $SIGN_IDENTITY"
 fi
 
 if [[ -n "${APPLE_ID:-}" && -n "${APPLE_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}" ]]; then
@@ -61,8 +63,15 @@ echo "== install → ${APP_DEST} =="
 mkdir -p "$APPS_DIR"
 rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
-# Ne pas re-signer ad-hoc ici : ça change l’identité code et invalide
-# Accessibility / Automatisation TCC (play/pause + Now Playing cassés).
+
+echo "== codesign stable (TCC survit aux rebuilds) =="
+ENTITLEMENTS="$ROOT/src-tauri/Entitlements.plist"
+codesign --force --deep --sign "$SIGN_IDENTITY" \
+  --identifier "be.devinchat.elsa" \
+  --entitlements "$ENTITLEMENTS" \
+  --options runtime \
+  "$APP_DEST"
+codesign -d -r- "$APP_DEST" 2>&1 | head -5
 echo "Installé → ${APP_DEST}"
 
 # Ne pas laisser d’artefacts packaging dans le monorepo.

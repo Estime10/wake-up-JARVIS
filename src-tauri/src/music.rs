@@ -79,7 +79,21 @@ fn run_cmd(program: &str, args: &[&str], timeout: Duration) -> Result<String, St
 }
 
 fn run_osascript(script: &str, timeout: Duration) -> Result<String, String> {
-    run_cmd("osascript", &["-e", script], timeout)
+    match run_cmd("osascript", &["-e", script], timeout) {
+        Ok(out) => Ok(out),
+        Err(err) => {
+            // -1743 = TCC Automation refusée (souvent silencieuse après rebuild ad-hoc).
+            let _ = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open("/tmp/elsa-music.log")
+                .and_then(|mut f| {
+                    use std::io::Write;
+                    writeln!(f, "osascript_failed:{err}")
+                });
+            Err(err)
+        }
+    }
 }
 
 /// NX_KEYTYPE: PLAY=16, NEXT=17, PREVIOUS=18
