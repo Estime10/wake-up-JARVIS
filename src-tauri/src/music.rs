@@ -216,7 +216,92 @@ fn deezer_playback_state() -> String {
 }
 
 #[cfg(target_os = "macos")]
+fn media_remote_track() -> Option<(String, String)> {
+    // 1) Helper compilé dans Resources (packaging).
+    // 2) Sinon sources du repo / Application Support (DX).
+    let candidates: Vec<std::path::PathBuf> = {
+        let mut v = Vec::new();
+        // Préférer les sources Swift (`xcrun swift`) — le binaire compilé est flaky.
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(macos) = exe.parent() {
+                if let Some(contents) = macos.parent() {
+                    v.push(contents.join("Resources/mediaremote-now-playing.swift"));
+                    v.push(contents.join("Resources/mediaremote-now-playing"));
+                }
+            }
+        }
+        if let Ok(root) = std::env::var("ELSA_REPO_ROOT") {
+            v.push(std::path::PathBuf::from(root).join(
+                "src-tauri/macos/mediaremote-now-playing.swift",
+            ));
+        }
+        v.push(dirs_next_app_support().join("mediaremote-now-playing.swift"));
+        v.push(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(
+            "macos/mediaremote-now-playing.swift",
+        ));
+        v
+    };
+
+    for path in candidates {
+        if !path.exists() {
+            continue;
+        }
+        let is_swift = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| e == "swift");
+        let path_str = match path.to_str() {
+            Some(s) => s,
+            None => continue,
+        };
+        let out = if is_swift {
+            run_cmd(
+                "/usr/bin/xcrun",
+                &["swift", path_str],
+                Duration::from_secs(12),
+            )
+        } else {
+            run_cmd(path_str, &[], Duration::from_secs(3))
+        };
+        match &out {
+            Ok(raw) => music_diag(&format!(
+                "mr_ok:{} bytes={} head={:?}",
+                path_str,
+                raw.len(),
+                raw.lines().next().unwrap_or("")
+            )),
+            Err(err) => music_diag(&format!("mr_err:{path_str}:{err}")),
+        }
+        let Ok(raw) = out else { continue };
+        let Some(line) = raw.lines().next().map(str::trim) else {
+            continue;
+        };
+        if line.is_empty() {
+            continue;
+        }
+        let mut parts = line.splitn(3, '\t');
+        let title = parts.next().unwrap_or("").trim().to_string();
+        let artist = parts.next().unwrap_or("").trim().to_string();
+        if title.is_empty() && artist.is_empty() {
+            continue;
+        }
+        return Some((title, artist));
+    }
+    None
+}
+
+#[cfg(target_os = "macos")]
+fn dirs_next_app_support() -> std::path::PathBuf {
+    let home = std::env::var("HOME").unwrap_or_default();
+    std::path::PathBuf::from(home)
+        .join("Library/Application Support/be.devinchat.elsa")
+}
+
+#[cfg(target_os = "macos")]
 fn deezer_track() -> Option<(String, String)> {
+    if let Some(t) = media_remote_track() {
+        return Some(t);
+    }
     let out = run_osascript(DEEZER_TRACK_SCRIPT, Duration::from_millis(2500)).ok()?;
     let lines: Vec<&str> = out
         .lines()
@@ -434,23 +519,27 @@ fn probe_now_playing() -> NowPlayingSnapshot {
             };
         }
 
+        let mr = media_remote_track();
+
         for app in &others {
             let lower = app.to_ascii_lowercase();
             if lower == "spotify" {
+                let (title, artist) = mr.clone().unwrap_or_default();
                 return NowPlayingSnapshot {
                     playing: true,
                     source: "spotify".into(),
-                    title: String::new(),
-                    artist: String::new(),
+                    title,
+                    artist,
                     app: app.clone(),
                 };
             }
             if lower == "music" || lower == "apple music" {
+                let (title, artist) = mr.clone().unwrap_or_default();
                 return NowPlayingSnapshot {
                     playing: true,
                     source: "apple_music".into(),
-                    title: String::new(),
-                    artist: String::new(),
+                    title,
+                    artist,
                     app: app.clone(),
                 };
             }
