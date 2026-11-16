@@ -66,6 +66,17 @@ mkdir -p "$APPS_DIR"
 rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
 
+echo "== MediaRemote helper =="
+# Le binaire compilé renvoie souvent vide (MediaRemote) ; `xcrun swift` sur les
+# sources fonctionne. On copie le .swift dans Resources.
+MR_SWIFT="$ROOT/src-tauri/macos/mediaremote-now-playing.swift"
+MR_RES="${APP_DEST}/Contents/Resources/mediaremote-now-playing.swift"
+if [[ -f "$MR_SWIFT" ]]; then
+  mkdir -p "${APP_DEST}/Contents/Resources"
+  cp "$MR_SWIFT" "$MR_RES"
+  echo "Helper → $MR_RES"
+fi
+
 echo "== codesign stable (TCC survit aux rebuilds) =="
 ENTITLEMENTS="$ROOT/src-tauri/Entitlements.plist"
 codesign --force --deep --sign "$SIGN_IDENTITY" \
