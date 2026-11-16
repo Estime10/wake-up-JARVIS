@@ -41,7 +41,9 @@ rm -rf "${TARGET_DIR_PRE}/aarch64-apple-darwin/release/bundle/macos/ELSA.app"
 rm -rf "${TARGET_DIR_PRE}/release/bundle/macos/ELSA.app"
 echo "Anciennes apps retirées."
 
-pnpm tauri:build
+# --bundles app : le DMG hdiutil casse souvent (« Ressource occupée ») et
+# faisait échouer tout le packaging alors que ELSA.app était déjà prêt.
+pnpm exec tauri build --target aarch64-apple-darwin --bundles app
 
 # Respecte CARGO_TARGET_DIR (Cursor / CI peuvent le rediriger hors du repo).
 TARGET_DIR="${CARGO_TARGET_DIR:-$ROOT/src-tauri/target}"
