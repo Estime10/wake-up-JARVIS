@@ -49,28 +49,30 @@ function createAppVoice(): VoicePort {
 }
 
 /**
- * Music : tente toujours l’invoke Rust d’abord (shell), HTTP en fallback web.
- * Ne dépend pas d’un `isTauri()` figé au boot.
+ * Music : tente l’invoke Rust d’abord (shell), sans dépendre d’un `isTauri()` fragile.
+ * HTTP uniquement hors shell — jamais en fallback si on est dans Tauri (Vercel ≠ Mac).
  */
 function createAppMusic(): MusicPort {
   const tauri = createTauriMusic();
   const http = createHttpMusic();
   return {
     async getNowPlaying(signal) {
+      const local = await tauri.getNowPlaying(signal);
+      if (local !== null) {
+        return local;
+      }
       if (isTauri()) {
-        const local = await tauri.getNowPlaying(signal);
-        if (local) {
-          return local;
-        }
+        return null;
       }
       return http.getNowPlaying(signal);
     },
     async transport(action, signal) {
+      const local = await tauri.transport(action, signal);
+      if (local !== null) {
+        return local;
+      }
       if (isTauri()) {
-        const local = await tauri.transport(action, signal);
-        if (local) {
-          return local;
-        }
+        return null;
       }
       return http.transport(action, signal);
     },
