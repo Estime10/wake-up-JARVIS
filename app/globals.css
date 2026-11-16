@@ -94,11 +94,6 @@
 }
 
 @layer base {
-  /* Wallpaper via feuille CSS (pas d’attribut style= — CSP prod). */
-  .app-wallpaper {
-    background-image: url("/wallpaper/davincaht-wallpaper.png");
-  }
-
   html {
     /* Fallback opaque si wallpaper pas encore paint — sinon transparent. */
     @apply h-full bg-bg text-text antialiased;

@@ -1,7 +1,6 @@
 /**
  * Fond app — wallpaper + teinte `bg` semi-transparente.
- * Calque fixe sous le contenu (jamais d’interaction).
- * Pas de `style={…}` : CSP prod bloque style-src inline (ADR 0002).
+ * `<img>` (pas `style=`) : CSP prod autorise img-src 'self', bloque style inline.
  */
 export function AppWallpaper() {
   return (
@@ -9,9 +8,15 @@ export function AppWallpaper() {
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
       aria-hidden
     >
-      <div className="app-wallpaper absolute inset-0 bg-cover bg-center bg-no-repeat" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- fond full-bleed, pas de LCP hero */}
+      <img
+        src="/wallpaper/davincaht-wallpaper.png"
+        alt=""
+        className="absolute inset-0 size-full object-cover"
+        decoding="async"
+      />
       {/* Teinte DA — wallpaper visible mais discret. */}
-      <div className="absolute inset-0 bg-bg/85" />
+      <div className="absolute inset-0 bg-bg/70" />
     </div>
   );
 }
