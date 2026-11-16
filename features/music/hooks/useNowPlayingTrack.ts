@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { usePorts } from "@/app/ports-context";
 import type { NowPlayingSnapshot } from "@/features/music/model/nowPlayingSnapshot";
 import type { NowPlayingView } from "@/features/music/model/nowPlayingView";
-import { fetchNowPlayingSnapshot } from "@/features/music/services/fetchNowPlayingSnapshot";
-import { postMusicTransport } from "@/features/music/services/postMusicTransport";
 import type { MusicTransportAction } from "@/lib/music/musicTransportAction";
 
 const POLL_MS = 2000;
-/** Garde l'état play/pause optimiste le temps que pmset se mette à jour. */
+/** Garde l'état play/pause optimiste le temps que le probe se stabilise. */
 const PLAYING_PIN_MS = 2500;
 
 const IDLE_SNAPSHOT: NowPlayingSnapshot = {
@@ -27,8 +26,9 @@ export type NowPlayingControls = {
   previous: () => void;
 };
 
-/** Poll macOS Now Playing + actions transport. */
+/** Poll Now Playing hôte + actions transport (via MusicPort). */
 export function useNowPlayingTrack(): NowPlayingControls {
+  const { music } = usePorts();
   const [snapshot, setSnapshot] = useState<NowPlayingSnapshot>(IDLE_SNAPSHOT);
   const lockRef = useRef(false);
   const playingPinRef = useRef<{ playing: boolean; until: number } | null>(
@@ -50,27 +50,35 @@ export function useNowPlayingTrack(): NowPlayingControls {
     };
 
     const pull = async () => {
-      if (lockRef.current) {
+      if (lockRef.current || document.hidden) {
         return;
       }
-      const next = await fetchNowPlayingSnapshot(ac.signal);
+      const next = await music.getNowPlaying(ac.signal);
       if (cancelled || !next) {
         return;
       }
       applySnapshot(next);
     };
 
+    const onVisibility = () => {
+      if (!document.hidden) {
+        void pull();
+      }
+    };
+
     void pull();
     const pollId = window.setInterval(() => {
       void pull();
     }, POLL_MS);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
       ac.abort();
       window.clearInterval(pollId);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [music]);
 
   const run = (action: MusicTransportAction) => {
     if (lockRef.current) {
@@ -89,15 +97,12 @@ export function useNowPlayingTrack(): NowPlayingControls {
         });
       }
       try {
-        const result = await postMusicTransport(action);
-        if (result) {
-          const pin = playingPinRef.current;
-          if (pin && Date.now() < pin.until && action === "toggle") {
-            setSnapshot({ ...result.snapshot, playing: pin.playing });
-          } else {
-            playingPinRef.current = null;
-            setSnapshot(result.snapshot);
-          }
+        const result = await music.transport(action);
+        if (result?.accepted) {
+          playingPinRef.current = null;
+          setSnapshot(result.snapshot);
+        } else if (action === "toggle") {
+          playingPinRef.current = null;
         }
       } finally {
         lockRef.current = false;

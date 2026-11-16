@@ -23,13 +23,6 @@ type GmailListResponse = {
   nextPageToken?: string;
 };
 
-type GmailHistoryResponse = {
-  history?: {
-    messagesAdded?: { message: { id: string; threadId: string } }[];
-  }[];
-  historyId?: string;
-};
-
 type GmailMessageResponse = {
   id: string;
   threadId: string;
@@ -170,49 +163,6 @@ export async function listGmailMessagesByQuery(
   return details.filter((item): item is GmailMessageMeta => item !== null);
 }
 
-/**
- * Relève incrémentale via history.
- * 404 historyId trop vieux → caller doit resync.
- */
-export async function listGmailHistoryAdded(
-  accessToken: string,
-  startHistoryId: string,
-): Promise<
-  | { ok: true; messages: GmailMessageMeta[]; newHistoryId: string | null }
-  | { ok: false; stale: boolean }
-> {
-  const history = await gmailFetch<GmailHistoryResponse>(
-    accessToken,
-    `/history?startHistoryId=${encodeURIComponent(startHistoryId)}&historyTypes=messageAdded`,
-  );
-
-  if (!history.ok) {
-    return { ok: false, stale: history.status === 404 };
-  }
-
-  const ids = new Map<string, string>();
-  for (const entry of history.data.history ?? []) {
-    for (const added of entry.messagesAdded ?? []) {
-      ids.set(added.message.id, added.message.threadId);
-    }
-  }
-
-  const idList = [...ids.keys()];
-  const details = await mapPool(idList, DETAIL_CONCURRENCY, async (id) => {
-    const detail = await gmailFetch<GmailMessageResponse>(
-      accessToken,
-      `/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
-    );
-    return detail.ok ? mapMessage(detail.data) : null;
-  });
-
-  return {
-    ok: true,
-    messages: details.filter((item): item is GmailMessageMeta => item !== null),
-    newHistoryId: history.data.historyId ?? null,
-  };
-}
-
 /** Snippet Gmail (extrait) — métadonnées seules, jamais à persister. */
 export async function fetchGmailMessageSnippet(
   accessToken: string,
@@ -227,69 +177,4 @@ export async function fetchGmailMessageSnippet(
   }
   const snippet = detail.data.snippet?.trim() ?? "";
   return snippet.length > 0 ? snippet : null;
-}
-
-/** Corps texte brut — uniquement après consentement résumé. */
-export async function fetchGmailMessagePlainText(
-  accessToken: string,
-  messageId: string,
-): Promise<string | null> {
-  const detail = await gmailFetch<{
-    payload?: {
-      mimeType?: string;
-      body?: { data?: string };
-      parts?: {
-        mimeType?: string;
-        body?: { data?: string };
-        parts?: { mimeType?: string; body?: { data?: string } }[];
-      }[];
-    };
-  }>(accessToken, `/messages/${messageId}?format=full`);
-
-  if (!detail.ok) {
-    return null;
-  }
-
-  const text = extractPlainText(detail.data.payload);
-  return text?.trim() || null;
-}
-
-function decodeBase64Url(data: string): string {
-  const padded = data.replace(/-/g, "+").replace(/_/g, "/");
-  return Buffer.from(padded, "base64").toString("utf8");
-}
-
-function extractPlainText(
-  payload:
-    | {
-        mimeType?: string;
-        body?: { data?: string };
-        parts?: {
-          mimeType?: string;
-          body?: { data?: string };
-          parts?: { mimeType?: string; body?: { data?: string } }[];
-        }[];
-      }
-    | undefined,
-): string | null {
-  if (!payload) {
-    return null;
-  }
-  if (payload.mimeType?.startsWith("text/plain") && payload.body?.data) {
-    return decodeBase64Url(payload.body.data);
-  }
-  for (const part of payload.parts ?? []) {
-    if (part.mimeType === "text/plain" && part.body?.data) {
-      return decodeBase64Url(part.body.data);
-    }
-    for (const nested of part.parts ?? []) {
-      if (nested.mimeType === "text/plain" && nested.body?.data) {
-        return decodeBase64Url(nested.body.data);
-      }
-    }
-  }
-  if (payload.body?.data) {
-    return decodeBase64Url(payload.body.data);
-  }
-  return null;
 }

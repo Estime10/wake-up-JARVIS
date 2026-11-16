@@ -25,5 +25,3 @@ export const nowPlayingApiResponseSchema = z.object({
   ok: z.literal(true),
   snapshot: nowPlayingSnapshotSchema,
 });
-
-export type NowPlayingApiResponse = z.infer<typeof nowPlayingApiResponseSchema>;
