@@ -2,7 +2,6 @@
 
 import { NowPlayingMeta } from "@/features/music/components/NowPlayingMeta";
 import { NowPlayingSource } from "@/features/music/components/NowPlayingSource";
-import { NowPlayingTransport } from "@/features/music/components/NowPlayingTransport";
 import { useNowPlayingTrack } from "@/features/music/hooks/useNowPlayingTrack";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
@@ -11,11 +10,9 @@ type NowPlayingCardProps = {
   className?: string;
 };
 
-/**
- * Orchestrateur chrome musique — live macOS : titre + source + transport.
- */
+/** Chrome musique — titre + artiste + source (lecture seule). */
 export function NowPlayingCard({ className }: NowPlayingCardProps) {
-  const { track, togglePlay, next, previous } = useNowPlayingTrack();
+  const { track } = useNowPlayingTrack();
   const identity = {
     title: track.title || t("music.idleTitle"),
     artist: track.artist || t("music.idleArtist"),
@@ -31,12 +28,6 @@ export function NowPlayingCard({ className }: NowPlayingCardProps) {
     >
       <NowPlayingMeta identity={identity} />
       <NowPlayingSource source={track.source} />
-      <NowPlayingTransport
-        playing={track.playing}
-        onTogglePlay={togglePlay}
-        onNext={next}
-        onPrevious={previous}
-      />
     </section>
   );
 }

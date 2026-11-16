@@ -11,15 +11,17 @@ APPS_DIR="${ELSA_APPS_DIR:-/Applications}"
 APP_DEST="${APPS_DIR}/ELSA.app"
 
 echo "== identities codesign =="
-if ! security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-  echo "AVERTISSEMENT: aucun « Developer ID Application » — build ad-hoc / unsigned."
-  echo "Gatekeeper : clic droit → Ouvrir si besoin. Voir docs/runbooks/PACKAGING-macos.md"
-fi
-
+# Identité STABLE obligatoire : sans ça, TCC (Automation/Accessibility) est
+# piqué au CDHash ad-hoc → chaque rebuild = Now Playing/play morts, sans popup.
 if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
-  echo "APPLE_SIGNING_IDENTITY défini."
+  SIGN_IDENTITY="$APPLE_SIGNING_IDENTITY"
+  echo "APPLE_SIGNING_IDENTITY=$SIGN_IDENTITY"
+elif security find-identity -v -p codesigning 2>/dev/null | grep -q "Developer ID Application"; then
+  SIGN_IDENTITY="$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed -E 's/.*"(.+)"/\1/')"
+  echo "Developer ID: $SIGN_IDENTITY"
 else
-  echo "APPLE_SIGNING_IDENTITY non défini (signing optionnel)."
+  SIGN_IDENTITY="$("$ROOT/scripts/ensure-elsa-codesign-identity.sh")"
+  echo "Identité locale stable: $SIGN_IDENTITY"
 fi
 
 if [[ -n "${APPLE_ID:-}" && -n "${APPLE_PASSWORD:-}" && -n "${APPLE_TEAM_ID:-}" ]]; then
@@ -28,7 +30,20 @@ else
   echo "Notarization skip — hors scope usage perso."
 fi
 
-pnpm tauri:build
+echo "== clean anciennes copies =="
+# Tue les instances + retire l’app installée pour éviter un binaire stale.
+pkill -x elsa 2>/dev/null || true
+pkill -f "/Applications/ELSA.app" 2>/dev/null || true
+rm -rf "${APP_DEST}"
+# Bundle précédent dans le cache cargo (évite de réinstaller une vieille copie).
+TARGET_DIR_PRE="${CARGO_TARGET_DIR:-$ROOT/src-tauri/target}"
+rm -rf "${TARGET_DIR_PRE}/aarch64-apple-darwin/release/bundle/macos/ELSA.app"
+rm -rf "${TARGET_DIR_PRE}/release/bundle/macos/ELSA.app"
+echo "Anciennes apps retirées."
+
+# --bundles app : le DMG hdiutil casse souvent (« Ressource occupée ») et
+# faisait échouer tout le packaging alors que ELSA.app était déjà prêt.
+pnpm exec tauri build --target aarch64-apple-darwin --bundles app
 
 # Respecte CARGO_TARGET_DIR (Cursor / CI peuvent le rediriger hors du repo).
 TARGET_DIR="${CARGO_TARGET_DIR:-$ROOT/src-tauri/target}"
@@ -50,6 +65,26 @@ echo "== install → ${APP_DEST} =="
 mkdir -p "$APPS_DIR"
 rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
+
+echo "== MediaRemote helper =="
+# Le binaire compilé renvoie souvent vide (MediaRemote) ; `xcrun swift` sur les
+# sources fonctionne. On copie le .swift dans Resources.
+MR_SWIFT="$ROOT/src-tauri/macos/mediaremote-now-playing.swift"
+MR_RES="${APP_DEST}/Contents/Resources/mediaremote-now-playing.swift"
+if [[ -f "$MR_SWIFT" ]]; then
+  mkdir -p "${APP_DEST}/Contents/Resources"
+  cp "$MR_SWIFT" "$MR_RES"
+  echo "Helper → $MR_RES"
+fi
+
+echo "== codesign stable (TCC survit aux rebuilds) =="
+ENTITLEMENTS="$ROOT/src-tauri/Entitlements.plist"
+codesign --force --deep --sign "$SIGN_IDENTITY" \
+  --identifier "be.devinchat.elsa" \
+  --entitlements "$ENTITLEMENTS" \
+  --options runtime \
+  "$APP_DEST"
+codesign -d -r- "$APP_DEST" 2>&1 | head -5
 echo "Installé → ${APP_DEST}"
 
 # Ne pas laisser d’artefacts packaging dans le monorepo.

@@ -9,6 +9,7 @@
     "frontendDist": "https://wake-up-jarvis.vercel.app"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
