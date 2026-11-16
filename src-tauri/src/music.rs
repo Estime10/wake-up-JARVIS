@@ -632,60 +632,6 @@ fn music_diag(line: &str) {
         });
 }
 
-/// Push périodique vers le WebView via `eval` (CustomEvent) — contourne IPC/CSP.
-pub fn start_now_playing_push(app: tauri::AppHandle) {
-    use tauri::Manager;
-    // Préflight Automatisation (déclenche la popup macOS si besoin).
-    let _ = run_osascript(
-        r#"tell application "System Events" to get name of first process"#,
-        Duration::from_secs(3),
-    );
-    loop {
-        let snap = probe_now_playing();
-        music_diag(&format!(
-            "push:source={} playing={} title={}",
-            snap.source, snap.playing, snap.title
-        ));
-        if let Some(win) = app.get_webview_window("main") {
-            if let Ok(json) = serde_json::to_string(&snap) {
-                // Hook + patch DOM : survit même si invoke/CSP cassés et sans
-                // redeploy Vercel (React remonte « Silence » → MutationObserver).
-                let script = format!(
-                    r#"(function(){{
-  var d={json};
-  if(!window.__ELSA_NP_HOOK__){{
-    window.__ELSA_NP_HOOK__=true;
-    window.__ELSA_NP__=null;
-                window.__ELSA_NP_APPLY__=function(x){{
-      if(!x||x.source==='none')return;
-      if(!x.title)x.title='Lecture en cours';
-      window.__ELSA_NP__=x;
-      try{{window.dispatchEvent(new CustomEvent('elsa-now-playing',{{detail:x}}));}}catch(_e){{}}
-      var root=document.querySelector('[data-home="now-playing"]');
-      if(!root)return;
-      var ps=root.querySelectorAll('p.t-content');
-      if(ps[0])ps[0].textContent=x.title;
-      if(ps[1])ps[1].textContent=x.artist||'';
-      var src=root.querySelector('p.t-mono');
-      if(src){{
-        var labels={{deezer:'Deezer',youtube:'YouTube',spotify:'Spotify',apple_music:'Apple Music',browser:'Navigateur',other:'Autre',none:''}};
-        src.textContent=labels[x.source]||x.source||'';
-      }}
-    }};
-    new MutationObserver(function(){{
-      if(window.__ELSA_NP__)window.__ELSA_NP_APPLY__(window.__ELSA_NP__);
-    }}).observe(document.documentElement,{{childList:true,subtree:true}});
-  }}
-  window.__ELSA_NP_APPLY__(d);
-}})();"#
-                );
-                let _ = win.eval(&script);
-            }
-        }
-        thread::sleep(Duration::from_millis(2000));
-    }
-}
-
 /// Snapshot Now Playing hôte (local Mac) — pour shell packagé hors Next darwin.
 #[tauri::command]
 pub async fn music_now_playing() -> Result<NowPlayingSnapshot, String> {
