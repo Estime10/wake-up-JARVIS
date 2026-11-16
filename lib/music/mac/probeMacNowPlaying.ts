@@ -1,6 +1,7 @@
 import "server-only";
 
 import { classifyAudioApp } from "@/lib/music/mac/classifyAudioApp";
+import { fetchDeezerPlaybackState } from "@/lib/music/mac/fetchDeezerPlaybackState";
 import { fetchDeezerTrackFromWindowMenu } from "@/lib/music/mac/fetchDeezerTrackFromWindowMenu";
 import { fetchWindowTitle } from "@/lib/music/mac/fetchWindowTitle";
 import { parsePlayingAssertions } from "@/lib/music/mac/parsePlayingAssertions";
@@ -17,18 +18,72 @@ const SOURCE_ORDER = [
   "other",
 ] as const;
 
+type RankedSource = {
+  app: string;
+  kind: string;
+  detail: string;
+};
+
 /** Snapshot macOS : app qui joue + titre (Deezer menu / YouTube fenêtre). */
 export function probeMacNowPlaying(): NowPlayingSnapshot {
   if (process.platform !== "darwin") {
     return idleSnapshot();
   }
 
+  const deezerState = fetchDeezerPlaybackState();
+  const deezerTrack = fetchDeezerTrackFromWindowMenu();
+
   const assertions = runMacCommand("pmset", ["-g", "assertions"], 3000);
-  if (!assertions.ok) {
-    return idleSnapshot();
+  const ranked = assertions.ok ? rankPlayingSources(assertions.stdout) : [];
+
+  const deezerInPmset = ranked.some((source) => source.kind === "deezer");
+  const othersPlaying = ranked.filter((source) => source.kind !== "deezer");
+
+  // Menu « Pause » ou assertion pmset Deezer → carte Deezer.
+  // Menu « Lecture » (pause clavier) prime sur une assertion pmset collée.
+  if (
+    deezerState === "playing" ||
+    (deezerInPmset && deezerState !== "paused")
+  ) {
+    return {
+      playing: true,
+      source: "deezer",
+      title: deezerTrack?.title ?? "",
+      artist: deezerTrack?.artist ?? "",
+      app: "Deezer",
+    };
   }
 
-  const playing = parsePlayingAssertions(assertions.stdout)
+  if (deezerState === "paused" && deezerInPmset && othersPlaying.length === 0) {
+    return {
+      playing: false,
+      source: "deezer",
+      title: deezerTrack?.title ?? "",
+      artist: deezerTrack?.artist ?? "",
+      app: "Deezer",
+    };
+  }
+
+  if (othersPlaying.length > 0) {
+    return snapshotFromRanked(othersPlaying[0]!);
+  }
+
+  // Pause clavier : plus d'assertion pmset, mais piste encore dans Fenêtre.
+  if (deezerState === "paused" && deezerTrack) {
+    return {
+      playing: false,
+      source: "deezer",
+      title: deezerTrack.title,
+      artist: deezerTrack.artist,
+      app: "Deezer",
+    };
+  }
+
+  return idleSnapshot();
+}
+
+function rankPlayingSources(rawAssertions: string): RankedSource[] {
+  const playing = parsePlayingAssertions(rawAssertions)
     .map(({ app }) => {
       const hint = fetchWindowTitle(app);
       const { kind, detail } = classifyAudioApp(app, hint);
@@ -36,28 +91,14 @@ export function probeMacNowPlaying(): NowPlayingSnapshot {
     })
     .filter((source) => source.kind !== "noise");
 
-  if (playing.length === 0) {
-    return idleSnapshot();
-  }
-
-  const ranked = playing.slice().sort((a, b) => {
+  return playing.slice().sort((a, b) => {
     const ai = SOURCE_ORDER.indexOf(a.kind as (typeof SOURCE_ORDER)[number]);
     const bi = SOURCE_ORDER.indexOf(b.kind as (typeof SOURCE_ORDER)[number]);
     return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
   });
-  const top = ranked[0]!;
+}
 
-  if (top.kind === "deezer") {
-    const track = fetchDeezerTrackFromWindowMenu();
-    return {
-      playing: true,
-      source: "deezer",
-      title: track?.title ?? "",
-      artist: track?.artist ?? "",
-      app: top.app,
-    };
-  }
-
+function snapshotFromRanked(top: RankedSource): NowPlayingSnapshot {
   if (top.kind === "youtube") {
     const parsed = parseYoutubeWindowTitle(top.detail);
     return {

@@ -1,4 +1,5 @@
 mod elsa_paths;
+mod music;
 mod open_external;
 mod piper_runtime;
 mod studio_local;
@@ -60,6 +61,7 @@ pub fn run() {
             terminal::terminal_pty_resize,
             voice::voice_speak,
             voice::voice_stop,
+            music::music_transport,
             open_external::open_external_url,
             webview_pane::webview_pane_set_studio,
             webview_pane::webview_pane_clear_studio,
