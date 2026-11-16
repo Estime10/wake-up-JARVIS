@@ -28,6 +28,17 @@ else
   echo "Notarization skip — hors scope usage perso."
 fi
 
+echo "== clean anciennes copies =="
+# Tue les instances + retire l’app installée pour éviter un binaire stale.
+pkill -x elsa 2>/dev/null || true
+pkill -f "/Applications/ELSA.app" 2>/dev/null || true
+rm -rf "${APP_DEST}"
+# Bundle précédent dans le cache cargo (évite de réinstaller une vieille copie).
+TARGET_DIR_PRE="${CARGO_TARGET_DIR:-$ROOT/src-tauri/target}"
+rm -rf "${TARGET_DIR_PRE}/aarch64-apple-darwin/release/bundle/macos/ELSA.app"
+rm -rf "${TARGET_DIR_PRE}/release/bundle/macos/ELSA.app"
+echo "Anciennes apps retirées."
+
 pnpm tauri:build
 
 # Respecte CARGO_TARGET_DIR (Cursor / CI peuvent le rediriger hors du repo).
