@@ -21,10 +21,13 @@ export async function proxy(request: NextRequest) {
       : `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    // Supabase : Auth + Data API. Dev : HMR Turbopack (ws) pour le shell Tauri.
+    // Supabase : Auth + Data API.
+    // Tauri 2 IPC (shell packagé + frontendDist Vercel) : sans ipc.localhost,
+    // invoke() est bloqué par la CSP → Now Playing / transport morts, sans popup.
+    // Dev : HMR Turbopack (ws) pour tauri:dev.
     isDev
-      ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* ws://localhost:* http://127.0.0.1:* http://localhost:*"
-      : "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co ws://127.0.0.1:* ws://localhost:* http://127.0.0.1:* http://localhost:* ipc: http://ipc.localhost https://ipc.localhost"
+      : "connect-src 'self' https://*.supabase.co wss://*.supabase.co ipc: http://ipc.localhost https://ipc.localhost",
     // Studio embed (:54332) — web only ; shell Tauri = WebView natif.
     isDev
       ? "frame-src 'self' http://127.0.0.1:54332 https: http:"

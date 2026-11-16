@@ -26,6 +26,7 @@ test.describe("CSP", () => {
     expect(csp).toContain("script-src");
     expect(csp).toContain("nonce-");
     expect(csp).toContain("https://*.supabase.co");
+    expect(csp).toContain("ipc.localhost");
 
     await page.waitForTimeout(500);
     expect(cspViolations).toEqual([]);
