@@ -2,7 +2,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 
 import type { MusicPort } from "@/ports/music-port";
+import { createLogger } from "@/lib/logger";
 import { nowPlayingSnapshotSchema } from "@/lib/music/nowPlayingSnapshot";
+
+const log = createLogger("music-tauri");
 
 const transportResultSchema = z.object({
   accepted: z.boolean(),
@@ -37,6 +40,9 @@ export function createTauriMusic(): MusicPort {
         if (isAbortError(error)) {
           return null;
         }
+        log.error("music_now_playing_invoke_failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
         return null;
       }
     },
@@ -52,6 +58,7 @@ export function createTauriMusic(): MusicPort {
         }
         const parsed = transportResultSchema.safeParse(raw);
         if (!parsed.success) {
+          log.error("music_transport_schema_mismatch");
           return null;
         }
         return {
@@ -62,6 +69,9 @@ export function createTauriMusic(): MusicPort {
         if (isAbortError(error)) {
           return null;
         }
+        log.error("music_transport_invoke_failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
         return null;
       }
     },
