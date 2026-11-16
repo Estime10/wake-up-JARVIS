@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-music-transport"
+description = "Transport Now Playing macOS (média + menu Deezer sans focus)."
+commands.allow = ["music_transport"]

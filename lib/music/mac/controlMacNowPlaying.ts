@@ -2,7 +2,6 @@ import "server-only";
 
 import { clickDeezerPlaybackMenuItem } from "@/lib/music/mac/clickDeezerPlaybackMenuItem";
 import { probeMacNowPlaying } from "@/lib/music/mac/probeMacNowPlaying";
-import { sendSystemMediaKey } from "@/lib/music/mac/sendSystemMediaKey";
 import type { MusicTransportAction } from "@/lib/music/musicTransportAction";
 import type { NowPlayingSnapshot } from "@/lib/music/nowPlayingSnapshot";
 
@@ -25,9 +24,8 @@ function isDeezer(snapshot: NowPlayingSnapshot): boolean {
 }
 
 /**
- * Transport sans vol de focus.
- * next/prev → touche média système.
- * toggle → média + menu Deezer (pause), avec vérif/retry.
+ * Fallback API (hors shell Tauri) — menus Deezer via System Events, sans focus.
+ * Les touches média système vivent dans `src-tauri` (`music_transport`).
  */
 export async function controlMacNowPlaying(
   action: MusicTransportAction,
@@ -39,7 +37,7 @@ export async function controlMacNowPlaying(
   const before = probeMacNowPlaying();
 
   if (action === "next" || action === "previous") {
-    const ok = sendSystemMediaKey(action);
+    const ok = isDeezer(before) ? clickDeezerPlaybackMenuItem(action) : false;
     await sleepMs(400);
     return { ok, snapshot: probeMacNowPlaying() };
   }
@@ -63,23 +61,19 @@ export async function controlMacNowPlaying(
 async function togglePlayback(before: NowPlayingSnapshot): Promise<boolean> {
   const wantPlaying = !before.playing;
 
-  if (!isDeezer(before) && before.source !== "none") {
-    const ok = sendSystemMediaKey("toggle");
-    await sleepMs(500);
-    return ok;
+  if (!isDeezer(before)) {
+    return false;
   }
 
   if (wantPlaying) {
-    const ok =
-      sendSystemMediaKey("toggle") || clickDeezerPlaybackMenuItem("play");
+    const ok = clickDeezerPlaybackMenuItem("play");
     await sleepMs(500);
     return ok;
   }
 
-  // Pause Deezer : retry jusqu'à ce que pmset confirme (menu parfois stale).
   let ok = false;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    ok = clickDeezerPlaybackMenuItem("pause") || sendSystemMediaKey("toggle");
+    ok = clickDeezerPlaybackMenuItem("pause");
     await sleepMs(450);
     const now = probeMacNowPlaying();
     if (!now.playing) {
