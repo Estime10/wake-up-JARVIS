@@ -42,6 +42,12 @@ pub fn run() {
             std::thread::spawn(move || {
                 voice::warm_piper(&piper_handle);
             });
+
+            // Now Playing : push native → UI (ne dépend pas d’un invoke JS bloqué par CSP).
+            let music_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                music::start_now_playing_push(music_handle);
+            });
             Ok(())
         })
         .on_menu_event(|app, event| {

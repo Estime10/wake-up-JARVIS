@@ -466,10 +466,13 @@ fn probe_now_playing() -> NowPlayingSnapshot {
             };
         }
 
-        if deezer_state == "paused" {
-            if let Some((title, artist)) = track {
+        // Titre prioritaire : même si l’état menu est unknown, afficher la piste Deezer.
+        if let Some((title, artist)) = track {
+            if !title.is_empty() {
+                let playing = deezer_state == "playing"
+                    || (deezer_in_pmset && deezer_state != "paused");
                 return NowPlayingSnapshot {
-                    playing: false,
+                    playing,
                     source: "deezer".into(),
                     title,
                     artist,
@@ -591,12 +594,55 @@ fn transport_sync(action: &str) -> Result<MusicTransportResult, String> {
     }
 }
 
+fn music_diag(line: &str) {
+    let _ = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("/tmp/elsa-music.log")
+        .and_then(|mut f| {
+            use std::io::Write;
+            writeln!(f, "{line}")
+        });
+}
+
+/// Push périodique vers le WebView via `eval` (CustomEvent) — contourne IPC/CSP.
+pub fn start_now_playing_push(app: tauri::AppHandle) {
+    use tauri::Manager;
+    // Préflight Automatisation (déclenche la popup macOS si besoin).
+    let _ = run_osascript(
+        r#"tell application "System Events" to get name of first process"#,
+        Duration::from_secs(3),
+    );
+    loop {
+        let snap = probe_now_playing();
+        music_diag(&format!(
+            "push:source={} playing={} title={}",
+            snap.source, snap.playing, snap.title
+        ));
+        if let Some(win) = app.get_webview_window("main") {
+            if let Ok(json) = serde_json::to_string(&snap) {
+                let script = format!(
+                    "(function(){{try{{window.dispatchEvent(new CustomEvent('elsa-now-playing',{{detail:{json}}}));}}catch(_e){{}}}})();"
+                );
+                let _ = win.eval(&script);
+            }
+        }
+        thread::sleep(Duration::from_millis(2000));
+    }
+}
+
 /// Snapshot Now Playing hôte (local Mac) — pour shell packagé hors Next darwin.
 #[tauri::command]
 pub async fn music_now_playing() -> Result<NowPlayingSnapshot, String> {
-    tauri::async_runtime::spawn_blocking(probe_now_playing)
+    music_diag("invoke:music_now_playing");
+    let snap = tauri::async_runtime::spawn_blocking(probe_now_playing)
         .await
-        .map_err(|e| format!("join_failed:{e}"))
+        .map_err(|e| format!("join_failed:{e}"))?;
+    music_diag(&format!(
+        "probe:source={} playing={} title={}",
+        snap.source, snap.playing, snap.title
+    ));
+    Ok(snap)
 }
 
 /// Transport shell : next/prev = média ; toggle = menu Deezer + média vérifié.

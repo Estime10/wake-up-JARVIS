@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePorts } from "@/app/ports-context";
 import type { NowPlayingSnapshot } from "@/features/music/model/nowPlayingSnapshot";
 import type { NowPlayingView } from "@/features/music/model/nowPlayingView";
+import { nowPlayingSnapshotSchema } from "@/lib/music/nowPlayingSnapshot";
 import type { MusicTransportAction } from "@/lib/music/musicTransportAction";
 
 const POLL_MS = 2000;
@@ -66,6 +67,17 @@ export function useNowPlayingTrack(): NowPlayingControls {
       }
     };
 
+    // Push Rust → WebView (CustomEvent) : ne dépend pas de invoke/CSP ipc.localhost.
+    const onNativePush = (event: Event) => {
+      const detail = (event as CustomEvent<unknown>).detail;
+      const parsed = nowPlayingSnapshotSchema.safeParse(detail);
+      if (cancelled || !parsed.success) {
+        return;
+      }
+      applySnapshot(parsed.data);
+    };
+    window.addEventListener("elsa-now-playing", onNativePush);
+
     void pull();
     // Bridge Tauri parfois prêt après le 1er paint — rappel rapide puis poll normal.
     const bootId = window.setTimeout(() => {
@@ -82,6 +94,7 @@ export function useNowPlayingTrack(): NowPlayingControls {
       window.clearTimeout(bootId);
       window.clearInterval(pollId);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("elsa-now-playing", onNativePush);
     };
   }, [music]);
 
