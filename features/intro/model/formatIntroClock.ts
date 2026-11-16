@@ -15,8 +15,3 @@ export function formatIntroDate(date: Date): string {
   const yy = String(date.getFullYear()).slice(-2);
   return `${dd}.${mo}.${yy}`;
 }
-
-/** `HH:MM · DD.MM.YY` — compat horloge compacte. */
-export function formatIntroClock(date: Date): string {
-  return `${formatIntroTime(date)} · ${formatIntroDate(date)}`;
-}

@@ -12,17 +12,17 @@ export type StudioLaunchPhase =
   | "browser"
   | "done";
 
-export type StudioDockerOk = {
+type StudioDockerOk = {
   startedDocker: boolean;
   alreadyRunning: boolean;
 };
 
-export type StudioStackOk = {
+type StudioStackOk = {
   alreadyRunning: boolean;
   studioUrl: string;
 };
 
-export type StudioSyncOk = {
+type StudioSyncOk = {
   skipped: boolean;
   studioUrl: string;
   projectRef: string;

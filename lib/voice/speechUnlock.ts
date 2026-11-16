@@ -10,22 +10,9 @@ let unlockedAudioContext: AudioContext | null = null;
 
 /** Source silencieuse : empêche Chrome de re-suspendre le ctx pendant le splash. */
 let keepaliveSource: AudioBufferSourceNode | null = null;
-let keepaliveGain: GainNode | null = null;
 
 let opportunisticInstalled = false;
 const unlockWaiters = new Set<() => void>();
-
-export function isSpeechUnlocked(): boolean {
-  if (typeof window === "undefined") {
-    return false;
-  }
-  void unlockUtterance;
-  try {
-    return window.sessionStorage.getItem(UNLOCK_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
 
 /**
  * AudioContext partagé (créé sous geste login / pointer).
@@ -66,34 +53,8 @@ function startAudioKeepalive(ctx: AudioContext): void {
     gain.connect(ctx.destination);
     source.start(0);
     keepaliveSource = source;
-    keepaliveGain = gain;
   } catch {
     /* Web Audio partiel */
-  }
-}
-
-/** Coupe le keepalive (session finie / tests). Idempotent. */
-export function stopAudioKeepalive(): void {
-  if (keepaliveSource) {
-    try {
-      keepaliveSource.stop();
-    } catch {
-      /* already stopped */
-    }
-    try {
-      keepaliveSource.disconnect();
-    } catch {
-      /* ignore */
-    }
-    keepaliveSource = null;
-  }
-  if (keepaliveGain) {
-    try {
-      keepaliveGain.disconnect();
-    } catch {
-      /* ignore */
-    }
-    keepaliveGain = null;
   }
 }
 
@@ -158,10 +119,14 @@ export function unlockSpeechFromUserGesture(): void {
   unlockUtterance = utterance;
 
   utterance.onend = () => {
-    unlockUtterance = null;
+    if (unlockUtterance === utterance) {
+      unlockUtterance = null;
+    }
   };
   utterance.onerror = () => {
-    unlockUtterance = null;
+    if (unlockUtterance === utterance) {
+      unlockUtterance = null;
+    }
   };
 
   try {

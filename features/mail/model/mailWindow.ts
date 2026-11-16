@@ -11,9 +11,6 @@ export function startOfMailWindow(now: Date = new Date()): Date {
   return start;
 }
 
-/** @deprecated alias — préférer `startOfMailWindow`. */
-export const startOfYesterday = startOfMailWindow;
-
 /**
  * Clause Gmail `after:YYYY/M/D` — jour **avant** le début de fenêtre
  * (`after:` est exclusif sur la date calendaire Google).

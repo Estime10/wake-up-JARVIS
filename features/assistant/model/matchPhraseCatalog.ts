@@ -26,7 +26,7 @@ export function countPhraseSlots(phrase: string): number {
 /**
  * Phrase d’exemple → regex ancrée, slots `{label}` etc. en captures nommées d’ordre.
  */
-export function phraseToRegExp(phrase: string): RegExp {
+function phraseToRegExp(phrase: string): RegExp {
   const normalized = normalizeIntentText(phrase);
   const parts: string[] = [];
   const slotRe = /\{(label|repo|project|folder|file|n)\}/g;

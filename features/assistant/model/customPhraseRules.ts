@@ -107,9 +107,7 @@ export function loadCustomPhraseRules(): CustomPhraseRule[] {
   }
 }
 
-export function saveCustomPhraseRules(
-  rules: readonly CustomPhraseRule[],
-): void {
+function saveCustomPhraseRules(rules: readonly CustomPhraseRule[]): void {
   if (typeof window === "undefined") {
     return;
   }

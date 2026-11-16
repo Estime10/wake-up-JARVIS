@@ -25,10 +25,6 @@ export const FLIP_ID = {
   wordmark: "wordmark",
 } as const;
 
-export function isElement(el: HTMLElement | null): el is HTMLElement {
-  return el !== null;
-}
-
 export function queryMarkSlot(
   root: ParentNode,
   name: MarkSlotName,

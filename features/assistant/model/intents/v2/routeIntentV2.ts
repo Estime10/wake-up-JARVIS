@@ -142,10 +142,6 @@ function escapeRegExp(v: string): string {
   return v.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
-export function countSlotsV2(phrase: string): number {
-  return phrase.match(SLOT_RE)?.length ?? 0;
-}
-
 type Compiled = {
   readonly intent: IntentV2;
   readonly phrase: string;
@@ -165,7 +161,7 @@ export type RouteV2 =
     }
   | { readonly kind: "unknown" };
 
-export function sanitizeCaptureV2(raw: string): string {
+function sanitizeCaptureV2(raw: string): string {
   return (
     raw
       .replace(/\p{Cf}+/gu, "")

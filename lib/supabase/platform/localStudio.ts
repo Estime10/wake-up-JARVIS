@@ -146,7 +146,7 @@ export async function ensureDockerRunning(): Promise<DockerEnsureResult> {
 }
 
 /** Studio joignable sur :54323 ? */
-export async function isLocalStudioReachable(): Promise<boolean> {
+async function isLocalStudioReachable(): Promise<boolean> {
   try {
     const response = await fetch(STUDIO_URL, {
       method: "GET",
@@ -339,7 +339,7 @@ async function publicTableCount(dbUrl: string): Promise<number> {
 /**
  * Lie le CLI local au project_ref cloud (sans toucher la DB prod).
  */
-export async function linkLocalSupabaseProject(
+async function linkLocalSupabaseProject(
   cwd: string,
   projectRef: string,
   accessToken: string,

@@ -411,6 +411,3 @@ export const REPLIES_FR_V2: Readonly<Record<string, ReplyV2>> = {
     ok: "Ça sort de mon périmètre, DevinChat : mails, GitHub et fichiers, en lecture. Dis « aide ».",
   },
 };
-
-export const FALLBACK_UNKNOWN_V2 =
-  "Je n'ai pas compris, DevinChat. Dis « aide » pour voir ce que je sais faire.";

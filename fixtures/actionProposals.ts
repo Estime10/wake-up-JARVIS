@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import { actionProposalSchema, type ActionProposal } from "@/lib/schemas";
 
 const expiresAt = "2026-11-02T12:00:00.000Z";
@@ -48,7 +46,3 @@ export const MOCK_ACTION_PROPOSALS: {
     expiresAt,
   }),
 };
-
-export const MOCK_ACTION_LIST: readonly ActionProposal[] = z
-  .array(actionProposalSchema)
-  .parse(Object.values(MOCK_ACTION_PROPOSALS));

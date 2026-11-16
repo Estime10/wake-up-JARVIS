@@ -2,7 +2,7 @@
  * Studio CLI local (stack Docker du repo) — jamais le dashboard cloud prod.
  * Une seule stack = toujours `/project/default` ; le schéma `public` suit le sync.
  */
-export const LOCAL_STUDIO_EDITOR_BASE =
+const LOCAL_STUDIO_EDITOR_BASE =
   "http://127.0.0.1:54323/project/default/editor";
 
 /**
