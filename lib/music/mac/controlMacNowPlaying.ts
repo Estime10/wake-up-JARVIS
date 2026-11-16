@@ -42,14 +42,15 @@ export async function controlMacNowPlaying(
     return { ok, snapshot: probeMacNowPlaying() };
   }
 
-  const ok = await togglePlayback(before);
+  const wantPlaying = !before.playing;
+  const ok = await togglePlayback(before, wantPlaying);
   const after = probeMacNowPlaying();
 
   return {
     ok,
     snapshot: {
       ...after,
-      playing: !before.playing,
+      playing: ok ? wantPlaying : after.playing,
       title: after.title || before.title,
       artist: after.artist || before.artist,
       source: after.source !== "none" ? after.source : before.source,
@@ -58,25 +59,30 @@ export async function controlMacNowPlaying(
   };
 }
 
-async function togglePlayback(before: NowPlayingSnapshot): Promise<boolean> {
-  const wantPlaying = !before.playing;
-
+async function togglePlayback(
+  before: NowPlayingSnapshot,
+  wantPlaying: boolean,
+): Promise<boolean> {
   if (!isDeezer(before)) {
     return false;
   }
 
   if (wantPlaying) {
-    const ok = clickDeezerPlaybackMenuItem("play");
-    await sleepMs(500);
-    return ok;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      clickDeezerPlaybackMenuItem("play");
+      await sleepMs(700);
+      if (probeMacNowPlaying().playing) {
+        return true;
+      }
+    }
+    return false;
   }
 
   let ok = false;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     ok = clickDeezerPlaybackMenuItem("pause");
     await sleepMs(450);
-    const now = probeMacNowPlaying();
-    if (!now.playing) {
+    if (!probeMacNowPlaying().playing) {
       return true;
     }
   }

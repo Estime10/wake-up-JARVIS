@@ -532,16 +532,31 @@ fn transport_sync(action: &str) -> Result<MusicTransportResult, String> {
                 }
                 Ok(MusicTransportResult { accepted, snapshot })
             } else {
-                // Play : média puis menu Deezer en fallback réel (pas court-circuit is_ok).
+                // Play : touche média d'abord (reprise Deezer fiable).
+                // Le menu « Lecture » peut renvoyer ok sans démarrer → ne pas
+                // court-circuiter la touche média.
                 let mut accepted = false;
                 let _ = post_system_media_key(16);
-                thread::sleep(Duration::from_millis(400));
-                let mid = probe_now_playing();
-                if mid.playing == want_playing {
+                thread::sleep(Duration::from_millis(900));
+                if probe_now_playing().playing == want_playing {
                     accepted = true;
-                } else if is_deezer && deezer_menu("play") {
-                    thread::sleep(Duration::from_millis(400));
-                    accepted = probe_now_playing().playing;
+                } else {
+                    for _ in 0..3 {
+                        if is_deezer {
+                            let _ = deezer_menu("play");
+                            thread::sleep(Duration::from_millis(500));
+                            if probe_now_playing().playing == want_playing {
+                                accepted = true;
+                                break;
+                            }
+                        }
+                        let _ = post_system_media_key(16);
+                        thread::sleep(Duration::from_millis(800));
+                        if probe_now_playing().playing == want_playing {
+                            accepted = true;
+                            break;
+                        }
+                    }
                 }
                 let mut snapshot = probe_now_playing();
                 if accepted {
