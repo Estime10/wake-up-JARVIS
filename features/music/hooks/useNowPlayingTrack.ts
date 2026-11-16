@@ -67,6 +67,10 @@ export function useNowPlayingTrack(): NowPlayingControls {
     };
 
     void pull();
+    // Bridge Tauri parfois prêt après le 1er paint — rappel rapide puis poll normal.
+    const bootId = window.setTimeout(() => {
+      void pull();
+    }, 300);
     const pollId = window.setInterval(() => {
       void pull();
     }, POLL_MS);
@@ -75,6 +79,7 @@ export function useNowPlayingTrack(): NowPlayingControls {
     return () => {
       cancelled = true;
       ac.abort();
+      window.clearTimeout(bootId);
       window.clearInterval(pollId);
       document.removeEventListener("visibilitychange", onVisibility);
     };

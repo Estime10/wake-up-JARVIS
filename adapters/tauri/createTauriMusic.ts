@@ -18,6 +18,7 @@ function isAbortError(error: unknown): boolean {
 
 /**
  * Music shell — probe + transport 100% locaux via Rust (ADR 0015).
+ * Échec invoke → null (poll continue), jamais de throw silencieux mortel.
  */
 export function createTauriMusic(): MusicPort {
   return {
@@ -36,7 +37,7 @@ export function createTauriMusic(): MusicPort {
         if (isAbortError(error)) {
           return null;
         }
-        throw error;
+        return null;
       }
     },
 
@@ -61,7 +62,7 @@ export function createTauriMusic(): MusicPort {
         if (isAbortError(error)) {
           return null;
         }
-        throw error;
+        return null;
       }
     },
   };

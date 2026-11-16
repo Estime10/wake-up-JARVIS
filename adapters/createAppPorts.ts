@@ -48,12 +48,26 @@ function createAppVoice(): VoicePort {
   return withVoiceMute(base);
 }
 
+/**
+ * Music : décide Tauri vs HTTP à chaque appel.
+ * `isTauri()` au boot `useState` peut être faux avant injection du bridge
+ * → sinon on reste collé sur l’API Vercel (idle Linux).
+ */
 function createAppMusic(): MusicPort {
-  // Shell packagé : probe/transport locaux Rust (pas l’API Vercel Linux).
-  if (isTauri()) {
-    return createTauriMusic();
-  }
-  return createHttpMusic();
+  const tauri = createTauriMusic();
+  const http = createHttpMusic();
+  return {
+    getNowPlaying(signal) {
+      return isTauri()
+        ? tauri.getNowPlaying(signal)
+        : http.getNowPlaying(signal);
+    },
+    transport(action, signal) {
+      return isTauri()
+        ? tauri.transport(action, signal)
+        : http.transport(action, signal);
+    },
+  };
 }
 
 /**
