@@ -576,7 +576,6 @@ export const fr = {
   },
   music: {
     nowPlayingLabel: "Lecture en cours",
-    progressLabel: "Progression de la piste",
     previous: "Piste précédente",
     next: "Piste suivante",
     play: "Lecture",
@@ -585,6 +584,9 @@ export const fr = {
     playGlyph: "▶",
     pauseGlyph: "❚❚",
     nextGlyph: "››",
+    idleArtist: "—",
+    idleTitle: "Silence",
+    sourceLabel: "Source",
   },
 } as const;
 

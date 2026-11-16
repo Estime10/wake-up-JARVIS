@@ -1,28 +1,25 @@
 "use client";
 
-import { useState } from "react";
-
 import { NowPlayingMeta } from "@/features/music/components/NowPlayingMeta";
-import { NowPlayingTimeline } from "@/features/music/components/NowPlayingTimeline";
+import { NowPlayingSource } from "@/features/music/components/NowPlayingSource";
 import { NowPlayingTransport } from "@/features/music/components/NowPlayingTransport";
-import { MOCK_NOW_PLAYING_TRACK } from "@/features/music/model/mockNowPlayingTrack";
-import type { NowPlayingTrack } from "@/features/music/model/nowPlayingTrack";
+import { useNowPlayingTrack } from "@/features/music/hooks/useNowPlayingTrack";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/t";
 
 type NowPlayingCardProps = {
-  track?: NowPlayingTrack;
   className?: string;
 };
 
 /**
- * Orchestrateur chrome musique — compose meta / timeline / transport.
+ * Orchestrateur chrome musique — live macOS : titre + source + transport.
  */
-export function NowPlayingCard({
-  track = MOCK_NOW_PLAYING_TRACK,
-  className,
-}: NowPlayingCardProps) {
-  const [playing, setPlaying] = useState(track.playing);
+export function NowPlayingCard({ className }: NowPlayingCardProps) {
+  const track = useNowPlayingTrack();
+  const identity = {
+    title: track.title || t("music.idleTitle"),
+    artist: track.artist || t("music.idleArtist"),
+  };
 
   return (
     <section
@@ -32,12 +29,12 @@ export function NowPlayingCard({
       )}
       aria-label={t("music.nowPlayingLabel")}
     >
-      <NowPlayingMeta identity={track} />
-      <NowPlayingTimeline playback={{ ...track, playing }} />
+      <NowPlayingMeta identity={identity} />
+      <NowPlayingSource source={track.source} />
       <NowPlayingTransport
-        playing={playing}
+        playing={track.playing}
         onTogglePlay={() => {
-          setPlaying((prev) => !prev);
+          // Contrôle source (Deezer/YT) — pas encore branché.
         }}
       />
     </section>

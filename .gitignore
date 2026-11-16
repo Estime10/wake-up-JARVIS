@@ -53,6 +53,9 @@ next-env.d.ts
 tmp/
 bootstrap.log
 
+# Logs locaux (diagnostic audio, etc.)
+/logs/
+
 # Supabase CLI local (link + sync schéma Studio)
 supabase/.temp/
 supabase/snippets/

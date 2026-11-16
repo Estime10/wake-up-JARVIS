@@ -4,13 +4,14 @@ type NowPlayingMetaProps = {
   identity: NowPlayingIdentity;
 };
 
-/** Ligne artiste — titre. */
+/** Titre au-dessus, artiste en dessous. */
 export function NowPlayingMeta({ identity }: NowPlayingMetaProps) {
   return (
-    <p className="t-content truncate text-center leading-snug">
-      {identity.artist}
-      <span aria-hidden> — </span>
-      {identity.title}
-    </p>
+    <div className="flex min-w-0 flex-col items-center gap-1 text-center">
+      <p className="t-content w-full truncate leading-snug">{identity.title}</p>
+      <p className="t-content w-full truncate text-sm leading-snug text-text/70">
+        {identity.artist}
+      </p>
+    </div>
   );
 }
