@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ownerAccessDeniedResponse } from "@/lib/auth/ownerAccessResponse";
 import { requireOwnerAccess } from "@/lib/auth/requireOwnerAccess";
+import { assertSameOrigin } from "@/lib/http/assertSameOrigin";
 import { createLogger } from "@/lib/logger";
 import { controlMacNowPlaying } from "@/lib/music/mac/controlMacNowPlaying";
 import { musicTransportRequestSchema } from "@/lib/music/musicTransportAction";
@@ -12,11 +13,21 @@ const log = createLogger("api.music.transport");
 
 /**
  * Transport Now Playing hôte — toggle / next / previous.
+ * Fallback web/dev ; le shell packagé passe par invoke Rust.
  */
 export async function POST(request: NextRequest) {
   const access = await requireOwnerAccess();
   if (!access.ok) {
     return ownerAccessDeniedResponse(access);
+  }
+
+  try {
+    assertSameOrigin(request);
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "origin_mismatch" },
+      { status: 403 },
+    );
   }
 
   const parsed = musicTransportRequestSchema.safeParse(
