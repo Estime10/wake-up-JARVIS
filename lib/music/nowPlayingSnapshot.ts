@@ -15,6 +15,8 @@ export const nowPlayingSnapshotSchema = z.object({
   source: nowPlayingSourceSchema,
   title: z.string(),
   artist: z.string(),
+  /** Nom process hôte (ex. Brave Browser) — utile pour le transport. */
+  app: z.string(),
 });
 
 export type NowPlayingSnapshot = z.infer<typeof nowPlayingSnapshotSchema>;

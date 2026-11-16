@@ -59,3 +59,6 @@ bootstrap.log
 # Supabase CLI local (link + sync schéma Studio)
 supabase/.temp/
 supabase/snippets/
+
+# Media key helper (compiled locally)
+lib/music/mac/.sendSystemMediaKey

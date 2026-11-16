@@ -15,7 +15,7 @@ type NowPlayingCardProps = {
  * Orchestrateur chrome musique — live macOS : titre + source + transport.
  */
 export function NowPlayingCard({ className }: NowPlayingCardProps) {
-  const track = useNowPlayingTrack();
+  const { track, togglePlay, next, previous } = useNowPlayingTrack();
   const identity = {
     title: track.title || t("music.idleTitle"),
     artist: track.artist || t("music.idleArtist"),
@@ -33,9 +33,9 @@ export function NowPlayingCard({ className }: NowPlayingCardProps) {
       <NowPlayingSource source={track.source} />
       <NowPlayingTransport
         playing={track.playing}
-        onTogglePlay={() => {
-          // Contrôle source (Deezer/YT) — pas encore branché.
-        }}
+        onTogglePlay={togglePlay}
+        onNext={next}
+        onPrevious={previous}
       />
     </section>
   );

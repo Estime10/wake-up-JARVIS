@@ -54,6 +54,7 @@ export function probeMacNowPlaying(): NowPlayingSnapshot {
       source: "deezer",
       title: track?.title ?? "",
       artist: track?.artist ?? "",
+      app: top.app,
     };
   }
 
@@ -64,6 +65,7 @@ export function probeMacNowPlaying(): NowPlayingSnapshot {
       source: "youtube",
       title: parsed.title,
       artist: parsed.artist,
+      app: top.app,
     };
   }
 
@@ -73,6 +75,7 @@ export function probeMacNowPlaying(): NowPlayingSnapshot {
       source: "browser",
       title: top.detail.replace(/^[a-z]+:\s*/i, "").trim(),
       artist: "",
+      app: top.app,
     };
   }
 
@@ -86,6 +89,7 @@ export function probeMacNowPlaying(): NowPlayingSnapshot {
     source,
     title: "",
     artist: "",
+    app: top.app,
   };
 }
 
@@ -95,5 +99,6 @@ function idleSnapshot(): NowPlayingSnapshot {
     source: "none",
     title: "",
     artist: "",
+    app: "",
   };
 }
