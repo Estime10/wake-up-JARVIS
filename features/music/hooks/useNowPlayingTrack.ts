@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { usePorts } from "@/app/ports-context";
 import type { NowPlayingSnapshot } from "@/features/music/model/nowPlayingSnapshot";
 import type { NowPlayingView } from "@/features/music/model/nowPlayingView";
 import { nowPlayingSnapshotSchema } from "@/lib/music/nowPlayingSnapshot";
-import type { MusicTransportAction } from "@/lib/music/musicTransportAction";
 
 const POLL_MS = 2000;
-/** Garde l'état play/pause optimiste le temps que le probe se stabilise. */
-const PLAYING_PIN_MS = 2500;
 
 const IDLE_SNAPSHOT: NowPlayingSnapshot = {
   playing: false,
@@ -22,43 +19,26 @@ const IDLE_SNAPSHOT: NowPlayingSnapshot = {
 
 export type NowPlayingControls = {
   track: NowPlayingView;
-  togglePlay: () => void;
-  next: () => void;
-  previous: () => void;
 };
 
-/** Poll Now Playing hôte + actions transport (via MusicPort). */
+/** Poll Now Playing hôte (lecture seule — pas de transport UI). */
 export function useNowPlayingTrack(): NowPlayingControls {
   const { music } = usePorts();
   const [snapshot, setSnapshot] = useState<NowPlayingSnapshot>(IDLE_SNAPSHOT);
-  const lockRef = useRef(false);
-  const playingPinRef = useRef<{ playing: boolean; until: number } | null>(
-    null,
-  );
 
   useEffect(() => {
     let cancelled = false;
     const ac = new AbortController();
 
-    const applySnapshot = (next: NowPlayingSnapshot) => {
-      const pin = playingPinRef.current;
-      if (pin && Date.now() < pin.until) {
-        setSnapshot({ ...next, playing: pin.playing });
-        return;
-      }
-      playingPinRef.current = null;
-      setSnapshot(next);
-    };
-
     const pull = async () => {
-      if (lockRef.current || document.hidden) {
+      if (document.hidden) {
         return;
       }
       const next = await music.getNowPlaying(ac.signal);
       if (cancelled || !next) {
         return;
       }
-      applySnapshot(next);
+      setSnapshot(next);
     };
 
     const onVisibility = () => {
@@ -67,19 +47,17 @@ export function useNowPlayingTrack(): NowPlayingControls {
       }
     };
 
-    // Push Rust → WebView (CustomEvent) : ne dépend pas de invoke/CSP ipc.localhost.
     const onNativePush = (event: Event) => {
       const detail = (event as CustomEvent<unknown>).detail;
       const parsed = nowPlayingSnapshotSchema.safeParse(detail);
       if (cancelled || !parsed.success) {
         return;
       }
-      applySnapshot(parsed.data);
+      setSnapshot(parsed.data);
     };
     window.addEventListener("elsa-now-playing", onNativePush);
 
     void pull();
-    // Bridge Tauri parfois prêt après le 1er paint — rappel rapide puis poll normal.
     const bootId = window.setTimeout(() => {
       void pull();
     }, 300);
@@ -98,51 +76,12 @@ export function useNowPlayingTrack(): NowPlayingControls {
     };
   }, [music]);
 
-  const run = (action: MusicTransportAction) => {
-    if (lockRef.current) {
-      return;
-    }
-    void (async () => {
-      lockRef.current = true;
-      if (action === "toggle") {
-        setSnapshot((prev) => {
-          const nextPlaying = !prev.playing;
-          playingPinRef.current = {
-            playing: nextPlaying,
-            until: Date.now() + PLAYING_PIN_MS,
-          };
-          return { ...prev, playing: nextPlaying };
-        });
-      }
-      try {
-        const result = await music.transport(action);
-        if (result?.accepted) {
-          playingPinRef.current = null;
-          setSnapshot(result.snapshot);
-        } else if (action === "toggle") {
-          playingPinRef.current = null;
-        }
-      } finally {
-        lockRef.current = false;
-      }
-    })();
-  };
-
   return {
     track: {
       title: snapshot.title,
       artist: snapshot.artist,
       playing: snapshot.playing,
       source: snapshot.source,
-    },
-    togglePlay: () => {
-      run("toggle");
-    },
-    next: () => {
-      run("next");
-    },
-    previous: () => {
-      run("previous");
     },
   };
 }
