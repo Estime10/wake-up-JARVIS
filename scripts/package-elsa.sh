@@ -61,6 +61,8 @@ echo "== install → ${APP_DEST} =="
 mkdir -p "$APPS_DIR"
 rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
+# Ne pas re-signer ad-hoc ici : ça change l’identité code et invalide
+# Accessibility / Automatisation TCC (play/pause + Now Playing cassés).
 echo "Installé → ${APP_DEST}"
 
 # Ne pas laisser d’artefacts packaging dans le monorepo.
