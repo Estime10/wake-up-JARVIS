@@ -45,23 +45,45 @@ fn run_cmd(program: &str, args: &[&str], timeout: Duration) -> Result<String, St
         .spawn()
         .map_err(|e| format!("spawn_failed:{program}:{e}"))?;
 
-    let (tx, rx) = mpsc::channel();
+    let (tx_out, rx_out) = mpsc::channel();
+    let (tx_err, rx_err) = mpsc::channel();
     let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
     thread::spawn(move || {
         let mut buf = String::new();
         if let Some(mut out) = stdout {
             let _ = out.read_to_string(&mut buf);
         }
-        let _ = tx.send(buf);
+        let _ = tx_out.send(buf);
+    });
+    thread::spawn(move || {
+        let mut buf = String::new();
+        if let Some(mut err) = stderr {
+            let _ = err.read_to_string(&mut buf);
+        }
+        let _ = tx_err.send(buf);
     });
 
     let started = std::time::Instant::now();
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
-                let stdout = rx.recv_timeout(Duration::from_millis(200)).unwrap_or_default();
+                let stdout = rx_out
+                    .recv_timeout(Duration::from_millis(200))
+                    .unwrap_or_default();
+                let stderr = rx_err
+                    .recv_timeout(Duration::from_millis(200))
+                    .unwrap_or_default();
                 if !status.success() && stdout.trim().is_empty() {
-                    return Err(format!("exit_{}", status.code().unwrap_or(-1)));
+                    let err = stderr.trim().replace('\n', " ");
+                    if err.is_empty() {
+                        return Err(format!("exit_{}", status.code().unwrap_or(-1)));
+                    }
+                    return Err(format!(
+                        "exit_{}:{}",
+                        status.code().unwrap_or(-1),
+                        err
+                    ));
                 }
                 return Ok(stdout);
             }
@@ -386,7 +408,12 @@ fn probe_now_playing() -> NowPlayingSnapshot {
         if deezer_state == "playing"
             || (deezer_in_pmset && deezer_state != "paused")
         {
-            let (title, artist) = track.clone().unwrap_or_else(|| (String::new(), String::new()));
+            let (mut title, artist) =
+                track.clone().unwrap_or_else(|| (String::new(), String::new()));
+            // Sans Automatisation, les menus Deezer sont vides — afficher au moins la source.
+            if title.is_empty() {
+                title = "Lecture Deezer".into();
+            }
             return NowPlayingSnapshot {
                 playing: true,
                 source: "deezer".into(),
@@ -621,8 +648,36 @@ pub fn start_now_playing_push(app: tauri::AppHandle) {
         ));
         if let Some(win) = app.get_webview_window("main") {
             if let Ok(json) = serde_json::to_string(&snap) {
+                // Hook + patch DOM : survit même si invoke/CSP cassés et sans
+                // redeploy Vercel (React remonte « Silence » → MutationObserver).
                 let script = format!(
-                    "(function(){{try{{window.dispatchEvent(new CustomEvent('elsa-now-playing',{{detail:{json}}}));}}catch(_e){{}}}})();"
+                    r#"(function(){{
+  var d={json};
+  if(!window.__ELSA_NP_HOOK__){{
+    window.__ELSA_NP_HOOK__=true;
+    window.__ELSA_NP__=null;
+                window.__ELSA_NP_APPLY__=function(x){{
+      if(!x||x.source==='none')return;
+      if(!x.title)x.title='Lecture en cours';
+      window.__ELSA_NP__=x;
+      try{{window.dispatchEvent(new CustomEvent('elsa-now-playing',{{detail:x}}));}}catch(_e){{}}
+      var root=document.querySelector('[data-home="now-playing"]');
+      if(!root)return;
+      var ps=root.querySelectorAll('p.t-content');
+      if(ps[0])ps[0].textContent=x.title;
+      if(ps[1])ps[1].textContent=x.artist||'';
+      var src=root.querySelector('p.t-mono');
+      if(src){{
+        var labels={{deezer:'Deezer',youtube:'YouTube',spotify:'Spotify',apple_music:'Apple Music',browser:'Navigateur',other:'Autre',none:''}};
+        src.textContent=labels[x.source]||x.source||'';
+      }}
+    }};
+    new MutationObserver(function(){{
+      if(window.__ELSA_NP__)window.__ELSA_NP_APPLY__(window.__ELSA_NP__);
+    }}).observe(document.documentElement,{{childList:true,subtree:true}});
+  }}
+  window.__ELSA_NP_APPLY__(d);
+}})();"#
                 );
                 let _ = win.eval(&script);
             }
